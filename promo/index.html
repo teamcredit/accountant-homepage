@@ -1,0 +1,2268 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>MERIDIAN — 회계사가 정리한 자료를 한 화면에서 보는 세무 대시보드</title>
+<meta name="description" content="홈택스·카드·통장 자료가 매일 자동으로 모입니다. 회계사가 검토한 숫자를 사장님이 직접 봅니다.">
+
+<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+<!-- 본문: Pretendard. 제목: Wanted Sans.
+     Pretendard 의 영문은 Inter 기반이라 제목까지 쓰면 밋밋해진다.
+     제목만 각진 Wanted Sans 로 대비를 준다. -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/wanteddev/wanted-sans@v1.0.3/packages/wanted-sans/fonts/webfonts/variable/split/WantedSansVariable.css">
+
+<style>
+/* ══════════════════════════════════════════════════════════════
+   MERIDIAN 세무 대시보드 — 홍보 홈
+   방향: 흰 종이 위의 파란 데이터.
+   밝고 넓다. 산세리프만. 신뢰의 블루. 검정은 반전 구간에만.
+   ══════════════════════════════════════════════════════════════ */
+
+:root {
+  --w:      #FFFFFF;
+  --w-2:    #F4F7FC;   /* 옅은 면 */
+  --w-3:    #E4EBF5;   /* 선·구분 */
+
+  /* 먹색. 메리디안 본가와 같은 순흑이다. 흐리게 쓰지 않는다. */
+  --navy:   #000000;
+  --navy-2: #111111;
+  --navy-3: #000000;
+
+  --tx:     #000000;   /* 본문. 순흑 */
+  --tx-2:   #4D4D4D;   /* 보조 */
+  --blue:   #1668D4;   /* 포인트. 메리디안 코발트 */
+  --blue-d: #0F4FA8;
+  --blue-b: #2080F5;   /* 본가 accent-bright */   /* 진한 바탕 위에서 쓰는 밝은 파랑 */
+  --blue-l: #E9F0FD;   /* 파란 옅은 면 */
+  --up:     #0E7C5A;
+  --down:   #B4453C;
+
+  /* 위계 = 1.618배 */
+  --t--1: 0.75rem;    /* 12px */
+  --t-0:  0.875rem;   /* 14px */
+  --t-1:  1rem;       /* 16px */
+  --t-2:  1.618rem;   /* 25.9px */
+  --t-3:  2.618rem;   /* 41.9px */
+  --t-4:  4.236rem;   /* 67.8px */
+
+  --s1:8px; --s2:12px; --s3:16px; --s4:24px; --s5:32px; --s6:64px; --s7:104px;
+
+  --wrap: 1280px;                    /* 메리디안 본가와 같은 폭 */
+  --pad: clamp(20px, 4vw, 40px);
+  --sans: "Pretendard Variable", Pretendard, -apple-system, sans-serif;
+  --disp: "Wanted Sans Variable", "Wanted Sans", var(--sans);
+  --mono: ui-monospace, "SF Mono", Menlo, monospace;
+  --r: 14px;
+
+  color-scheme: light;
+}
+
+* { box-sizing: border-box; }
+/* 부드러운 스크롤은 Lenis 가 맡는다(본가와 같은 설정).
+   그래서 scroll-behavior 는 쓰지 않는다 — 둘이 겹치면 끊긴다. */
+html.lenis, html.lenis body { height: auto; }
+.lenis.lenis-smooth { scroll-behavior: auto !important; }
+.lenis.lenis-stopped { overflow: hidden; }
+/* Lenis 가 없을 때만(움직임 최소화 설정 등) 기본 스크롤을 쓴다 */
+html:not(.lenis) { scroll-behavior: smooth; }
+@media (prefers-reduced-motion: reduce) { html:not(.lenis) { scroll-behavior: auto; } }
+
+body {
+  margin: 0; background: var(--w); color: var(--tx);
+  font-family: var(--sans); font-size: var(--t-1); line-height: 1.7;
+  -webkit-font-smoothing: antialiased; overflow-x: hidden;
+}
+
+.wrap { max-width: var(--wrap); margin-inline: auto; padding-inline: var(--pad); position: relative; }
+
+h1,h2,h3 { margin: 0; font-family: var(--disp); font-weight: 700; letter-spacing: -.035em; line-height: 1.2; }
+.slab q, .bignum b, .stat b, .brand b { font-family: var(--disp); }
+p { margin: 0; }
+a { color: inherit; }
+img { max-width: 100%; display: block; }
+
+/* 한글 줄바꿈 규칙.
+   1) <br> 안 쓴다.
+   2) keep-all 이 있어야 어절 중간에서 안 잘린다.
+   3) balance 는 쓰지 않는다 — 줄 길이를 억지로 맞추느라 한 글자씩 끊는다.
+   4) 끊는 자리는 마침표 > 쉼표 > 어절 순으로 우선한다.
+      마침표·쉼표 자리는 .s / .c 로 묶어서 그 덩어리째 넘긴다. */
+h1,h2,h3,blockquote,q { word-break: keep-all; text-wrap: pretty; }
+p,li,.lede { word-break: keep-all; text-wrap: pretty; }
+
+/* 줄 끊는 자리 정하는 법 (디렉션)
+   ─ 우선순위: ① 마침표 ② 쉼표 ③ 연결어미(~하고 ~두고 ~에서 ~까지 ~면)
+   ─ 짧으면(대략 30자 이하) 그냥 한 줄로 둔다. 억지로 안 나눈다.
+   ─ 조사·어미 중간, 명사 중간에서는 절대 안 끊는다.
+   ─ 묶음(.s/.c)끼리는 CSS 여백으로 띄운다. 마크업에 공백 문자를 넣지 않는다
+     (넣으면 줄 앞머리에 빈칸이 생긴다). */
+.s, .c { display: inline-block; }
+/* 여백은 뒤쪽에 준다. margin-left 로 주면 줄이 바뀔 때
+   그 빈칸이 새 줄 앞머리에 남아 한 칸 밀려 보인다. */
+.s:not(:last-child), .c:not(:last-child) { padding-right: .3em; }
+
+/* 숫자는 대시보드와 같은 방식 — Pretendard + tabular-nums.
+   고정폭(mono)은 날짜·D-day 같은 메타 정보에만 쓴다. */
+.num { font-variant-numeric: tabular-nums; letter-spacing: -.02em; }
+.mono { font-variant-numeric: tabular-nums; }
+
+/* 파란 마침표. 메리디안 본가에서 쓰는 표시다. 문장 끝에 점 하나만 색을 준다. */
+.dot-b { color: var(--blue); font-weight: 900; display: inline-block; line-height: 1; }
+.invert .dot-b { color: #2080F5; }
+
+/* 구분은 박스가 아니라 선으로. 테두리를 두르면 화면이 무거워진다. */
+.hr { border: 0; border-top: 1px solid var(--w-3); margin: 0; }
+.invert .hr { border-top-color: #262626; }
+
+:focus-visible { outline: 2px solid var(--blue); outline-offset: 3px; border-radius: 4px; }
+
+/* 눈금 라벨 */
+.tick {
+  display: inline-flex; align-items: center; gap: 8px;
+  font-size: var(--t--1); font-weight: 700; letter-spacing: .12em;
+  text-transform: uppercase; color: var(--blue);
+}
+.tick::before { content: ""; width: 20px; height: 2px; background: var(--blue); border-radius: 2px; }
+
+/* 섹션 간격. 안에 두 덩어리 이상 들어가면 더 넉넉히 준다. */
+section { padding: clamp(96px, 13vh, 150px) 0; }
+section > .wrap > .lede + * { margin-top: var(--s6); }
+#svc, #vs, #insight, #who { padding-block: clamp(112px, 15vh, 176px); }
+h2.sec { font-size: clamp(1.9rem, 4.4vw, var(--t-3)); margin-top: var(--s3); max-width: 20ch; }
+.lede { font-size: var(--t-2); color: var(--tx-2); max-width: 40ch; margin-top: var(--s4); line-height: 1.5; font-weight: 400; }
+
+/* 반전 구간. 짙은 남색. 위쪽으로 은은한 빛을 준다. */
+/* overflow:hidden 을 쓰면 안쪽 sticky 가 죽는다. clip 은 그렇지 않다. */
+.invert {
+  background: var(--navy); color: #FFFFFF; position: relative; overflow: clip;
+}
+.invert::before {
+  content: ""; position: absolute; inset: -30% -10% auto; height: 90%;
+  background: radial-gradient(58% 66% at 50% 0%, rgba(32,128,245,.20), transparent 72%);
+  pointer-events: none; z-index: 0;
+}
+/* 내용이 빛 위로 오게 한다. position 은 건드리지 않는다 —
+   sticky 를 relative 로 덮어쓰면 고정 스크롤이 죽는다. */
+.invert > * { z-index: 1; }
+.invert .lede { color: #A8A8A8; }
+.invert .tick { color: #2080F5; }
+.invert .tick::before { background: #2080F5; }
+
+/* 진한 바탕 위에 뜨는 흰 카드. 참고 3장의 핵심 문법. */
+.float {
+  background: var(--w); color: var(--tx);
+  border-radius: 18px; padding: var(--s5);
+  box-shadow: 0 30px 60px -30px rgba(6,14,50,.55);
+}
+/* 진한 바탕 위에 뜨는 반투명 카드 */
+.glass-none {
+  background: rgba(255,255,255,.055);
+  border: 1px solid rgba(255,255,255,.12);
+  border-radius: 18px; padding: var(--s5);
+}
+
+/* ── 헤더 ─────────────────────────────────── */
+header {
+  position: fixed; inset: 0 0 auto; z-index: 60;
+  background: color-mix(in srgb, var(--w) 88%, transparent);
+  backdrop-filter: blur(14px); border-bottom: 1px solid transparent;
+  transition: border-color .3s, background .3s;
+}
+header.stuck { border-bottom-color: var(--w-3); }
+.hbar { display: flex; align-items: center; justify-content: space-between; height: 66px; }
+.brand { display: flex; align-items: center; gap: 9px; text-decoration: none; }
+.brand img { width: 28px; height: 28px; }
+.brand b { font-family: var(--disp); font-weight: 800; font-size: var(--t-1); letter-spacing: -.02em; }
+.hnav { display: flex; gap: var(--s4); font-size: var(--t--1); font-weight: 600; letter-spacing: .08em; }
+.hnav a { color: var(--tx-2); text-decoration: none; transition: color .2s; }
+.hnav a:hover { color: var(--blue); }
+.hnav a[aria-current="page"] { color: var(--tx); }
+@media (max-width: 1080px) { .hnav { display: none; } }
+
+/* ── 버튼 ─────────────────────────────────── */
+/* CTA. 움직임은 색 하나만. 그림자·떠오름·화살표를 겹치면 싸구려가 된다. */
+.btn {
+  display: inline-flex; align-items: center; gap: 8px;
+  border-radius: 10px; text-decoration: none; font-weight: 600;
+  font-size: var(--t-1); padding: 14px 24px; border: 1px solid transparent;
+  transition: background .18s ease, border-color .18s ease, color .18s ease;
+  white-space: nowrap;
+}
+.btn-fill { background: var(--blue); color: #fff; }
+.btn-fill:hover { background: var(--blue-d); }
+.btn-line { border-color: var(--w-3); color: var(--tx); }
+.btn-line:hover { border-color: var(--tx-2); }
+.invert .btn-line { border-color: #333333; color: #FFFFFF; }
+.invert .btn-line:hover { border-color: #FFFFFF; }
+
+.hcta { font-size: var(--t-0); padding: 9px 16px; }
+.cta-note { margin-top: var(--s3); font-size: var(--t-0); color: var(--tx-2); }
+
+/* ── 1. 히어로 ────────────────────────────── */
+/* overflow:hidden 을 쓰면 안쪽 sticky 가 죽는다. clip 은 그렇지 않다. */
+.hero { padding-top: calc(66px + var(--s6)); padding-bottom: 0; overflow: clip; }
+.hero h1 { font-size: clamp(2.1rem, 5.2vw, 3.5rem); max-width: 16ch; margin-top: var(--s4); }
+.hero-sub b { color: var(--tx); font-weight: 700; }
+.hero-sub { margin-top: var(--s4); max-width: 36ch; font-size: var(--t-2); color: var(--tx-2); line-height: 1.5; }
+.hero-cta { display: flex; flex-wrap: wrap; gap: var(--s2); margin-top: var(--s5); }
+
+/* 히어로 아래 실제 대시보드 화면.
+   애플처럼: 스크롤을 내리면 눕혀져 있던 화면이 일어서면서 커진다. */
+/* 화면이 붙어 있는 동안 스크롤이 지나간다. 그동안 안쪽이 흐르고 쪽지가 뜬다.
+   본문 폭보다 일부러 넓게 뺀다 — 화면이 아래로도 옆으로도 계속 이어진다는 뜻이다.
+   그 외에는 본문 폭 밖으로 나가지 않는다. */
+/* 대시보드 화면 구간.
+   치수를 정확히 잡는다 — 헤더 66 + 위아래 여백 24씩 = 114.
+   화면은 그 나머지를 정확히 채운다. 기울이지 않고, 흐리게 하지 않는다.
+   붙어 있는 동안 스크롤이 지나가며 조각이 하나씩 짚어진다. */
+.stage {
+  margin-top: var(--s6); height: 400vh;
+  margin-inline: calc(var(--pad) * -1);
+}
+.stage > .shot {
+  position: sticky; top: 82px;                 /* 헤더 66 + 24 */
+  height: calc(100svh - 114px);                /* 위 90 + 아래 24 */
+  display: flex; flex-direction: column;
+}
+.shot {
+  border-radius: var(--r); overflow: hidden;
+  border: 1px solid var(--w-3);
+  background: var(--w);
+  box-shadow: 0 24px 60px -34px rgba(0,0,0,.28);
+}
+/* 대시보드 첫 화면을 그대로 보여준다. 스크롤에 맞춰 카드가 하나씩
+   확대되며 무엇인지 설명한다. 흐르지 않는다 — 딱딱 짚어준다. */
+/* 대시보드 화면. 틀 안에 통째로 들어간다 — 잘리지 않는다.
+   이미지가 세로로 길어서 위쪽(중요한 부분)만 보이게 맞춘다. */
+.shot-win {
+  position: relative; flex: 1; min-height: 0;
+  border-radius: var(--r) var(--r) 0 0; overflow: hidden;
+  background: var(--w);
+}
+/* 조각이 뜰 때 뒤 화면은 물러난다 */
+.shot-win > .db { transition: opacity .45s ease; }
+.shot-win.zoom > .db { opacity: .1; }
+
+/* ── 히어로 대시보드. 실제 홈 화면을 요소로 그린다. ────── */
+.db { height: 100%; overflow: hidden; display: grid; grid-template-columns: 190px 1fr; background: #F7F8FB; text-align: left; }
+
+/* 왼쪽 메뉴 */
+.db-side { background: var(--w); border-right: 1px solid var(--w-3); padding: var(--s4) var(--s3); overflow: hidden; }
+.db-brand { font-family: var(--disp); font-size: 13px; font-weight: 800; letter-spacing: .04em; line-height: 1.25; }
+.db-brand span { display: block; font-size: 8px; font-weight: 600; color: var(--tx-2); letter-spacing: .12em; }
+.db-side .db-co { font-size: 12px; font-weight: 700; margin-top: var(--s3); }
+.db-gr { font-size: 9px; font-weight: 700; letter-spacing: .1em; color: #9AA2AF; margin-top: var(--s3); }
+.db-mi { font-size: 11.5px; color: var(--tx-2); padding: 6px 9px; border-radius: 7px; margin-top: 1px; }
+.db-mi.on { background: #14161A; color: #fff; font-weight: 600; }
+
+/* 오른쪽 본문 */
+.db-main { display: flex; flex-direction: column; min-width: 0; }
+.db-bar { display: flex; align-items: center; gap: var(--s2); padding: 11px var(--s4); background: var(--w); border-bottom: 1px solid var(--w-3); flex: none; }
+.db-pick { display: inline-flex; align-items: center; gap: 6px; font-size: 11.5px; font-weight: 600; border: 1px solid var(--w-3); border-radius: 999px; padding: 5px 12px; }
+.db-pick i, .db-live i { width: 6px; height: 6px; border-radius: 50%; background: var(--blue); }
+.db-search { flex: 1; max-width: 300px; display: flex; align-items: center; gap: 8px; font-size: 11.5px; color: #9AA2AF; border: 1px solid var(--w-3); border-radius: 999px; padding: 5px 14px; }
+.db-search b { margin-left: auto; font-size: 9.5px; color: #B4BAC5; }
+.db-live { margin-left: auto; display: inline-flex; align-items: center; gap: 6px; font-size: 11px; color: var(--up); background: #E9F5F0; border-radius: 999px; padding: 5px 11px; font-variant-numeric: tabular-nums; }
+.db-live i { background: var(--up); }
+
+.db-body { padding: var(--s4); overflow: hidden; flex: 1; min-height: 0; }
+.db-eyebrow { font-size: 10.5px; font-weight: 800; letter-spacing: .06em; color: var(--blue); }
+.db-h1row { display: flex; align-items: center; gap: var(--s3); margin-top: 3px; }
+.db-h1row h3 { font-family: var(--disp); font-size: 21px; font-weight: 800; letter-spacing: -.04em; }
+.db-seg { margin-left: auto; display: flex; gap: 2px; background: var(--w); border: 1px solid var(--w-3); border-radius: 999px; padding: 3px; }
+.db-seg span { font-size: 10.5px; color: var(--tx-2); padding: 4px 9px; border-radius: 999px; white-space: nowrap; }
+.db-seg span.on { background: #14161A; color: #fff; font-weight: 700; }
+.db-tagline { margin-top: 7px; font-size: 11px; color: var(--tx-2); }
+.db-tagline b { background: var(--blue-l); color: var(--blue-d); font-weight: 700; padding: 3px 9px; border-radius: 999px; margin-right: 6px; }
+
+.db-card { background: var(--w); border: 1px solid var(--w-3); border-radius: 12px; padding: var(--s3) var(--s4); margin-top: var(--s3); }
+.db-ey { font-size: 9.5px; font-weight: 800; letter-spacing: .08em; color: var(--blue); }
+.db-ct { font-size: 14px; font-weight: 700; margin-top: 2px; }
+.db-cs { font-size: 10.5px; color: var(--tx-2); margin-top: 2px; }
+.db-cells { display: grid; grid-template-columns: repeat(6,1fr); gap: 7px; margin-top: var(--s3); }
+.db-cells > div { background: #F7F8FB; border-radius: 9px; padding: 9px 11px; }
+.db-cells .k { font-size: 10px; color: var(--tx-2); }
+.db-cells .v { font-size: 15px; font-weight: 800; letter-spacing: -.03em; margin-top: 2px; font-variant-numeric: tabular-nums; }
+.db-cells .m { font-size: 9.5px; color: #A6ADBA; }
+
+.db-row3 { display: grid; grid-template-columns: repeat(3,1fr); gap: var(--s3); }
+.db-row3 .db-card { margin-top: var(--s3); }
+.db-card.sm .k2 { font-size: 10.5px; font-weight: 700; color: var(--blue); }
+.db-card .k2 { font-size: 11.5px; font-weight: 700; }
+.db-card .v2 { font-size: 13.5px; font-weight: 800; letter-spacing: -.03em; margin-top: 3px; font-variant-numeric: tabular-nums; }
+.db-card .m2 { font-size: 10px; color: var(--tx-2); margin-top: 4px; }
+.db-card .v4 { font-size: 19px; font-weight: 800; letter-spacing: -.04em; margin-top: 3px; font-variant-numeric: tabular-nums; }
+.db-card .li { display: flex; justify-content: space-between; gap: var(--s2); font-size: 10.5px; margin-top: 4px; }
+
+.db-row2 { display: grid; grid-template-columns: 1fr 1.25fr; gap: var(--s3); }
+.db-vat {
+  border-radius: 12px; padding: var(--s4); margin-top: var(--s3); color: #fff;
+  background: linear-gradient(120deg, #3B45D6, #5B5FE8);
+}
+.db-vat .k3 { font-size: 11.5px; font-weight: 700; }
+.db-vat .k3 span { font-weight: 500; opacity: .8; margin-left: 5px; }
+.db-vat .v3 { font-size: 40px; font-weight: 800; letter-spacing: -.05em; line-height: 1.05; margin-top: var(--s2); font-variant-numeric: tabular-nums; }
+.db-vat .v3 em { font-style: normal; font-size: .4em; margin-left: .12em; }
+.db-vat .m3 { font-size: 10.5px; opacity: .9; margin-top: var(--s2); }
+.db-vat .m3 b { background: rgba(255,255,255,.2); border-radius: 999px; padding: 3px 9px; margin-right: 7px; font-weight: 700; }
+
+/* ── 카드 안 실제 화면 요소. 캡처가 아니라 진짜 글자다. ── */
+.ui-lab { font-size: var(--t--1); font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--tx-2); }
+.ui-big { font-size: clamp(1.7rem, 3vw, 2.3rem); font-weight: 800; letter-spacing: -.045em; margin-top: var(--s2); line-height: 1; font-variant-numeric: tabular-nums; }
+.ui-big em { font-style: normal; font-size: .34em; font-weight: 700; margin-left: .12em; }
+.ui-sub { margin-top: var(--s3); font-size: var(--t-0); color: var(--tx-2); }
+.ui-foot { margin-top: var(--s2); font-size: var(--t--1); color: var(--tx-2); }
+.up { color: var(--up); font-weight: 700; }
+.dn { color: var(--down); font-weight: 700; }
+.ok { color: var(--up); font-weight: 700; }
+.warn { color: #B07A16; font-weight: 700; }
+
+/* 표 */
+.ui-tb { width: 100%; border-collapse: collapse; font-size: var(--t-0); }
+.ui-tb th, .ui-tb td { padding: 9px 0; text-align: right; border-bottom: 1px solid var(--w-3); }
+.ui-tb thead th { font-size: var(--t--1); color: var(--tx-2); font-weight: 600; letter-spacing: .04em; }
+.ui-tb tbody th { text-align: left; font-weight: 600; }
+.ui-tb .tot th, .ui-tb .tot td { border-bottom: 0; border-top: 1.5px solid var(--tx); font-weight: 700; }
+.ui-tb td.num { font-variant-numeric: tabular-nums; }
+
+/* 3칸 */
+.ui-cols { display: grid; grid-template-columns: repeat(3,1fr); gap: var(--s3); margin-top: var(--s3); }
+.ui-cols > div { border-top: 1px solid var(--tx); padding-top: var(--s3); }
+.ui-cols .k { font-size: var(--t-0); font-weight: 600; }
+.ui-cols .v { font-variant-numeric: tabular-nums; font-size: var(--t-2); font-weight: 700; letter-spacing: -.03em; margin-top: 4px; }
+.ui-cols .m { font-size: var(--t--1); color: var(--tx-2); margin-top: 4px; }
+
+/* 비율 막대 */
+.ui-mix { margin-top: var(--s3); display: flex; flex-direction: column; gap: var(--s3); }
+.ui-mix > div { display: grid; grid-template-columns: 1fr auto; gap: 6px var(--s3); }
+.ui-mix .k { font-size: var(--t-0); font-weight: 600; }
+.ui-mix .v { font-variant-numeric: tabular-nums; font-size: var(--t-0); }
+.ui-mix .bar { grid-column: 1/3; height: 7px; border-radius: 4px; background: var(--w-3); position: relative; }
+.ui-mix .bar::before { content: ""; position: absolute; inset: 0 auto 0 0; width: var(--p); background: var(--blue); border-radius: 4px; }
+.ui-mix .m { grid-column: 1/3; font-size: var(--t--1); color: var(--tx-2); }
+
+/* 목록 */
+.ui-list { list-style: none; margin: var(--s4) 0 0; padding: 0; }
+.ui-list li { display: grid; grid-template-columns: 1fr auto; gap: 2px var(--s3); padding: 10px 0; border-bottom: 1px solid var(--w-3); }
+.ui-list .k { font-size: var(--t-0); font-weight: 600; }
+.ui-list .m { grid-column: 1; font-size: var(--t--1); color: var(--tx-2); }
+.ui-list .v { grid-row: 1/3; align-self: center; font-variant-numeric: tabular-nums; font-size: var(--t-0); font-weight: 700; }
+
+/* 막대 그래프. span 은 기본이 inline 이라 flex 안에서 크기를 못 잡는다 — block 으로. */
+.ui-bars { display: flex; gap: var(--s3); align-items: flex-end; height: 132px; min-height: 132px;
+  flex: none; margin-top: var(--s4); margin-bottom: 30px; }
+.bg { flex: 1 1 0; display: flex; gap: 5px; align-items: flex-end; align-self: stretch; position: relative; }
+.bg i { position: absolute; inset: auto 0 -22px; text-align: center; font-style: normal;
+  font-size: var(--t--1); color: var(--tx-2); }
+.b { display: block; flex: 1 1 0; min-width: 4px; height: var(--h); min-height: 3px;
+  border-radius: 3px 3px 0 0; align-self: flex-end; }
+.b.now { background: var(--blue); }
+.b.old { background: var(--blue-l); }
+.sw { display: inline-block; width: 9px; height: 9px; border-radius: 2px; vertical-align: -1px; flex: none; }
+.sw.now { background: var(--blue); }
+.sw.old { background: var(--blue-l); }
+
+.ui-bars.sm { height: 96px; gap: var(--s2); margin-top: var(--s2); margin-bottom: 22px; }
+.ui-bars.sm i { bottom: -18px; font-size: 9.5px; }
+
+@media (max-width: 900px) {
+  .db { grid-template-columns: 1fr; }
+  .db-side, .db-seg, .db-search { display: none; }
+  .db-cells { grid-template-columns: repeat(2,1fr); }
+  .db-row3, .db-row2 { grid-template-columns: 1fr; }
+}
+.db-top {
+  display: flex; align-items: center; gap: 9px;
+  padding: 13px var(--s5); background: #0F1113; color: #fff; flex: none;
+}
+.db-logo { width: 18px; height: 18px; border-radius: 4px; background: #333; flex: none; }
+.db-top b { font-size: var(--t--1); font-weight: 700; letter-spacing: .1em; }
+.db-out { margin-left: auto; font-size: var(--t--1); color: #8A8F96; }
+
+.db-id { padding: var(--s3) var(--s5) var(--s3); background: #0F1113; color: #fff; flex: none; }
+.db-co { font-family: var(--disp); font-size: var(--t-2); font-weight: 700; letter-spacing: -.03em; }
+.db-role { font-size: var(--t--1); color: #8A8F96; margin-top: 2px; }
+.db-chip {
+  display: inline-block; margin-top: var(--s2); padding: 4px 11px;
+  border: 1px solid #2B2E33; border-radius: 999px;
+  font-size: var(--t--1); color: #B4B9C0;
+}
+.db-tabs { display: flex; gap: var(--s4); padding: 0 var(--s5); background: #0F1113; flex: none; }
+.db-tabs span { padding: 11px 0; font-size: var(--t-0); color: #7C828A; border-bottom: 2px solid transparent; }
+.db-tabs span.on { color: #fff; font-weight: 600; border-bottom-color: #fff; }
+
+.db-body { padding: var(--s5); overflow: hidden; flex: 1; min-height: 0; }
+.db-meta { font-size: var(--t--1); color: var(--tx-2); }
+.db-k { font-size: var(--t-0); color: var(--tx-2); margin-top: var(--s4); }
+.db-big { font-size: clamp(2rem, 4vw, 2.9rem); font-weight: 800; letter-spacing: -.045em; line-height: 1.05; margin-top: 4px; }
+.db-big em { font-style: normal; font-size: .32em; font-weight: 700; margin-left: .1em; }
+.db-delta { font-size: .26em; font-weight: 700; margin-left: .5em; letter-spacing: -.01em; }
+.db-note { font-size: var(--t--1); color: var(--tx-2); margin-top: 6px; }
+
+.db-tb { width: 100%; border-collapse: collapse; font-size: var(--t-0); margin-top: var(--s4); }
+.db-tb th, .db-tb td { padding: 9px 0; text-align: right; border-bottom: 1px solid var(--w-3); }
+.db-tb thead th { font-size: var(--t--1); color: var(--tx-2); font-weight: 600; }
+.db-tb tbody th { text-align: left; font-weight: 600; }
+.db-tb td.num { font-variant-numeric: tabular-nums; }
+.db-tb .tot th, .db-tb .tot td { border-bottom: 0; border-top: 1.5px solid var(--tx); font-weight: 700; }
+
+.db-sec { font-size: var(--t-0); font-weight: 700; margin-top: var(--s5); }
+.db-3 { display: grid; grid-template-columns: repeat(3,1fr); gap: var(--s4); margin-top: var(--s3); }
+.db-3 > div { border-top: 1px solid var(--tx); padding-top: var(--s2); }
+.db-3 .k { font-size: var(--t--1); color: var(--tx-2); display: flex; align-items: center; gap: 7px; }
+.db-3 .v { font-size: var(--t-2); font-weight: 700; font-variant-numeric: tabular-nums; letter-spacing: -.03em; margin-top: 3px; }
+.db-3 .m { font-size: var(--t--1); color: var(--tx-2); margin-top: 2px; }
+.pill { font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 999px; }
+.pill.ok { background: #E6F4EE; color: var(--up); }
+.pill.warn { background: #FBF1DC; color: #8A5D0B; }
+
+.db-2 { display: grid; grid-template-columns: 1fr 1fr; gap: var(--s5); margin-top: var(--s3); }
+.db-k2 { font-size: var(--t-0); font-weight: 600; border-top: 1px solid var(--tx); padding-top: var(--s2); }
+.db-2 .ui-mix { margin-top: var(--s3); gap: var(--s3); }
+
+@media (max-width: 900px) {
+  .db-3 { grid-template-columns: 1fr; }
+  .db-2 { grid-template-columns: 1fr; }
+  .db-tb thead th:nth-child(4), .db-tb td:nth-child(4) { display: none; }
+}
+
+/* 확대되는 조각. 화면 가운데에서 크게 뜬다 — 잘리지 않게. */
+/* 조각이 원래 자리에서 출발해 가운데로 끌려나오며 커진다.
+   --fx/--fy = 그 카드가 대시보드에서 원래 있던 자리(화면 대비 %). */
+.hotspot {
+  position: absolute; left: 50%; top: 50%;
+  width: min(74%, 720px);
+  opacity: 0; pointer-events: none; z-index: 2;
+  translate: -50% -50%;
+  transform: translate(var(--fx, 0), var(--fy, 0)) scale(.42);
+  transform-origin: center;
+  transition: opacity .5s ease, transform .72s cubic-bezier(.22,.86,.28,1);
+}
+.hotspot.on { opacity: 1; transform: translate(0,0) scale(1); }
+
+/* 설명은 박스 밖, 위에. 안에 넣으면 화면 요소인지 설명인지 헷갈린다. */
+/* 설명은 화면 하단 한 자리에 고정. 카드 크기가 달라도 안 움직인다. */
+.hotspot .say { display: none; }
+.shot-caption {
+  position: absolute; inset: auto 0 0; z-index: 6;
+  padding: var(--s5) var(--s5) var(--s6);
+  text-align: center; pointer-events: none;
+  background: linear-gradient(to top, rgba(255,255,255,.97) 45%, rgba(255,255,255,0));
+}
+.shot-caption p {
+  font-family: var(--disp); font-size: var(--t-2); font-weight: 700;
+  letter-spacing: -.03em; color: var(--tx);
+  opacity: 0; translate: 0 8px;
+  transition: opacity .4s ease .3s, translate .4s ease .3s;
+}
+.shot-caption p.on { opacity: 1; translate: 0; }
+.shot-caption b { color: var(--blue); }
+@media (max-width: 900px) { .shot-caption { display: none; } }
+.hotspot .say b { color: var(--blue); }
+.hs-in {
+  padding: var(--s5); text-align: left;
+  background: var(--w); border: 1px solid var(--w-3); border-radius: 14px;
+  box-shadow: 0 34px 70px -26px rgba(0,0,0,.4);
+}
+.hotspot img { width: 100%; }
+
+/* 납부 예상 부가세. 실제 홈에서도 이 카드만 파란 카드였다.
+   그 정체성을 살려 조각 안에서도 파랗게 둔다. */
+.hs-in.vat {
+  background: linear-gradient(122deg, #1552C4, #2A72EE);
+  border-color: transparent; color: #fff;
+}
+.vat-lab { font-size: var(--t-0); font-weight: 700; }
+.vat-lab span { font-weight: 500; opacity: .78; margin-left: 7px; }
+.vat-big {
+  font-size: clamp(2.6rem, 6vw, 4.4rem); font-weight: 800;
+  letter-spacing: -.05em; line-height: 1; margin-top: var(--s3);
+  font-variant-numeric: tabular-nums;
+}
+.vat-big em { font-style: normal; font-size: .3em; font-weight: 700; margin-left: .1em; }
+.vat-calc {
+  display: flex; align-items: center; gap: var(--s4);
+  margin-top: var(--s5); padding-top: var(--s4);
+  border-top: 1px solid rgba(255,255,255,.24);
+}
+.vat-calc span { display: flex; flex-direction: column; gap: 3px; }
+.vat-calc i { font-style: normal; font-size: var(--t--1); opacity: .8; }
+.vat-calc b { font-size: var(--t-1); font-weight: 700; font-variant-numeric: tabular-nums; }
+.vat-calc .op { font-size: var(--t-2); font-weight: 300; opacity: .6; align-self: flex-end; }
+.vat-note { margin-top: var(--s4); font-size: var(--t--1); opacity: .8; }
+
+
+@media (max-width: 900px) {
+  .stage { height: auto; margin-inline: 0; }
+  .stage > .shot { position: static; height: auto; }
+  .shot-win { height: 52vh; }
+  .shot-win.zoom > img { opacity: 1; filter: none; }
+  .hotspot { display: none; }
+}
+.shot-bar { display: flex; align-items: center; gap: 7px; padding: 11px var(--s3); background: var(--w-2); border-bottom: 1px solid var(--w-3); }
+.shot-bar i { width: 9px; height: 9px; border-radius: 50%; background: var(--w-3); }
+.shot-bar span { margin-left: 8px; font-size: var(--t--1); color: var(--tx-2); }
+.shot img { width: 100%; }
+
+/* ── 세금 일정. 사장님이 제일 먼저 궁금해하는 것 —
+   "다음에 뭘 언제 내야 하나". 히어로 옆에 바로 붙인다. */
+.hero-grid { display: grid; grid-template-columns: 1fr 380px; gap: var(--s6); align-items: start; }
+@media (max-width: 1000px) { .hero-grid { grid-template-columns: 1fr; gap: var(--s5); } }
+
+.sched { border-top: 1px solid var(--tx); padding-top: var(--s3); }
+.sched-hd { display: flex; align-items: baseline; justify-content: space-between; gap: var(--s3); }
+.sched-hd h2 { font-size: var(--t-1); font-weight: 700; }
+.sched-hd time { font-size: var(--t--1); color: var(--tx-2); font-variant-numeric: tabular-nums; }
+.sched ol { list-style: none; margin: var(--s3) 0 0; padding: 0; }
+/* 왼쪽에 무엇/언제, 오른쪽에 남은 날. 눈이 왼쪽부터 읽는다. */
+.sched li {
+  display: grid; grid-template-columns: 1fr auto; gap: 2px var(--s3);
+  padding: 13px 0; border-bottom: 1px solid var(--w-3);
+}
+.sched .what { grid-column: 1; grid-row: 1; font-size: var(--t-0); font-weight: 600; }
+.sched .when { grid-column: 1; grid-row: 2; font-size: var(--t--1); color: var(--tx-2); font-variant-numeric: tabular-nums; }
+.sched .dday {
+  grid-column: 2; grid-row: 1 / 3; align-self: center; justify-self: end;
+  font-size: var(--t-0); font-weight: 700;
+  color: var(--tx-2); letter-spacing: -.02em; font-variant-numeric: tabular-nums;
+}
+.sched li.near .dday { color: var(--blue); }
+.sched .note { margin-top: var(--s3); font-size: var(--t--1); color: var(--tx-2); line-height: 1.6; }
+
+/* ── 2. 지표 띠 ─────────────────────────────
+   박스로 두르지 않는다. 세로선 하나로만 나눈다. */
+/* 숫자만 덩그러니 놓지 않는다. 위에 무엇을 세는 숫자인지 적고,
+   앞뒤로 숨 쉴 여백을 준다. */
+/* 지표 띠. 붙여놓고 숫자가 하나씩 드러난다. 스윽 지나가지 않게. */
+#stats { padding: 0; }
+.stats-rail { height: 250vh; }
+.stats-fix { position: sticky; top: 0; min-height: 100svh;
+  display: flex; flex-direction: column; justify-content: center; }
+.stat { opacity: .18; transition: opacity .5s ease, transform .55s cubic-bezier(.2,.85,.3,1); transform: translateY(10px); }
+.stat.on { opacity: 1; transform: none; }
+@media (max-width: 900px) {
+  .stats-rail { height: auto; }
+  .stats-fix { position: static; min-height: 0; padding-block: var(--s7); }
+  .stat { opacity: 1; transform: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .stats-rail { height: auto; }
+  .stats-fix { position: static; min-height: 0; padding-block: var(--s7); }
+  .stat { opacity: 1; transform: none; }
+}
+.stats {
+  display: grid; grid-template-columns: repeat(4,1fr);
+  border-top: 1px solid var(--tx); margin-top: var(--s5);
+}
+.stat { padding: var(--s5) var(--s4) 0 0; }
+.stat:last-child b { color: var(--tx); }
+.stat + .stat { border-left: 1px solid var(--w-3); padding-left: var(--s4); }
+.stat b { display: block; font-size: clamp(2.4rem, 4.6vw, var(--t-4)); font-weight: 800; letter-spacing: -.05em; line-height: 1; color: var(--blue); }
+.stat b em { font-style: normal; font-size: .36em; font-weight: 700; margin-left: .06em; }
+.stat span { display: block; font-size: var(--t-1); color: var(--tx-2); margin-top: var(--s3); line-height: 1.5; }
+@media (max-width: 760px) { .stats { grid-template-columns: repeat(2,1fr); } }
+
+/* 큰 숫자 강조. 진한 구간 위에 세 칸. */
+.bignums { display: grid; grid-template-columns: repeat(3,1fr); gap: var(--s3); margin-top: var(--s6); }
+.bignum { padding: var(--s5); border-radius: 18px; background: rgba(255,255,255,.055); border: 1px solid rgba(255,255,255,.12); }
+.bignum b {
+  display: block; font-size: clamp(2.4rem, 6vw, var(--t-4));
+  font-weight: 800; letter-spacing: -.05em; line-height: 1; color: #fff;
+  font-variant-numeric: tabular-nums;
+}
+.bignum span { display: block; margin-top: var(--s3); font-size: var(--t-0); color: #A9B8DC; }
+@media (max-width: 760px) { .bignums { grid-template-columns: 1fr; } }
+
+/* ── 3. 문제 (반전) ───────────────────────── */
+.pin { position: relative; }
+.pin-inner { position: sticky; top: 0; min-height: 100svh; display: flex; flex-direction: column; justify-content: center; }
+/* 스르륵 지나가지 않는다. 한 장씩 붙었다가 다음 장으로 넘어간다.
+   나가는 장은 위로 조금 빠지고, 들어오는 장은 아래에서 올라온다. */
+.slabs { display: grid; margin-top: var(--s4); }
+.slab {
+  grid-area: 1/1; opacity: 0; translate: 0 26px; scale: .985;
+  transition: opacity .5s ease, translate .6s cubic-bezier(.22,.9,.28,1), scale .6s cubic-bezier(.22,.9,.28,1);
+  pointer-events: none;
+}
+.slab.on { opacity: 1; translate: 0; scale: 1; pointer-events: auto; }
+.slab.past { opacity: 0; translate: 0 -26px; }
+/* 사람이 한 말이다. 카드에 넣지 않는다. 큰 글씨 그대로 둔다.
+   앞의 따옴표만 크게 띄워 인용이라는 걸 표시한다. */
+/* 이 구간만 가운데 정렬. 전부 왼쪽이면 리듬이 없다. */
+.pin-inner .wrap { text-align: center; }
+.pin-inner .tick { justify-content: center; }
+.prog { justify-content: center; }
+
+/* 질문과 답이 한 번씩 주인공이 된다.
+   처음엔 질문이 크고 답은 작다. 스크롤하면 뒤바뀐다. */
+/* 글자 크기를 바꾸면 줄바꿈이 다시 계산돼 문장이 요동친다.
+   그래서 크기는 고정하고 scale 로 통째로 키운다. 모양은 그대로, 크기만 바뀐다. */
+/* 질문 묶음 = 문장 + 화자. 둘이 한 덩어리로 커지고 작아진다. */
+.ask {
+  transform-origin: 50% 50%;
+  transition: transform .6s cubic-bezier(.2,.8,.3,1), opacity .5s;
+}
+.slab.answer .ask { transform: scale(.5); opacity: .55; }
+.slab q {
+  quotes: none; display: block; position: relative;
+  font-weight: 700; letter-spacing: -.035em; line-height: 1.4;
+  max-width: 26ch; margin-inline: auto;
+  font-size: clamp(1.6rem, 3.8vw, 2.7rem);
+  transition: color .5s;
+}
+/* 화자는 말 위에. 누가 하는 말인지 먼저 알고 읽는다. */
+.slab .who {
+  margin-bottom: var(--s3); font-size: var(--t-1); font-weight: 600;
+  color: #8E8E8E; letter-spacing: -.01em;
+}
+
+/* 물었으면 답을 준다. 인용문 밑에 메리디안의 답. */
+/* 답도 같은 방식. 처음엔 작게(scale .55), 차례가 오면 제 크기로. */
+.slab .ans {
+  margin: var(--s5) auto 0; max-width: 22ch;
+  padding-top: var(--s4); border-top: 1px solid #262626;
+  color: #9A9A9A; line-height: 1.45; font-weight: 700;
+  font-size: clamp(1.4rem, 3.2vw, 2.2rem); letter-spacing: -.03em;
+  transform: scale(.55); transform-origin: 50% 0;
+  transition: transform .6s cubic-bezier(.2,.8,.3,1), color .5s;
+}
+.slab .ans b { color: #C4C4C4; font-weight: 800; }
+.slab .ans .mer {
+  display: block; margin-bottom: var(--s3);
+  font-size: var(--t-1); font-weight: 700; color: #2080F5; letter-spacing: -.01em;
+}
+.slab.answer .ans { transform: scale(1); color: #fff; }
+.slab.answer .ans b { color: #2080F5; }
+
+.prog { display: flex; gap: 6px; }
+.prog i { width: 44px; height: 3px; border-radius: 3px; background: #2E2E2E; flex: none; transition: background .3s; }
+.prog i.on { background: #2080F5; }
+
+
+/* ── 선언문. 이 사이트에서 제일 큰 문장. 다른 장식 없이 글자만. */
+.creed { padding: clamp(96px, 16vh, 180px) 0; text-align: center; }
+.creed-q {
+  font-family: var(--disp); font-weight: 800;
+  font-size: clamp(1.9rem, 5vw, 3.4rem); line-height: 1.35; letter-spacing: -.04em;
+  max-width: 24ch; margin-inline: auto;
+}
+.creed-q em { font-style: normal; color: #2080F5; }
+.creed-a {
+  margin: var(--s6) auto 0; max-width: 46ch;
+  font-size: var(--t-1); line-height: 1.9; color: #A8A8A8;
+}
+
+/* ── 4. 고객 화면 : 카드 덱.
+   화면 전체를 쓴다. 스크롤마다 맨 앞 카드가 우측 하단으로 포물선을 그리며
+   빠지고 다음 장이 드러난다. 뒤에 쌓인 카드가 살짝 보여 깊이가 생긴다. */
+.feat { position: relative; }
+.feat-rail { height: 620vh; }
+.feat-fix {
+  position: sticky; top: 0; height: 100svh;
+  display: grid; grid-template-columns: 0.72fr 1.28fr;
+  gap: var(--s6); align-items: center;
+  max-width: 1560px; margin-inline: auto; padding-inline: var(--pad);
+}
+
+/* 왼쪽 문구 */
+/* 히어로는 고정, 그 아래 설명만 갈아탄다. 위계가 위에서 아래로 떨어진다. */
+.feat-copy { display: flex; flex-direction: column; gap: var(--s5); }
+.feat-hero .sec { margin-top: var(--s2); max-width: none; }
+.brk { content: ""; }
+.feat-slots { display: grid; }
+.fc { grid-area: 1/1; opacity: 0; translate: 0 24px; pointer-events: none;
+      transition: opacity .5s ease, translate .55s cubic-bezier(.2,.85,.3,1); }
+.fc.on { opacity: 1; translate: 0; pointer-events: auto; }
+.fc .no { font-size: var(--t-0); color: var(--blue); font-weight: 800; letter-spacing: .06em; font-variant-numeric: tabular-nums; }
+.fc h3 { font-size: clamp(1.3rem, 2.4vw, 1.9rem); margin: var(--s2) 0 var(--s3); max-width: 16ch; }
+.fc p { font-size: var(--t-1); color: var(--tx-2); line-height: 1.7; max-width: 30ch; }
+
+/* 카드 덱 */
+.deck { position: relative; height: min(46svh, 380px); }
+.fpane {
+  position: absolute; inset: 0;
+  container-type: size;                       /* 안쪽이 카드 크기에 반응한다 */
+  background: var(--w); border: 1px solid var(--w-3); border-radius: 16px;
+  padding: clamp(18px, 5cqh, 30px) clamp(20px, 4cqw, 34px); overflow: hidden;
+  box-shadow: 0 30px 70px -34px rgba(0,0,0,.4);
+  transform-origin: 50% 120%;
+  transition: transform .7s cubic-bezier(.3,.85,.35,1), opacity .5s ease;
+  will-change: transform;
+  /* flex 로 가운데 정렬하면 안쪽 막대·표가 눌린다. 블록 + 자동 여백으로 맞춘다. */
+  display: grid; align-content: center;
+}
+/* 지나간 카드: 우측 하단으로 포물선을 그리며 빠진다 */
+.fpane.gone { transform: translate(46%, 34%) rotate(11deg) scale(.94); opacity: 0; }
+/* 뒤에 대기 중인 카드: 살짝 내려가고 작아진 채 겹쳐 있다.
+   안쪽 글자는 감춘다 — 뒤 카드 내용이 미리 비치면 산만하다. */
+.fpane.wait { transform: translateY(var(--dy)) scale(var(--sc)); opacity: 1; }
+.fpane.wait > * { visibility: hidden; }
+.fpane.on > * { visibility: visible; }
+.fpane.on { transform: none; opacity: 1; z-index: 5; }
+.fpane img { width: 100%; border-radius: 10px; }
+
+
+/* 카드 안 글자는 카드 크기를 따라간다(cqh/cqw).
+   카드가 작아지면 같이 작아져서 넘치거나 휑해지지 않는다. */
+.fpane .ui-lab  { font-size: clamp(10px, 3.4cqh, 13px); }
+.fpane .ui-big  { font-size: clamp(22px, 15cqh, 44px); margin-top: clamp(4px, 1.6cqh, 12px); }
+.fpane .ui-sub  { font-size: clamp(11px, 4cqh, 15px); margin-top: clamp(8px, 3cqh, 18px); }
+.fpane .ui-foot { font-size: clamp(10px, 3.2cqh, 13px); margin-top: clamp(4px, 1.6cqh, 10px); }
+.fpane .ui-tb   { font-size: clamp(11px, 3.8cqh, 15px); }
+.fpane .ui-tb th, .fpane .ui-tb td { padding: clamp(5px, 2.4cqh, 11px) 0; }
+.fpane .ui-bars { height: clamp(84px, 38cqh, 150px); min-height: 0;
+  margin-top: clamp(10px, 4cqh, 22px); margin-bottom: clamp(20px, 7cqh, 30px); }
+.fpane .bg i    { font-size: clamp(9px, 3cqh, 12px); bottom: clamp(-20px, -6cqh, -16px); }
+.fpane .ui-cols { gap: clamp(10px, 3cqw, 24px); margin-top: clamp(8px, 3cqh, 16px); }
+.fpane .ui-cols .k { font-size: clamp(10px, 3.2cqh, 13px); }
+.fpane .ui-cols .v { font-size: clamp(15px, 6cqh, 26px); }
+.fpane .ui-cols .m { font-size: clamp(9px, 2.8cqh, 12px); }
+.fpane .ui-mix  { gap: clamp(8px, 3cqh, 16px); margin-top: clamp(8px, 3cqh, 16px); }
+.fpane .ui-mix .k, .fpane .ui-mix .v { font-size: clamp(11px, 3.6cqh, 15px); }
+.fpane .ui-mix .m { font-size: clamp(9px, 2.8cqh, 12px); }
+.fpane .ui-mix .bar { height: clamp(5px, 1.8cqh, 8px); }
+.fpane .ui-list li { padding: clamp(6px, 2.6cqh, 13px) 0; }
+.fpane .ui-list .k, .fpane .ui-list .v { font-size: clamp(11px, 3.6cqh, 15px); }
+.fpane .ui-list .m { font-size: clamp(9px, 2.8cqh, 12px); }
+
+/* 진행 눈금 */
+.fdots { display: flex; gap: 6px; margin-top: var(--s5); }
+.fdots i { width: 24px; height: 3px; border-radius: 3px; background: var(--w-3); transition: background .3s, width .3s; }
+.fdots i.on { background: var(--blue); width: 42px; }
+
+@media (max-width: 1000px) {
+  .feat-rail { height: auto; }
+  .feat-fix { position: static; height: auto; grid-template-columns: 1fr; gap: var(--s4); padding-block: var(--s5); }
+  .feat-copy { display: block; }
+  .fc { opacity: 1; translate: 0; margin-bottom: var(--s4); }
+  .fc:not(:first-child) { display: none; }
+  .deck { height: auto; }
+  .fpane { position: static; transform: none !important; opacity: 1 !important; margin-bottom: var(--s3); }
+  .fpane:not(.on) { display: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .fpane { transition: none; }
+}
+
+/* ── 지원 기능. 흩어진 카드가 한 격자로 모인다.
+   GSAP ScrollTrigger 프리셋(scrub + grid stagger)을 쓴다. */
+.gather { height: 300vh; position: relative; overflow-x: clip; }
+.gather-in {
+  position: sticky; top: 0; height: 100svh;
+  display: flex; flex-direction: column; justify-content: center;
+  gap: var(--s5); padding-block: calc(66px + var(--s4)) var(--s4);
+}
+.gather-head { flex: none; }
+.gather-head .sec { margin-top: var(--s2); }
+.gather-head .lede { margin-top: var(--s3); font-size: var(--t-1); line-height: 1.7; }
+/* 카드 격자. 15장이 한 화면에 다 들어가야 한다. */
+.gather-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: var(--s2); }
+/* 마지막에 틈이 닫혀 한 판이 된다. 바깥만 둥글게 남는다. */
+.gather-grid.merged { border: 1px solid var(--w-3); border-radius: 14px; overflow: hidden; gap: 0; }
+.gather-grid.merged .gc { border: 0; border-right: 1px solid var(--w-3); border-bottom: 1px solid var(--w-3); border-radius: 0; }
+.gather-grid.merged .gc:nth-child(5n) { border-right: 0; }
+.gather-grid.merged .gc:nth-last-child(-n+5) { border-bottom: 0; }
+
+.gc {
+  background: var(--w); border: 1px solid var(--w-3); border-radius: 10px;
+  padding: var(--s3); will-change: transform, opacity;
+  transition: gap .5s ease, border-radius .5s ease;
+}
+.gc .gk { font-size: var(--t--1); font-weight: 700; letter-spacing: .08em; color: var(--blue); }
+.gc b { display: block; font-size: var(--t-0); font-weight: 700; margin-top: 5px; letter-spacing: -.02em; }
+.gc p { font-size: var(--t--1); color: var(--tx-2); margin-top: 3px; line-height: 1.45; }
+
+@media (max-width: 1100px) { .gather-grid { grid-template-columns: repeat(3, 1fr); } }
+@media (max-width: 700px) {
+  .gather { height: auto; }
+  .gather-in { position: static; height: auto; padding-block: var(--s6); }
+  .gather-grid { grid-template-columns: repeat(2, 1fr); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .gather { height: auto; }
+  .gather-in { position: static; height: auto; }
+}
+
+/* ── 5. 근거 (누르면 열림) ───────────────── */
+.kpis { display: grid; grid-template-columns: repeat(4,1fr); gap: 1px; background: var(--w-3); }
+.kpi { background: var(--w); border: 0; text-align: left; font: inherit; color: inherit; padding: var(--s4); cursor: pointer; position: relative; transition: background .2s; min-width: 0; overflow: hidden; }
+.kpi:hover { background: var(--w-2); }
+.kpi[aria-expanded="true"] { background: var(--blue-l); }
+.kpi[aria-expanded="true"]::after { content:""; position:absolute; inset:auto 0 0; height:3px; background: var(--blue); }
+.kpi .lab { font-size: var(--t-0); color: var(--tx-2); }
+.kpi .val {
+  display: block; font-weight: 700; margin-top: 5px;
+  font-variant-numeric: tabular-nums;
+  /* 좁은 화면에서 숫자가 칸을 넘지 않게 크기를 줄인다 */
+  font-size: clamp(1.05rem, 3.4vw, var(--t-2));
+  letter-spacing: -.03em;
+}
+.kpi .cmp { font-size: var(--t-0); color: var(--up); }
+.kpi .cmp.dn { color: var(--down); }
+@media (max-width: 760px) { .kpis { grid-template-columns: repeat(2,1fr); } }
+
+.panel { border: 1px solid var(--w-3); border-radius: var(--r); overflow: hidden; margin-top: var(--s5); }
+.panel-top { display: flex; align-items: center; gap: var(--s2); padding: var(--s2) var(--s4); background: var(--w-2); border-bottom: 1px solid var(--w-3); font-size: var(--t-0); color: var(--tx-2); }
+.dot { width: 7px; height: 7px; border-radius: 50%; background: var(--up); }
+.panel-top .grow { margin-left: auto; font-size: var(--t--1); }
+.tabs { display: flex; gap: 6px; padding: var(--s3) var(--s4); flex-wrap: wrap; border-bottom: 1px solid var(--w-3); }
+.tab { font: inherit; font-size: var(--t-0); font-weight: 500; cursor: pointer; background: var(--w); border: 1px solid var(--w-3); color: var(--tx-2); padding: 7px 15px; border-radius: 999px; transition: all .2s; }
+.tab[aria-selected="true"] { background: var(--blue); color: #fff; border-color: var(--blue); font-weight: 600; }
+.evid { display: grid; grid-template-columns: 1fr 1.1fr; gap: var(--s5); padding: var(--s4); border-top: 1px solid var(--w-3); }
+.evid h4 { font-size: var(--t--1); font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--tx-2); margin: 0 0 4px; }
+.evid .rnote { font-size: var(--t--1); color: var(--tx-2); margin-bottom: var(--s3); }
+.formula { font-size: var(--t-0); line-height: 2.1; }
+.formula em { font-style: normal; color: var(--blue); font-weight: 600; }
+.rows { display: flex; flex-direction: column; }
+.rw { display: flex; justify-content: space-between; gap: var(--s3); font-size: var(--t-0); padding: 9px 0; border-bottom: 1px solid var(--w-3); }
+.rw span:last-child { font-variant-numeric: tabular-nums; }
+.evid-note { margin-top: var(--s4); font-size: var(--t--1); color: var(--tx-2); }
+.evid a:hover { text-decoration: underline; }
+@media (max-width: 760px) { .evid { grid-template-columns: 1fr; } }
+
+/* ── 배너 CTA. 본문 사이를 끊고 지나가는 띠. 메리디안 본가 방식. */
+.band-cta {
+  border-block: 1px solid var(--w-3); padding: var(--s6) 0;
+  display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--s4);
+}
+.band-cta h3 { font-size: clamp(1.4rem, 3vw, var(--t-2)); max-width: 24ch; }
+.band-cta p { font-size: var(--t-0); color: var(--tx-2); margin-top: 6px; }
+
+/* ── 서비스 카드. 박스 대신 선으로만 나눈다. 눌러서 하위 페이지로. */
+.svc { display: grid; grid-template-columns: repeat(3,1fr); border-top: 1px solid var(--w-3); margin-top: var(--s6); }
+.svc a {
+  display: block; text-decoration: none; padding: var(--s5) var(--s4) var(--s5) 0;
+  border-bottom: 1px solid var(--w-3); border-right: 1px solid var(--w-3);
+  transition: background .2s;
+}
+.svc a:hover { background: var(--w-2); }
+.svc a:hover .go { color: var(--blue); }
+.svc a { padding-left: var(--s4); }
+.svc a:nth-child(3n) { border-right: 0; }
+.svc .no { font-size: var(--t--1); color: var(--blue); font-weight: 700; }
+.svc h3 { font-size: var(--t-1); margin: var(--s2) 0 6px; }
+.svc p { font-size: var(--t-0); color: var(--tx-2); }
+.svc .go { display: block; margin-top: var(--s3); font-size: var(--t-0); color: var(--tx-2); transition: color .2s; }
+@media (max-width: 860px) { .svc { grid-template-columns: 1fr; } .svc a { border-right: 0; padding-left: 0; } }
+
+/* ── 담당 회계사. 사진 + 이력. 박스 없이 선으로만. */
+
+/* 대표 회계사. 좌 사진 / 우 내용. 원본 배치를 따른다. */
+/* 좌우 높이를 맞춘다. 사진이 오른쪽 높이를 그대로 따라가서
+   섹션 전체가 반듯한 직사각형이 된다. */
+.who-grid { display: grid; grid-template-columns: 420px 1fr; gap: var(--s7);
+  align-items: stretch; margin-top: var(--s5); }
+/* 얼굴부터 가슴까지만. 원본이 세로로 길어 그냥 두면 다리가 보인다.
+   object-position 을 맨 위로 잡고, 너무 위가 잘리지 않게 살짝 확대한다. */
+.who-grid img {
+  width: 100%; height: 100%;
+  object-fit: cover; object-position: 50% 12%;
+  border-radius: 2px;
+}
+.who-grid .shot-frame { overflow: hidden; border-radius: 2px; }
+.wname { font-family: var(--disp); font-size: clamp(2rem, 4vw, 3rem); font-weight: 800; letter-spacing: -.05em; line-height: 1; }
+.wrole { margin-top: var(--s3); font-size: var(--t-0); font-weight: 600; letter-spacing: .04em; color: var(--tx-2); }
+.wsay { margin-top: var(--s6); font-size: var(--t-1); line-height: 1.8; color: var(--tx-2); max-width: 46ch; }
+.wsay2 { margin-top: var(--s4); font-size: var(--t-1); line-height: 1.8; color: var(--tx-2); max-width: 46ch; }
+.wsay2 b { color: var(--tx); font-weight: 700; }
+.wpa { margin-top: var(--s6); padding-top: var(--s5); border-top: 1px solid var(--w-3); }
+.wpa-lab { font-size: var(--t--1); font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: var(--tx-2); }
+.wpa ul { list-style: none; margin: var(--s4) 0 0; padding: 0;
+  display: grid; grid-template-columns: 1fr 1fr; gap: var(--s3) var(--s5); }
+.wpa li { position: relative; padding-left: 14px; font-size: var(--t-0); line-height: 1.6; }
+.wpa li::before { content: ""; position: absolute; left: 0; top: .62em; width: 4px; height: 4px; border-radius: 50%; background: var(--blue); }
+.wmore { display: inline-block; margin-top: var(--s6); font-size: var(--t-0); font-weight: 700;
+  border-bottom: 2px solid var(--tx); padding-bottom: 3px; text-decoration: none; transition: color .2s, border-color .2s; }
+.wmore:hover { color: var(--blue); border-color: var(--blue); }
+@media (max-width: 980px) {
+  .who-grid { grid-template-columns: 1fr; gap: var(--s5); align-items: start; }
+  .who-grid img { max-width: 320px; height: auto; min-height: 0; aspect-ratio: 1/1; }
+  .wpa ul { grid-template-columns: 1fr; }
+}
+
+/* 사진과 글이 시차를 두고 올라온다. 같이 오면 밋밋하다. */
+.rise-slow { opacity: 0; translate: 0 34px; }
+.rise-slow.on {
+  opacity: 1; translate: 0;
+  transition: opacity .9s ease var(--delay, 0s),
+              translate 1s cubic-bezier(.16,.84,.24,1) var(--delay, 0s);
+}
+@media (prefers-reduced-motion: reduce) { .rise-slow { opacity: 1; translate: 0; } }
+
+/* ── 인사이트. 글 목록. 선으로만. */
+.posts { border-top: 1px solid var(--w-3); margin-top: var(--s5); }
+.posts a {
+  display: grid; grid-template-columns: 110px 1fr auto; gap: var(--s4);
+  align-items: baseline; padding: var(--s4) 0; border-bottom: 1px solid var(--w-3);
+  text-decoration: none; transition: background .2s;
+}
+.posts a:hover { background: var(--w-2); }
+.posts a:hover h3 { color: var(--blue); }
+.posts .cat { font-size: var(--t--1); font-weight: 700; letter-spacing: .08em; color: var(--blue); text-transform: uppercase; }
+.posts h3 { font-size: var(--t-1); font-weight: 600; transition: color .2s; }
+.posts time { font-size: var(--t--1); color: var(--tx-2); }
+@media (max-width: 700px) { .posts a { grid-template-columns: 1fr; gap: 4px; } }
+
+/* ── 6. 흐름 4단계 ───────────────────────── */
+.flow { display: grid; grid-template-columns: repeat(4,1fr); gap: var(--s3); margin-top: var(--s6); counter-reset: f; }
+.step { position: relative; padding-top: var(--s5); }
+.step::before {
+  counter-increment: f; content: counter(f,decimal-leading-zero);
+  position: absolute; top: 0; left: 0; 
+  font-size: var(--t-0); font-weight: 700; color: var(--blue);
+}
+.step::after { content: ""; position: absolute; top: 9px; left: 34px; right: var(--s3); height: 1px; background: var(--w-3); overflow: hidden; }
+/* 1번에서 4번까지 파란 빛이 주르륵 흐른다. */
+.flow { position: relative; }
+.flow::after {
+  content: ""; position: absolute; top: 9px; left: 34px; right: 0; height: 1px;
+  background: linear-gradient(90deg, transparent, var(--blue) 12%, var(--blue) 18%, transparent 30%);
+  background-size: 260% 100%; background-repeat: no-repeat;
+  animation: flowline 3.4s linear infinite; pointer-events: none;
+}
+@keyframes flowline { from { background-position: -60% 0 } to { background-position: 160% 0 } }
+@media (prefers-reduced-motion: reduce) { .flow::after { animation: none; opacity: 0; } }
+.step:last-child::after { display: none; }
+.step h3 { font-size: var(--t-1); margin-bottom: 5px; }
+.step p { font-size: var(--t-0); color: var(--tx-2); }
+@media (max-width: 860px) { .flow { grid-template-columns: repeat(2,1fr); gap: var(--s4); } .step::after { display: none; } }
+
+/* ── 7. 비교표 ───────────────────────────── */
+/* separate 여야 셀에 radius 가 먹는다. collapse 면 무시된다. */
+.vs { width: 100%; border-collapse: separate; border-spacing: 0; margin-top: var(--s5); font-size: var(--t-0); }
+.vs th, .vs td { text-align: left; padding: var(--s4); border-bottom: 1px solid var(--w-3); vertical-align: top; }
+.vs tbody tr:last-child th, .vs tbody tr:last-child td { border-bottom: 0; }
+.vs thead th { font-size: var(--t--1); letter-spacing: .1em; text-transform: uppercase; color: var(--tx-2); font-weight: 700; }
+.vs tbody th { font-weight: 600; width: 20%; color: var(--tx-2); }
+/* 남의 것: 작고 흐리게 */
+.vs .theirs { width: 30%; color: #8B97A8; }
+/* 우리 것: 크고 진하게, 파란 면 위에. 위계가 눈에 보여야 한다. */
+.vs .ours { width: 50%; background: var(--blue-l); font-size: var(--t-1); font-weight: 600; color: var(--tx); text-align: center; }
+.vs-brand { display: inline-flex; align-items: center; gap: 8px; }
+.vs-brand img { width: 18px; height: 18px; filter: brightness(0) invert(1); }
+.vs thead .ours {
+  font-size: var(--t-0); color: #fff; background: var(--blue);
+  border-radius: 14px 14px 0 0; letter-spacing: 0; text-transform: none; font-weight: 800;
+  border-bottom: 0; text-align: center;
+}
+.vs tbody tr:last-child .ours { border-radius: 0 0 14px 14px; }
+.vs .ours strong { color: var(--blue-d); font-weight: 800; }
+@media (max-width: 700px) { .vs, .vs tbody, .vs tr, .vs td, .vs th { display: block; } .vs thead { display: none; } .vs tr { border-bottom: 1px solid var(--w-3); padding: var(--s2) 0; } .vs td, .vs th { border: 0; padding: 5px var(--s3); } }
+
+
+/* 비교표. 붙어 있는 동안 한 줄씩 드러난다.
+   지금 보는 줄의 우리 칸이 살짝 커져서 눈이 따라간다. */
+.vs-rail { height: 170vh; }
+.vs-fix { position: sticky; top: 0; min-height: 100svh; display: flex; flex-direction: column; justify-content: center; }
+/* 줄마다 커지면 산만하다. 우리 칸 전체가 한 덩어리로 한 번 커진다. */
+.vs { position: relative; }
+.vs .ours { transition: background .4s; }
+.vs-glow {
+  position: absolute; pointer-events: none; z-index: 0;
+  border-radius: 14px; background: color-mix(in srgb, var(--blue) 14%, #fff);
+  opacity: 0; transform: scale(.98);
+  transition: opacity .5s ease, transform .6s cubic-bezier(.2,.85,.3,1);
+}
+.vs.grown .vs-glow { opacity: 1; transform: scale(1.012); }
+.vs th, .vs td { position: relative; z-index: 1; }
+.vs.grown tbody .ours { background: transparent; }
+@media (max-width: 900px) {
+  .vs-rail { height: auto; }
+  .vs-fix { position: static; min-height: 0; }
+  .vs tbody tr.dim { opacity: 1; }
+  .vs tbody tr.hot .ours { transform: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .vs-rail { height: auto; }
+  .vs-fix { position: static; min-height: 0; }
+  .vs tbody tr.dim { opacity: 1; }
+}
+
+/* ── 8. 마무리 ───────────────────────────── */
+.end { text-align: center; }
+.end h2 { font-size: clamp(1.9rem, 5vw, var(--t-3)); max-width: 18ch; margin-inline: auto; }
+.end .lede { margin-inline: auto; text-align: center; max-width: 34ch; }
+
+/* ── 푸터. 메리디안 본가 구조 그대로. 4칸 + 소속 고지 + 하단 바. */
+/* 마지막 섹션과 이어진다. 사이에 흰 틈이 없어야 한다. */
+footer { background: #000; color: #fff; font-size: var(--t-0); margin-top: -1px; }
+footer .rule { height: 1px; background: #262626; }
+.fmain { display: grid; grid-template-columns: 1fr repeat(3, .8fr); gap: var(--s5); padding: var(--s6) 0; }
+.fmain h3 { font-size: var(--t--1); font-weight: 600; letter-spacing: .16em; text-transform: uppercase; color: #9AA0A8; margin-bottom: var(--s4); }
+.fmain .brandcol h3 { display: flex; align-items: center; gap: 9px; font-size: var(--t-0); font-weight: 700; letter-spacing: .1em; color: #fff; }
+.flogo { width: 22px; height: 22px; filter: invert(1) brightness(1.6); }
+.fmain p, .fmain a { color: #9AA0A8; }
+.fmain .brandcol p { max-width: 24ch; line-height: 1.7; }
+.fmain .who { margin-top: var(--s4); font-size: var(--t--1); color: #71767E; }
+.fcol { display: flex; flex-direction: column; gap: var(--s2); }
+.fcol a { text-decoration: none; transition: color .25s; }
+.fcol a:hover { color: #fff; }
+.flabel { display: block; font-size: var(--t--1); letter-spacing: .08em; text-transform: uppercase; color: #71767E; }
+.fportal {
+  display: inline-block; margin-top: var(--s3); font-size: var(--t--1);
+  letter-spacing: .08em; text-transform: uppercase;
+  border-bottom: 1px solid #3A3E45; padding-bottom: 2px; text-decoration: none; transition: color .25s, border-color .25s;
+}
+.fportal:hover { color: #fff; border-color: #fff; }
+.fnotice { padding: var(--s5) 0; }
+.fnotice p { font-size: var(--t--1); color: #9AA0A8; line-height: 1.8; max-width: 78ch; }
+.fnotice b { color: #C9CDD3; font-weight: 600; }
+.fbot { display: flex; flex-wrap: wrap; gap: var(--s3); justify-content: space-between; padding: var(--s4) 0; font-size: var(--t--1); color: #9AA0A8; }
+@media (max-width: 900px) { .fmain { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 560px) { .fmain { grid-template-columns: 1fr; gap: var(--s5); } }
+
+/* ── 우측 앵커. 선 하나와 빈 원들. 원하는 데로 바로 간다. ── */
+.anchor {
+  position: fixed; right: 26px; top: 50%; translate: 0 -50%; z-index: 55;
+  display: flex; flex-direction: column; align-items: flex-end; gap: 18px;
+  opacity: 0; pointer-events: none; transition: opacity .4s;
+}
+.anchor.on { opacity: 1; pointer-events: auto; }
+/* 원들을 잇는 세로선 */
+.anchor::before {
+  content: ""; position: absolute; right: 5.5px; top: 4px; bottom: 4px;
+  width: 1px; background: var(--w-3);
+}
+
+
+.anchor a {
+  display: flex; align-items: center; gap: 10px;
+  text-decoration: none; position: relative;
+}
+/* 이름은 항상 보인다. 점만 있으면 뭐가 뭔지 모른다. */
+.anchor .lb {
+  font-size: var(--t--1); font-weight: 600; color: var(--tx-2);
+  white-space: nowrap; opacity: .55;
+  transition: opacity .25s, color .25s;
+}
+.anchor a:hover .lb, .anchor a:focus-visible .lb { opacity: 1; color: var(--blue); }
+.anchor a[aria-current="true"] .lb { opacity: 1; color: var(--blue); font-weight: 700; }
+.anchor.dark a:hover .lb,
+.anchor.dark a[aria-current="true"] .lb { color: #2080F5; }
+.anchor .cir {
+  width: 12px; height: 12px; border-radius: 50%; flex: none;
+  border: 1.5px solid var(--w-3); background: var(--w);
+  transition: border-color .25s, background .25s, scale .25s;
+}
+.anchor a:hover .cir { border-color: var(--blue); scale: 1.15; }
+.anchor a[aria-current="true"] .cir { border-color: var(--blue); background: var(--blue); }
+
+/* 남색 구간 위에 있을 때는 색을 뒤집는다. */
+.anchor.dark .cir { border-color: #3A3A3A; background: transparent; }
+.anchor.dark a[aria-current="true"] .cir { border-color: #2080F5; background: #2080F5; }
+.anchor.dark::before { background: #2E2E2E; }
+.anchor.dark .lb { color: #A8A8A8; }
+
+@media (max-width: 1120px) { .anchor { display: none; } }
+
+/* 스크롤 진입 */
+.rise { opacity: 0; translate: 0 20px; transition: opacity .65s ease, translate .65s cubic-bezier(.2,.7,.3,1); }
+.rise.on { opacity: 1; translate: 0 0; }
+
+@media (prefers-reduced-motion: reduce) {
+  .rise { transition: none; opacity: 1; translate: none; }
+  .slab { opacity: 1 !important; position: static; }
+  .slabs { display: block; }
+  .pin { height: auto !important; }
+  .pin-inner { position: static; min-height: 0; }
+}
+</style>
+
+<script src="https://cdn.jsdelivr.net/npm/lenis@1.1.18/dist/lenis.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/ScrollTrigger.min.js"></script>
+</head>
+<body>
+
+<header id="hdr">
+  <div class="wrap hbar">
+    <a class="brand" href="/"><img src="assets/meridian-logo.png" alt=""><b>Meridian<span class="dot-b">.</span></b></a>
+    <!-- 메뉴는 앵커가 아니라 실제 페이지다. 메리디안 사이트 구조 그대로.
+         이 페이지는 그중 "세무 대시보드" 한 장일 뿐이다. -->
+    <nav class="hnav">
+      <a href="/">HOME</a>
+      <a href="/about">ABOUT</a>
+      <a href="/services">PRACTICE</a>
+      <a href="/clients">PEOPLE</a>
+      <a href="/members">WHO</a>
+      <a href="/dashboard" aria-current="page">DASHBOARD</a>
+      <a href="/blog">INSIGHTS</a>
+      <a href="/contact">CONTACT</a>
+    </nav>
+    <a class="btn btn-fill hcta" href="#end">기장 이관 상담</a>
+  </div>
+</header>
+
+<!-- 우측 앵커. 선과 빈 원. 원하는 데만 보고 갈 수 있게. -->
+<nav class="anchor" id="anchor" aria-label="구역 바로가기">
+  <a href="#top"     data-sec="top"><span class="lb">처음</span><span class="cir"></span></a>
+  <a href="#why"     data-sec="why"><span class="lb">자주 듣는 이야기</span><span class="cir"></span></a>
+  <a href="#feat"    data-sec="feat"><span class="lb">고객 화면</span><span class="cir"></span></a>
+  <a href="#evid"    data-sec="evid"><span class="lb">근거</span><span class="cir"></span></a>
+  <a href="#creed"   data-sec="creed"><span class="lb">우리의 생각</span><span class="cir"></span></a>
+  <a href="#svc"     data-sec="svc"><span class="lb">하는 일</span><span class="cir"></span></a>
+  <a href="#flow"    data-sec="flow"><span class="lb">시작하기</span><span class="cir"></span></a>
+  <a href="#vs"      data-sec="vs"><span class="lb">비교</span><span class="cir"></span></a>
+  <a href="#insight" data-sec="insight"><span class="lb">인사이트</span><span class="cir"></span></a>
+  <a href="#end"     data-sec="end"><span class="lb">상담</span><span class="cir"></span></a>
+</nav>
+
+<main id="top">
+
+<!-- 1. 히어로 -->
+<section class="hero">
+  <div class="wrap">
+    <div class="hero-grid">
+      <div>
+    <p class="tick">Meridian만의 특별한 서비스</p>
+    <h1><span class="c">회계사가 정리한 자료를,</span><span class="c">한 화면에서<span class="dot-b">.</span></span></h1>
+    <p class="hero-sub"><span class="c">기장을 맡기시면</span><span class="c"><b>회사 전용 세무 대시보드</b>가 함께 제공됩니다.</span></p>
+    <div class="hero-cta">
+      <a class="btn btn-fill" href="#end">기장 이관 상담하기</a>
+      <a class="btn btn-line" href="#feat">화면 먼저 보기</a>
+    </div>
+    <p class="cta-note"><span class="s">상담은 무료입니다.</span><span class="s">쓰던 사무소에서 넘어오는 절차는 저희가 처리합니다.</span></p>
+      </div>
+
+      <!-- 세무를 맡기려는 사장님이 제일 먼저 궁금해하는 것: 다음 마감일 -->
+      <aside class="sched">
+        <div class="sched-hd">
+          <h2>이번 분기 주요 일정</h2>
+          <time datetime="2026-08-10">as of 2026.08.10</time>
+        </div>
+        <ol>
+          <li class="near">
+            <span class="what">원천세 납부</span>
+            <span class="dday">D-31</span>
+            <span class="when">2026.09.10</span>
+          </li>
+          <li>
+            <span class="what">원천세 납부</span>
+            <span class="dday">D-61</span>
+            <span class="when">2026.10.10</span>
+          </li>
+          <li>
+            <span class="what">부가세 2기 예정신고</span>
+            <span class="dday">D-76</span>
+            <span class="when">2026.10.25</span>
+          </li>
+          <li>
+            <span class="what">부가세 2기 확정신고</span>
+            <span class="dday">D-168</span>
+            <span class="when">2027.01.25</span>
+          </li>
+        </ol>
+        <p class="note"><span class="s">국세청 기준 주요 신고·납부 기한.</span><span class="s">담당 법인의 신고 의무 및 마감일은</span><span class="s">실제와 상이할 수 있습니다.</span></p>
+      </aside>
+    </div>
+
+    <div class="stage">
+      <div class="shot" id="shot">
+        <div class="shot-win" id="shotWin">
+          <div class="shot-caption" id="shotCap"></div>
+          <!-- 실제 홈 화면 그대로. 캡처가 아니라 요소로 그린다. -->
+          <div class="db" aria-label="MERIDIAN 세무 대시보드 홈">
+            <aside class="db-side">
+              <p class="db-brand">MERIDIAN<span>TAX &amp; ADVISORY</span></p>
+              <p class="db-co">㈜메리디안 데모</p>
+              <p class="db-gr">개요</p>
+              <p class="db-mi on">홈</p>
+              <p class="db-gr">증빙</p>
+              <p class="db-mi">세금계산서</p><p class="db-mi">현금영수증</p>
+              <p class="db-mi">신용카드</p><p class="db-mi">통장</p>
+              <p class="db-gr">장부·신고</p>
+              <p class="db-mi">분개·전표</p><p class="db-mi">재무제표</p><p class="db-mi">부가세 리포트</p>
+              <p class="db-gr">인건비</p>
+              <p class="db-mi">급여 입력</p><p class="db-mi">임직원 관리</p>
+            </aside>
+
+            <div class="db-main">
+              <header class="db-bar">
+                <span class="db-pick"><i></i>㈜메리디안 데모</span>
+                <span class="db-search">거래처, 금액, 증빙 검색<b>⌘K</b></span>
+                <span class="db-live"><i></i>반영 08-10 03:35</span>
+              </header>
+
+              <div class="db-body">
+                <p class="db-eyebrow">종합 현황</p>
+                <div class="db-h1row">
+                  <h3>한눈에 보는 우리 회사</h3>
+                  <div class="db-seg"><span class="on">최근 반영월</span><span>올해</span><span>지난분기</span><span>이번분기</span><span>지난달</span><span>이번달</span></div>
+                </div>
+                <p class="db-tagline"><b>2026년 7월 확정자료</b> 국세청 수집자료 기준</p>
+
+                <section class="db-card" data-hs="cash">
+                  <p class="db-ey">TODAY CASH</p>
+                  <p class="db-ct">오늘 현금 현황</p>
+                  <p class="db-cs">최종 통장 업로드 08. 09. 03:35 · 2026-08 기준</p>
+                  <div class="db-cells">
+                    <div><p class="k">오늘 입금</p><p class="v num up">0원</p></div>
+                    <div><p class="k">오늘 출금</p><p class="v num dn">0원</p></div>
+                    <div><p class="k">이번 달 순현금</p><p class="v num up">0원</p></div>
+                    <div><p class="k">미처리</p><p class="v num">0건</p><p class="m">0원</p></div>
+                    <div><p class="k">기한 지난 미수</p><p class="v num">0원</p><p class="m">0건</p></div>
+                    <div><p class="k">기한 지난 미지급</p><p class="v num">18,240,000원</p><p class="m">12건</p></div>
+                  </div>
+                </section>
+
+                <div class="db-row3" data-hs="alert">
+                  <div class="db-card sm"><p class="k2">다음 부가세 신고</p><p class="v2">2기 예정 신고 · D-76</p><p class="m2">부가세 리포트에서 예상액 확인 →</p></div>
+                  <div class="db-card sm"><p class="k2">불공제 후보</p><p class="v2">4건 · 매입세액 1,240,000원 검토</p><p class="m2">리스트 펼치기 ▾</p></div>
+                  <div class="db-card sm"><p class="k2">카드 자료</p><p class="v2">2026년 7월까지 반영</p><p class="m2">정상 반영 중 ✓</p></div>
+                </div>
+
+                <div class="db-row2">
+                  <div class="db-vat" data-hs="vat">
+                    <p class="k3">납부 예상 부가세 <span>2026년 7월 기준</span></p>
+                    <p class="v3 num">6,351,500<em>원</em></p>
+                    <p class="m3"><b>납부 예상</b> 매출세액 18,492,000원 &nbsp; 공제 매입세액 12,140,500원</p>
+                  </div>
+                  <div class="db-card" data-hs="trend">
+                    <p class="k2">월별 추이</p>
+                    <div class="ui-bars sm">
+                      <div class="bg"><span class="b now" style="--h:96%"></span><span class="b old" style="--h:22%"></span><i>1월</i></div>
+                      <div class="bg"><span class="b now" style="--h:8%"></span><span class="b old" style="--h:8%"></span><i>2월</i></div>
+                      <div class="bg"><span class="b now" style="--h:9%"></span><span class="b old" style="--h:10%"></span><i>3월</i></div>
+                      <div class="bg"><span class="b now" style="--h:18%"></span><span class="b old" style="--h:12%"></span><i>4월</i></div>
+                      <div class="bg"><span class="b now" style="--h:11%"></span><span class="b old" style="--h:22%"></span><i>5월</i></div>
+                      <div class="bg"><span class="b now" style="--h:14%"></span><span class="b old" style="--h:16%"></span><i>6월</i></div>
+                    </div>
+                    <p class="m2">최근 6개월 합계 — 매출 512,880,000원 · 매입 349,610,000원 · 차익 <b class="up">+163,270,000원</b></p>
+                  </div>
+                </div>
+
+                <div class="db-row2" data-hs="sum">
+                  <div class="db-card"><p class="k2">매출 합계</p><p class="v4 num">184,920,000원</p>
+                    <p class="m2">주요 매출처</p>
+                    <p class="li"><span>1 ㈜대성물산</span><span class="num">184,920,000원</span></p></div>
+                  <div class="db-card"><p class="k2">매입 합계</p><p class="v4 num">121,405,000원</p>
+                    <p class="m2">주요 매입처</p>
+                    <p class="li"><span>1 원자재 공급 — A사</span><span class="num">58,310,000원</span></p></div>
+                </div>
+              </div>
+            </div>
+          </div>
+          </div>
+          <!-- 대시보드 위 그 자리에서 조각이 하나씩 확대된다 -->
+          <figure class="hotspot" data-at="0.08" style="--fx:0%;--fy:-30%"><figcaption class="say">통장까지 붙어서, <b>오늘 돈이 어떻게 도는지</b> 바로 보입니다</figcaption><div class="hs-in">
+              <p class="db-ey">TODAY CASH</p>
+              <p class="db-ct">오늘 현금 현황</p>
+              <div class="db-cells" style="grid-template-columns:repeat(3,1fr)">
+                <div><p class="k">이번 달 순현금</p><p class="v num up">0원</p></div>
+                <div><p class="k">기한 지난 미수</p><p class="v num">0원</p><p class="m">0건</p></div>
+                <div><p class="k">기한 지난 미지급</p><p class="v num">18,240,000원</p><p class="m">12건</p></div>
+              </div>
+            </div></figure>
+          <figure class="hotspot" data-at="0.32" style="--fx:0%;--fy:-8%"><figcaption class="say">낼 세금과 <b>놓칠 뻔한 것</b>을 미리 짚어줍니다</figcaption><div class="hs-in">
+              <p class="ui-lab" style="color:var(--blue);font-weight:800">다음 부가세 신고</p>
+              <p class="v2" style="font-size:26px">2기 예정 신고 · D-76</p>
+              <p class="m2">부가세 리포트에서 예상액 확인 →</p>
+              <p class="ui-lab" style="color:var(--blue);font-weight:800;margin-top:var(--s5)">불공제 후보</p>
+              <p class="v2" style="font-size:26px">4건 · 매입세액 1,240,000원</p>
+              <p class="m2">회계사가 먼저 걸러 알려드립니다.</p>
+            </div></figure>
+          <figure class="hotspot" data-at="0.56" style="--fx:-28%;--fy:20%">
+            <figcaption class="say">신고 전에 <b>낼 금액</b>이 이미 나와 있습니다</figcaption>
+            <div class="hs-in vat">
+              <p class="vat-lab">납부 예상 부가세 <span>2026년 7월 기준</span></p>
+              <p class="vat-big num">6,351,500<em>원</em></p>
+              <div class="vat-calc">
+                <span><i>매출세액</i><b class="num">18,492,000원</b></span>
+                <span class="op">−</span>
+                <span><i>공제 매입세액</i><b class="num">12,140,500원</b></span>
+              </div>
+              <p class="vat-note">확정 신고 전 잠정치입니다. 불공제 후보 4건은 아직 빼지 않았습니다.</p>
+            </div>
+          </figure>
+          <figure class="hotspot" data-at="0.82" style="--fx:26%;--fy:20%"><figcaption class="say"><b>여섯 달 흐름</b>이 막대 하나로 보입니다</figcaption><div class="hs-in">
+              <p class="k2">월별 추이</p>
+              <div class="ui-bars">
+                <div class="bg"><span class="b now" style="--h:96%"></span><span class="b old" style="--h:22%"></span><i>1월</i></div>
+                <div class="bg"><span class="b now" style="--h:8%"></span><span class="b old" style="--h:8%"></span><i>2월</i></div>
+                <div class="bg"><span class="b now" style="--h:9%"></span><span class="b old" style="--h:10%"></span><i>3월</i></div>
+                <div class="bg"><span class="b now" style="--h:18%"></span><span class="b old" style="--h:12%"></span><i>4월</i></div>
+                <div class="bg"><span class="b now" style="--h:11%"></span><span class="b old" style="--h:22%"></span><i>5월</i></div>
+                <div class="bg"><span class="b now" style="--h:14%"></span><span class="b old" style="--h:16%"></span><i>6월</i></div>
+              </div>
+              <p class="m2" style="margin-top:var(--s5)">최근 6개월 — 매출 512,880,000원 · 매입 349,610,000원 · 차익 <b class="up">+163,270,000원</b></p>
+            </div></figure>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 2. 지표 띠 -->
+<section id="stats"><div class="stats-rail"><div class="stats-fix wrap">
+  <p class="tick rise">기장을 맡기면</p>
+  <h2 class="sec rise">이만큼이 자동으로 따라옵니다<span class="dot-b">.</span></h2>
+  <div class="stats rise">
+    <div class="stat"><b class="num">매일</b><span>홈택스·카드·통장 자동 수집</span></div>
+    <div class="stat"><b class="num">30<em>종</em></b><span>서식 자동 채움</span></div>
+    <div class="stat"><b class="num">19<em>종</em></b><span>민원증명 안내</span></div>
+    <div class="stat"><b class="num">0<em>건</em></b><span>대표님이 찾아 보낼 자료</span></div>
+  </div>
+</div></div></section>
+
+<!-- 3. 문제 (반전) -->
+<section class="pin invert" id="why" style="height:520vh;padding:0">
+  <div class="pin-inner">
+    <div class="wrap">
+      <p class="tick" style="margin-bottom:var(--s4)">자주 듣는 이야기</p>
+      <div class="prog" id="prog"><i class="on"></i><i></i><i></i></div>
+      <div class="slabs">
+        <div class="slab on">
+          <!-- 질문 2줄 + 화자. 화자는 질문에 딸린 것이라 함께 커지고 작아진다. -->
+          <div class="ask">
+            <p class="who">법인 대표</p>
+            <q><span class="s">월말마다 자료 보내달라는 연락을 받습니다.</span><span class="s">매번 같은 걸 찾아서 보냅니다.</span></q>
+          </div>
+          <p class="ans"><span class="mer">메리디안은</span><span class="c">홈택스·카드·통장을 연결해 두고</span><span class="c">매일 새벽 자동으로 모읍니다.</span></p>
+        </div>
+        <div class="slab">
+          <div class="ask">
+            <p class="who">개인사업자</p>
+            <q><span class="c">신고서를 받았는데, 이 금액이 왜 이렇게</span><span class="c">나왔는지 물어볼 데가 없습니다.</span></q>
+          </div>
+          <p class="ans"><span class="mer">메리디안은</span><span class="c">숫자를 누르면 계산식과 건수,</span><span class="c">원본 증빙까지 이어집니다.</span></p>
+        </div>
+        <div class="slab">
+          <div class="ask">
+            <p class="who">성장기 법인 재무담당</p>
+            <q><span class="s">절세할 수 있었던 항목을 결산 때 알게 됩니다.</span><span class="s">그때는 이미 늦습니다.</span></q>
+          </div>
+          <p class="ans"><span class="mer">메리디안은</span><span class="c">매일의 기장에서 놓친 공제를</span><span class="c">먼저 잡아 알려드립니다.</span></p>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- 4. 기능 : 왼쪽 누르면 오른쪽 실제 화면이 바뀐다 -->
+<section id="feat">
+
+  <div class="feat-rail">
+    <div class="feat-fix wrap">
+      <div class="feat-copy">
+        <!-- 이 구간의 히어로. 카드 왼쪽에 고정으로 남는다. -->
+        <div class="feat-hero">
+          <p class="tick">고객 화면</p>
+          <h2 class="sec">신고 때까지<br class="brk">기다리지 않아도 됩니다<span class="dot-b">.</span></h2>
+        </div>
+        <div class="feat-slots">
+        <article class="fc on">
+          <p class="no">01</p><h3>이번 달, 얼마 벌었나</h3>
+          <p><span class="c">확정 전이라도</span><span class="c">지금까지 모인 자료로 계산합니다.</span><span class="c">마진율과 전년 대비 증감이 같이 나옵니다.</span></p>
+        </article>
+        <article class="fc">
+          <p class="no">02</p><h3>작년 같은 기간과 나란히</h3>
+          <p><span class="s">매출·매입·손익을 한 표에 놓습니다.</span><span class="s">차이와 증감률까지 같이 봅니다.</span></p>
+        </article>
+        <article class="fc">
+          <p class="no">03</p><h3>올해와 작년을 겹쳐서</h3>
+          <p>계절을 타는 업종이라면 이 막대 하나로 흐름이 보입니다.</p>
+        </article>
+        <article class="fc">
+          <p class="no">04</p><h3>어디까지 반영됐는지</h3>
+          <p><span class="s">카드 매입은 청구 시차가 있습니다.</span><span class="s">숨기지 않고 며칠까지인지 적어둡니다.</span></p>
+        </article>
+        <article class="fc">
+          <p class="no">05</p><h3>어디에 얼마를 쓰나</h3>
+          <p><span class="s">증빙 유형별 구성과 상위 지출처.</span><span class="s">비율로 한눈에 봅니다.</span></p>
+        </article>
+        <article class="fc">
+          <p class="no">06</p><h3>놓칠 뻔한 것</h3>
+          <p>불공제 후보, 갑자기 늘어난 매입처, 고액 1회성 지출을 먼저 짚어줍니다.</p>
+        </article>
+        </div>
+        <div class="fdots" id="fdots"><i class="on"></i><i></i><i></i><i></i><i></i><i></i></div>
+      </div>
+
+      <div class="deck" id="deck">
+
+          <!-- 01 이번 달 손익 -->
+          <div class="fpane on">
+            <p class="ui-lab">잠정 손익</p>
+            <p class="ui-big num">98,750,000<em>원</em></p>
+            <p class="ui-sub"><b class="up">흑자 · 전년 동기 +57.7%</b> 6,260만원 → 9,875만원</p>
+            <p class="ui-foot">마진율 11.1% (전년 7.9%, <b class="up">차이 +3.2%p</b>)</p>
+          </div>
+
+          <!-- 02 전년 동기 비교 -->
+          <div class="fpane">
+            <table class="ui-tb">
+              <thead><tr><th></th><th>이번 기간</th><th>전년 동기</th><th>증감률</th></tr></thead>
+              <tbody>
+                <tr><th>매출</th><td class="num">892,400,000</td><td class="num">796,800,000</td><td class="num up">+12.0%</td></tr>
+                <tr><th>매입</th><td class="num">793,650,000</td><td class="num">734,200,000</td><td class="num dn">+8.1%</td></tr>
+                <tr class="tot"><th>손익</th><td class="num">98,750,000</td><td class="num">62,600,000</td><td class="num up">+57.7%</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <!-- 03 월별 추이 -->
+          <div class="fpane">
+            <p class="ui-lab">월별 매출 · 2026 vs 2025</p>
+            <div class="ui-bars">
+              <div class="bg"><span class="b now" style="--h:74%"></span><span class="b old" style="--h:62%"></span><i>1월</i></div>
+              <div class="bg"><span class="b now" style="--h:86%"></span><span class="b old" style="--h:70%"></span><i>2월</i></div>
+              <div class="bg"><span class="b now" style="--h:96%"></span><span class="b old" style="--h:84%"></span><i>3월</i></div>
+              <div class="bg"><span class="b now" style="--h:88%"></span><span class="b old" style="--h:86%"></span><i>4월</i></div>
+            </div>
+            <p class="ui-foot"><b class="sw now"></b> 2026 &nbsp; <b class="sw old"></b> 2025</p>
+          </div>
+
+          <!-- 04 자료 반영 상태 -->
+          <div class="fpane">
+            <p class="ui-lab">데이터 반영 상태</p>
+            <div class="ui-cols">
+              <div><p class="k">세금계산서</p><p class="v num">2026-04-07</p><p class="m"><b class="ok">정상</b> 최근 7일 24건</p></div>
+              <div><p class="k">현금영수증</p><p class="v num">2026-04-07</p><p class="m"><b class="ok">정상</b> 최근 7일 11건</p></div>
+              <div><p class="k">신용카드</p><p class="v num">2026-03-25</p><p class="m"><b class="warn">확인 필요</b> 청구 시차 D-13</p></div>
+            </div>
+          </div>
+
+          <!-- 05 지출 구조 -->
+          <div class="fpane">
+            <p class="ui-lab">증빙 유형 믹스</p>
+            <div class="ui-mix">
+              <div><span class="k">세금계산서</span><span class="v num">517,400,000원</span><span class="bar" style="--p:65.2%"></span><span class="m">전체 매입의 65.2%</span></div>
+              <div><span class="k">신용카드</span><span class="v num">191,300,000원</span><span class="bar" style="--p:24.1%"></span><span class="m">전체 매입의 24.1%</span></div>
+              <div><span class="k">현금영수증</span><span class="v num">84,950,000원</span><span class="bar" style="--p:10.7%"></span><span class="m">전체 매입의 10.7%</span></div>
+            </div>
+          </div>
+
+          <!-- 06 주의 항목 -->
+          <div class="fpane">
+            <p class="ui-lab">주의 항목</p>
+            <ul class="ui-list">
+              <li><span class="k">법인카드 — 대형마트</span><span class="m">불공제 상위 · 카드 8건</span><span class="v num">3,240,000원</span></li>
+              <li><span class="k">원자재 공급 — A사</span><span class="m">급증 매입처 · 평균 대비 2.4배</span><span class="v num">84,200,000원</span></li>
+              <li><span class="k">설비 도입 — 정밀가공기</span><span class="m">고액 1회성 · 2026-02-14</span><span class="v num">48,500,000원</span></li>
+            </ul>
+          </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- 지원 기능. 카드가 흩어져 있다가 한 화면으로 모인다. -->
+<section id="menu">
+  <div class="gather" id="gather">
+    <div class="gather-in wrap">
+      <div class="gather-head">
+        <p class="tick">대시보드에서 되는 일</p>
+        <h2 class="sec"><span class="c">흩어져 있던 정보가</span><span class="c">한 곳으로 모입니다<span class="dot-b">.</span></span></h2>
+        <p class="lede"><span class="s">증빙부터 장부, 인건비, 서식까지.</span><span class="s">따로 챙기던 것을 한 화면에서 봅니다.</span></p>
+      </div>
+      <div class="gather-grid">
+      <article class="gc" data-g="증빙"><span class="gk">증빙</span><b>세금계산서</b><p>주고받은 계산서를 한 표에서</p></article>
+      <article class="gc" data-g="증빙"><span class="gk">증빙</span><b>현금영수증</b><p>발행·수취 내역 자동 수집</p></article>
+      <article class="gc" data-g="증빙"><span class="gk">증빙</span><b>신용카드</b><p>사업용 카드 승인 내역</p></article>
+      <article class="gc" data-g="증빙"><span class="gk">증빙</span><b>통장</b><p>입출금을 증빙과 짝지어</p></article>
+      <article class="gc" data-g="장부"><span class="gk">장부·신고</span><b>분개·전표</b><p>거래를 장부 형태로 확정</p></article>
+      <article class="gc" data-g="장부"><span class="gk">장부·신고</span><b>재무제표</b><p>시산표·총계정원장 표준 서식</p></article>
+      <article class="gc" data-g="장부"><span class="gk">장부·신고</span><b>부가세 리포트</b><p>낼 금액을 미리</p></article>
+      <article class="gc" data-g="인건비"><span class="gk">인건비</span><b>급여 입력</b><p>넣으면 세금이 자동 계산</p></article>
+      <article class="gc" data-g="인건비"><span class="gk">인건비</span><b>임직원 관리</b><p>직원 명단과 4대보험</p></article>
+      <article class="gc" data-g="인건비"><span class="gk">인건비</span><b>사업소득 입력</b><p>프리랜서 지급 기록</p></article>
+      <article class="gc" data-g="인건비"><span class="gk">인건비</span><b>기타소득 입력</b><p>강의료 등 기타 지급</p></article>
+      <article class="gc" data-g="인건비"><span class="gk">인건비</span><b>사업·기타소득자 관리</b><p>지급 대상 명단</p></article>
+      <article class="gc" data-g="서식"><span class="gk">서식·증명</span><b>서식자료</b><p>30종을 회사 정보 채워서</p></article>
+      <article class="gc" data-g="서식"><span class="gk">서식·증명</span><b>민원증명</b><p>19종 발급 안내</p></article>
+      <article class="gc" data-g="시스템"><span class="gk">시스템</span><b>설정</b><p>팀 권한과 알림</p></article>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+
+
+<!-- 5. 근거 -->
+<section id="evid" style="background:var(--w-2)">
+  <div class="wrap">
+    <p class="tick rise">숫자를 누르면</p>
+    <h2 class="sec rise">그 숫자가 어디서 왔는지 나옵니다<span class="dot-b">.</span></h2>
+    <p class="lede rise"><span class="s">합계만 보여주고 끝내지 않습니다.</span><span class="s">계산식과 집계 건수, 원본 증빙까지 이어집니다.</span></p>
+
+    <div class="panel rise" style="background:var(--w)">
+      <div class="tabs" role="tablist" aria-label="기간">
+        <button class="tab" role="tab" aria-selected="true" data-p="m">이번 달</button>
+        <button class="tab" role="tab" aria-selected="false" data-p="l">지난달</button>
+        <button class="tab" role="tab" aria-selected="false" data-p="q">이번 분기</button>
+        <button class="tab" role="tab" aria-selected="false" data-p="y">올해</button>
+      </div>
+      <div class="kpis">
+        <button class="kpi" aria-expanded="true" data-k="0"><span class="lab">매출 합계</span>
+          <span class="val num" data-m="184,920,000" data-l="171,340,000" data-q="512,880,000" data-y="1,946,220,000">184,920,000</span>
+          <span class="cmp" data-m="전년 동월 +12.3%" data-l="전년 동월 +8.1%" data-q="전년 동기 +10.4%" data-y="전년 +14.2%">전년 동월 +12.3%</span></button>
+        <button class="kpi" aria-expanded="false" data-k="1"><span class="lab">매입 합계</span>
+          <span class="val num" data-m="121,405,000" data-l="118,220,000" data-q="349,610,000" data-y="1,332,880,000">121,405,000</span>
+          <span class="cmp dn" data-m="전년 동월 +4.8%" data-l="전년 동월 +3.2%" data-q="전년 동기 +5.1%" data-y="전년 +6.0%">전년 동월 +4.8%</span></button>
+        <button class="kpi" aria-expanded="false" data-k="2"><span class="lab">잠정 손익</span>
+          <span class="val num" data-m="63,515,000" data-l="53,120,000" data-q="163,270,000" data-y="613,340,000">63,515,000</span>
+          <span class="cmp" data-m="전년 동월 +28.7%" data-l="전년 동월 +19.4%" data-q="전년 동기 +23.9%" data-y="전년 +31.1%">전년 동월 +28.7%</span></button>
+        <button class="kpi" aria-expanded="false" data-k="3"><span class="lab">부가세 예상</span>
+          <span class="val num" data-m="6,351,500" data-l="5,312,000" data-q="16,327,000" data-y="61,334,000">6,351,500</span>
+          <span class="cmp" data-m="불공제 후보 4건" data-l="불공제 후보 2건" data-q="불공제 후보 9건" data-y="불공제 후보 27건">불공제 후보 4건</span></button>
+      </div>
+      <div class="evid">
+        <div><h4>계산식</h4><div class="formula" id="f-form"></div><p class="evid-note">실제 화면에서는 여기서 원장으로 바로 넘어갑니다.</p></div>
+        <div><h4 id="f-rowtitle">이 금액을 만든 거래처</h4><p class="rnote" id="f-rownote">318건을 합친 값입니다</p><div class="rows" id="f-rows"></div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 배너 CTA. 본문을 한 번 끊고 지나간다. -->
+<div class="wrap">
+  <div class="band-cta rise">
+    <div>
+      <h3>지금 기장 상황부터 점검해 드립니다<span class="dot-b">.</span></h3>
+      <p>어디가 새는지, 무엇이 늦는지 먼저 봅니다.</p>
+    </div>
+    <a class="btn btn-fill" href="#end">기장 이관 상담하기</a>
+  </div>
+</div>
+
+<!-- 선언문. 메리디안의 본업이 무엇인지. -->
+<section class="creed invert" id="creed">
+  <div class="wrap">
+    <p class="creed-q rise">
+      <span class="c">세금은 <em>&lsquo;내는 것&rsquo;</em>이 아니라</span><span class="c"><em>&lsquo;설계하는 것&rsquo;</em>입니다<span class="dot-b">.</span></span>
+    </p>
+    <p class="creed-a rise">
+      <span class="s">매일의 기장이 검토가 되고, 검토가 자문이 되고,</span><span class="s">자문이 다음 결정의 근거가 됩니다.</span><span class="s">그 흐름을 끊지 않는 일이 메리디안의 본업입니다.</span>
+    </p>
+  </div>
+</section>
+
+<!-- 하는 일. 카드로 묶어 하위 페이지로. -->
+<section id="svc">
+  <div class="wrap">
+    <p class="tick rise">하는 일</p>
+    <h2 class="sec rise">기장부터 자문까지<span class="dot-b">.</span></h2>
+    <div class="svc rise">
+      <a href="/services/bookkeeping">
+        <p class="no">01</p><h3>세무 기장</h3>
+        <p>매일의 거래를 장부로 옮기고, 매월 점검합니다.</p>
+        <span class="go">자세히 →</span></a>
+      <a href="/services/vat">
+        <p class="no">02</p><h3>부가가치세</h3>
+        <p>낼 금액을 미리 알려드리고 불공제를 먼저 걸러냅니다.</p>
+        <span class="go">자세히 →</span></a>
+      <a href="/services/corporate-tax">
+        <p class="no">03</p><h3>법인세 · 종합소득세</h3>
+        <p>신고 전에 절세 여지를 함께 검토합니다.</p>
+        <span class="go">자세히 →</span></a>
+      <a href="/services/payroll">
+        <p class="no">04</p><h3>급여 · 4대보험</h3>
+        <p><span class="s">급여 계산부터 신고까지.</span><span class="s">명세서는 자동으로 나옵니다.</span></p>
+        <span class="go">자세히 →</span></a>
+      <a href="/services/closing">
+        <p class="no">05</p><h3>결산 · 재무제표</h3>
+        <p>표준 서식으로 정리하고 근거 원장까지 남깁니다.</p>
+        <span class="go">자세히 →</span></a>
+      <a href="/services/advisory">
+        <p class="no">06</p><h3>세무 자문</h3>
+        <p><span class="s">결정하기 전에 물어보십시오.</span><span class="s">그때가 가장 쌉니다.</span></p>
+        <span class="go">자세히 →</span></a>
+    </div>
+  </div>
+</section>
+
+<!-- 6. 흐름 -->
+<section id="flow">
+  <div class="wrap">
+    <p class="tick rise">시작하기</p>
+    <h2 class="sec rise">대표님이 하실 일은<br class="brk">서류 한 장입니다<span class="dot-b">.</span></h2>
+    <div class="flow rise">
+      <div class="step"><h3>상담</h3><p><span class="s">지금 상황과 필요한 것을 듣습니다.</span><span class="s">비용도 이때 확정합니다.</span></p></div>
+      <div class="step"><h3>이관 동의</h3><p><span class="s">서류 한 장이면 됩니다.</span><span class="s">나머지 절차는 저희가 처리합니다.</span></p></div>
+      <div class="step"><h3>자료 연결</h3><p><span class="s">홈택스와 카드, 통장을 연결합니다.</span><span class="s">과거 자료도 가져옵니다.</span></p></div>
+      <div class="step"><h3>화면 열림</h3><p>다음 날부터 대시보드에서 우리 회사 숫자를 봅니다.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- 7. 비교 -->
+<section id="vs" style="background:var(--w-2)">
+  <div class="vs-rail">
+  <div class="vs-fix wrap">
+    <p class="tick rise">무엇이 다른가</p>
+    <h2 class="sec rise">같은 기장인데<br class="brk">결과가 다른 이유<span class="dot-b">.</span></h2>
+    <table class="vs rise">
+      <thead><tr><th></th><th class="theirs">보통의 세무사무소</th><th class="ours"><span class="vs-brand"><img src="assets/meridian-logo.png" alt="">MERIDIAN</span></th></tr></thead>
+      <tbody>
+        <tr><th>자료 전달</th><td class="theirs">월말마다 대표님이 모아서 보냄</td><td class="ours"><strong>매일 자동 수집.</strong> 보낼 것이 없음</td></tr>
+        <tr><th>숫자 확인</th><td class="theirs">신고 끝나고 결과만 받음</td><td class="ours"><strong>지금 이 순간</strong>의 손익과 부가세</td></tr>
+        <tr><th>근거</th><td class="theirs">왜 이 금액인지 물어봐야 함</td><td class="ours">숫자를 누르면 <strong>계산식과 원본</strong></td></tr>
+        <tr><th>자료 기준 시점</th><td class="theirs">언제까지 반영됐는지 모름</td><td class="ours">화면마다 <strong>기준 시각 표시</strong></td></tr>
+        <tr><th>같은 판단 반복</th><td class="theirs">매달 다시 물어봄</td><td class="ours">한 번 확정하면 <strong>규칙으로 학습</strong></td></tr>
+      </tbody>
+    </table>
+  </div>
+  </div>
+</section>
+
+<!-- 대표 회계사. 원본 구조 그대로: 좌 사진 / 우 이름·문장·업무영역 2열 -->
+<section id="who">
+  <div class="wrap">
+    <p class="tick rise">Principal</p>
+    <div class="who-grid">
+      <div class="shot-frame rise-slow"><img src="assets/profile-chest.jpg" alt="박민상 공인회계사"></div>
+      <div class="rise-slow" style="--delay:.18s">
+        <p class="wname">박민상<span class="dot-b">.</span></p>
+        <p class="wrole">공인회계사 · Founder · KICPA</p>
+
+        <p class="wsay"><span class="s">장부 한 줄을 어떻게 적느냐가 다음 결정의 근거가 됩니다.</span><span class="s">계정 분류 하나, 증빙 하나도 그 무게로 다룹니다.</span></p>
+        <p class="wsay2"><span class="s">그래서 장부가 곧 자료입니다.</span><span class="s"><b>대표가 다음 결정을 내릴 때 펼쳐 보는 자료.</b></span></p>
+
+        <div class="wpa">
+          <p class="wpa-lab">Practice Areas</p>
+          <ul>
+            <li>세무 기장 · 세무 신고</li>
+            <li>법인세 · 소득세 세무 조정</li>
+            <li>비상장주식 가치평가</li>
+            <li>M&amp;A 재무실사 (FDD)</li>
+            <li>IPO 사전 회계 정비 · K-IFRS 전환</li>
+            <li>가치평가 모델링 (DCF · 시장접근법 · 자산접근법 · 파생상품)</li>
+          </ul>
+        </div>
+
+        <a class="wmore" href="/members">프로필 전체 보기 →</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 인사이트 -->
+<section id="insight">
+  <div class="wrap">
+    <p class="tick rise">Our thinking</p>
+    <h2 class="sec rise">최근 인사이트<span class="dot-b">.</span></h2>
+    <div class="posts rise">
+      <a href="/blog/vat-nondeductible">
+        <span class="cat">부가가치세</span>
+        <h3>불공제로 잡히기 쉬운 지출 일곱 가지</h3>
+        <time datetime="2026-08-04">2026.08.04</time></a>
+      <a href="/blog/closing-checklist">
+        <span class="cat">결산</span>
+        <h3>결산 전에 확인해야 할 계정과목</h3>
+        <time datetime="2026-07-22">2026.07.22</time></a>
+      <a href="/blog/payroll-insurance">
+        <span class="cat">인건비</span>
+        <h3>4대보험 정산, 왜 매년 금액이 달라지나</h3>
+        <time datetime="2026-07-09">2026.07.09</time></a>
+      <a href="/blog/tax-credit">
+        <span class="cat">세액공제</span>
+        <h3>고용을 늘렸다면 놓치지 말아야 할 공제</h3>
+        <time datetime="2026-06-28">2026.06.28</time></a>
+    </div>
+    <p style="margin-top:var(--s4)"><a href="/blog" style="font-size:var(--t-0);font-weight:600;color:var(--blue);text-decoration:none">모든 글 보기 →</a></p>
+  </div>
+</section>
+
+<!-- 8. 마무리 (반전) -->
+<section class="end invert" id="end" style="padding-bottom:var(--s7)">
+  <div class="wrap">
+    <p class="tick rise">기장 이관</p>
+    <h2 class="rise">우리 회사 자료로 먼저 보시고 정하셔도 됩니다<span class="dot-b">.</span></h2>
+    <p class="lede rise"><span class="s">상담에서 실제 화면을 보여드립니다.</span><span class="s">그다음에 정하셔도 늦지 않습니다.</span></p>
+    <div class="hero-cta rise" style="justify-content:center;margin-top:var(--s5)">
+      <a class="btn btn-fill" href="mailto:contact@meridianco.kr">기장 이관 상담하기</a>
+      <a class="btn btn-line" href="tel:0212345678">전화로 문의</a>
+    </div>
+    <p class="cta-note rise" style="color:#7E90AB">상담은 무료입니다.</p>
+  </div>
+</section>
+
+</main>
+
+<footer>
+  
+  <div class="wrap fmain">
+    <div class="brandcol">
+      <h3><img class="flogo" src="assets/meridian-logo.png" alt="">MERIDIAN TAX &amp; ADVISORY</h3>
+      <p>좋은 장부가, 좋은 결정을 만듭니다<span class="dot-b">.</span></p>
+      <p class="who">Founder · 박민상 공인회계사</p>
+    </div>
+
+    <div>
+      <h3>Practice</h3>
+      <nav class="fcol">
+        <a href="/services/tax-bookkeeping">세무 기장</a>
+        <a href="/services/tax-adjustment">세무 조정</a>
+        <a href="/services/tax-advisory">세무 자문</a>
+        <a href="/services/valuation">기업가치평가</a>
+        <a href="/services/transaction-advisory">M&amp;A · IPO 자문</a>
+      </nav>
+    </div>
+
+    <div>
+      <h3>Menu</h3>
+      <nav class="fcol">
+        <a href="#feat">고객 화면</a>
+        <a href="#evid">근거</a>
+        <a href="#svc">하는 일</a>
+        <a href="#flow">시작하기</a>
+        <a href="#insight">인사이트</a>
+      </nav>
+    </div>
+
+    <div>
+      <h3>Contact</h3>
+      <div class="fcol">
+        <p><span class="flabel">Kakao</span>
+          <a href="https://pf.kakao.com/_xcAyvn" target="_blank" rel="noopener noreferrer">카카오톡 채널</a></p>
+        <p><span class="flabel">Email</span>
+          <a href="mailto:mscpa@dscpa.co.kr">mscpa@dscpa.co.kr</a></p>
+        <p><span class="flabel">Location</span>Seoul · Online Meeting</p>
+        <a class="fportal" href="https://hometax-dashboard.vercel.app" target="_blank" rel="noopener noreferrer">Client Login →</a>
+      </div>
+    </div>
+  </div>
+
+  <div class="wrap"><div class="rule"></div></div>
+  <div class="wrap fnotice">
+    <p><b>Affiliation Notice.</b> 박민상 공인회계사는 동성회계법인 소속이며, 본 사이트는 자문 · 인사이트 활동을 소개하기 위한 개인 브랜드 공간입니다. 회계감사 · 세무 기장 · 세무 조정 · 세무 신고 등 법정 업무는 모두 동성회계법인 명의로 정식 수행됩니다.</p>
+  </div>
+
+  <div class="wrap"><div class="rule"></div></div>
+  <div class="wrap fbot">
+    <span>© 2026 MERIDIAN TAX &amp; ADVISORY. All rights reserved.</span>
+    <span>Seoul, South Korea</span>
+  </div>
+</footer>
+
+<script>
+(() => {
+  const rm = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  /* 부드러운 스크롤. 메리디안 본가와 같은 Lenis, 같은 설정(lerp .12 / duration .9).
+     Lenis 가 스크롤을 직접 돌리므로 그 프레임에 맞춰 화면 계산을 해야 안 끊긴다. */
+  let lenis = null;
+  if (!rm && window.Lenis) {
+    lenis = new Lenis({ lerp: 0.12, duration: 0.9, smoothWheel: true });
+    const raf = (t) => { lenis.raf(t); requestAnimationFrame(raf); };
+    requestAnimationFrame(raf);
+    lenis.on('scroll', () => frame());
+  }
+
+  const hdr = document.getElementById('hdr');
+  addEventListener('scroll', () => hdr.classList.toggle('stuck', scrollY > 20), { passive: true });
+
+  const io = new IntersectionObserver((es) => {
+    es.forEach(e => e.isIntersecting && (e.target.classList.add('on'), io.unobserve(e.target)));
+  }, { threshold: .12, rootMargin: '0px 0px -6%' });
+  document.querySelectorAll('.rise, .rise-slow').forEach(el => io.observe(el));
+
+  /* 문제 구간. 고정한 채 인용문이 넘어간다.
+     스크롤 핸들러를 따로 두지 않고 onFrame 한 곳에서만 처리한다
+     (여러 핸들러가 각자 돌면 서로 어긋난다). */
+  const pin = document.getElementById('why');
+  const slabs = [...pin.querySelectorAll('.slab')];
+  const bars = [...document.getElementById('prog').children];
+  let lastStep = -1;
+
+  function onFrame() {
+    const r = pin.getBoundingClientRect();
+    const span = r.height - innerHeight;
+    if (span <= 0) return;
+    // 한 인용문당 두 칸. 질문 → 답. 단계마다 머무는 구간이 있다.
+    const steps = slabs.length * 2;
+    let step = Math.min(stepOf(pin, steps).idx, steps - 1);
+    if (lastStep >= 0 && step !== lastStep) step = step > lastStep ? lastStep + 1 : lastStep - 1;
+    if (step === lastStep) return;
+    lastStep = step;
+
+    const i = Math.floor(step / 2);
+    const isAnswer = step % 2 === 1;
+
+    slabs.forEach((sl, k) => {
+      sl.classList.toggle('on', k === i);
+      sl.classList.toggle('past', k < i);
+      sl.classList.toggle('answer', k === i && isAnswer);
+    });
+    bars.forEach((b, k) => b.classList.toggle('on', k <= i));
+  }
+
+  /* 스크롤에 반응하는 것들을 한 프레임에 모아서 처리한다.
+     scroll 이벤트마다 계산하면 프레임과 어긋나 끊겨 보인다.
+     스크롤 자체는 가로채지 않는다. 트랙패드·휠·키보드가 그대로 돌아간다. */
+  let queued = false;
+  function frame() {
+    queued = false;
+    onFrame();
+    parallax();
+    featScroll();
+    anchorScroll();
+    mergeScroll();
+    vsScroll();
+    statsScroll();
+  }
+  function schedule() { if (!queued) { queued = true; requestAnimationFrame(frame); } }
+  addEventListener('scroll', schedule, { passive: true });
+  addEventListener('resize', schedule, { passive: true });
+  // 첫 그리기는 스크립트 맨 끝에서 한 번만 부른다 (아래 함수들이 다 선언된 뒤).
+
+  /* 히어로 대시보드 화면.
+     들어올 때는 눕혀져 있다가 스크롤과 함께 일어선다.
+     다 서면 그때부터 화면 안쪽이 위로 흐른다 — 대시보드를 훑는 느낌. */
+  const shot = document.getElementById('shot');
+  const shotWin = document.getElementById('shotWin');
+  const shotImg = shotWin?.querySelector('.db');
+  const tags = [...document.querySelectorAll('.hotspot')];
+  let hsIdx = -1;
+  const shotCap = document.getElementById('shotCap');
+  let capIdx = -2;
+
+  function parallax() {
+    if (rm || !shot) return;
+    const r = shot.getBoundingClientRect();
+    if (r.bottom < -200 || r.top > innerHeight + 200) return;
+
+    // 1단계: 눕은 것이 일어선다 (화면 아래에서 올라오는 동안)
+    const rise = Math.min(Math.max(1 - r.top / (innerHeight * 0.9), 0), 1);
+    const e = 1 - Math.pow(1 - rise, 3);            // 끝에서 부드럽게
+    shot.style.transform =
+      `rotateX(${(1 - e) * 14}deg) scale(${0.9 + e * 0.1})`;
+    shot.style.opacity = String(0.35 + e * 0.65);
+
+    // 2단계: 대시보드 위에서 조각이 하나씩 확대된다
+    const stage = shot.parentElement;
+
+    // 지금 어느 구간인지 하나만 고른다. 마지막 조각은 끝까지 남는다
+    // (구간을 폭으로 재면 스크롤 끝에서 아무것도 안 뜬다).
+    // 단계마다 머무는 구간이 있다. 문턱을 넘어야 다음 조각으로.
+    const st = stepOf(stage, tags.length);
+    let pick = Math.min(st.idx, tags.length - 1);
+    if (hsIdx >= 0 && pick !== hsIdx) pick = pick > hsIdx ? hsIdx + 1 : hsIdx - 1;
+    hsIdx = pick;
+
+    let anyOn = false;
+    tags.forEach((t, i) => {
+      const on = i === pick;
+      t.classList.toggle('on', on);
+      if (on) anyOn = true;
+    });
+    // 설명은 화면 하단 한 자리에서만 갈아끼운다
+    if (shotCap && pick !== capIdx) {
+      capIdx = pick;
+      const html = pick >= 0 ? tags[pick].querySelector('.say').innerHTML : '';
+      shotCap.innerHTML = html ? `<p>${html}</p>` : '';
+      requestAnimationFrame(() => shotCap.querySelector('p')?.classList.add('on'));
+    }
+    shotWin?.classList.toggle('zoom', anyOn);
+  }
+
+
+
+  /* 지표 띠. 붙어 있는 동안 숫자가 하나씩 드러난다. */
+  const statsRail = document.querySelector('.stats-rail');
+  const statEls = [...document.querySelectorAll('.stat')];
+  function statsScroll() {
+    if (rm || !statsRail || !statEls.length) return;
+    const i = Math.min(stepOf(statsRail, statEls.length).idx, statEls.length - 1);
+    statEls.forEach((el, k) => el.classList.toggle('on', k <= i));
+  }
+  makeSnap(statsRail, statEls.length);
+
+  /* 비교표. 우리 칸 전체가 한 번 커진다. 줄마다 하면 산만하다. */
+  const vsRail = document.querySelector('.vs-rail');
+  const vsTable = document.querySelector('.vs');
+  let vsPlace = null;
+  if (vsTable && !vsTable.querySelector('.vs-glow')) {
+    const glow = document.createElement('div');
+    glow.className = 'vs-glow';
+    vsTable.appendChild(glow);
+    const place = () => {
+      const head = vsTable.querySelector('thead .ours');
+      const last = vsTable.querySelector('tbody tr:last-child .ours');
+      if (!head || !last) return;
+      // offsetTop 으로 잰다. getBoundingClientRect 는 이미 걸린 scale 이 섞여
+      // 커진 뒤 다시 재면 값이 밀린다.
+      const pad = 4;
+      glow.style.left = (head.offsetLeft - pad) + 'px';
+      glow.style.top = (head.offsetTop - pad) + 'px';
+      glow.style.width = (head.offsetWidth + pad * 2) + 'px';
+      glow.style.height = (last.offsetTop + last.offsetHeight - head.offsetTop + pad * 2) + 'px';
+    };
+    addEventListener('resize', place);
+    addEventListener('load', place, { once: true });
+    setTimeout(place, 300);
+    // 폰트가 늦게 오면 위치가 밀린다. 다 온 뒤 다시 잰다.
+    document.fonts?.ready.then(place);
+    vsPlace = place;
+  }
+  function vsScroll() {
+    if (rm || !vsRail || !vsTable) return;
+    const r = vsRail.getBoundingClientRect();
+    const span = vsRail.offsetHeight - innerHeight;
+    if (span <= 0) return;
+    const t = -r.top / span;
+    const on = t > 0.32 && t < 0.78;
+    // 켜지기 직전에 위치를 다시 잰다 — 어긋난 채로 커지면 헤더가 빠진다.
+    if (on && !vsTable.classList.contains('grown')) vsPlace?.();
+    vsTable.classList.toggle('grown', on);
+  }
+
+  /* 카드가 다 모이면 틈이 닫히고 한 판이 된다. */
+  const gatherEl = document.getElementById('gather');
+  const gridEl = document.querySelector('.gather-grid');
+  function mergeScroll() {
+    if (rm || !gatherEl || !gridEl) return;
+    const r = gatherEl.getBoundingClientRect();
+    const span = r.height - innerHeight;
+    if (span <= 0) return;
+    const t = Math.min(Math.max(-r.top / span, 0), 1);
+    gridEl.classList.toggle('merged', t > 0.7);
+  }
+
+  /* 우측 앵커. 지금 보고 있는 구역에 불이 들어온다.
+     남색 구간 위에서는 색을 뒤집는다. */
+  const anchor = document.getElementById('anchor');
+  const anchorLinks = [...(anchor?.querySelectorAll('a') || [])];
+  const secs = anchorLinks
+    .map(a => ({ a, el: document.getElementById(a.dataset.sec) }))
+    .filter(x => x.el);
+
+  function anchorScroll() {
+    if (!anchor) return;
+    anchor.classList.toggle('on', scrollY > innerHeight * 0.5);
+
+    const mid = innerHeight / 2;
+    let cur = secs[0];
+    for (const s of secs) if (s.el.getBoundingClientRect().top <= mid) cur = s;
+    anchorLinks.forEach(a => a.removeAttribute('aria-current'));
+    cur?.a.setAttribute('aria-current', 'true');
+
+    // 앵커가 남색 구간 위에 있으면 밝게
+    const onDark = [...document.querySelectorAll('.invert')].some(el => {
+      const r = el.getBoundingClientRect();
+      return r.top < mid && r.bottom > mid;
+    });
+    anchor.classList.toggle('dark', onDark);
+  }
+
+
+
+  /* 기능. 왼쪽을 누르면 오른쪽 실제 화면이 바뀐다. */
+  const CAPS = [
+    ['meridianco.kr/dashboard/dashboard', '확정 전이라도 지금까지 모인 자료로 계산합니다. 마진율과 전년 대비 증감이 같이 나옵니다.'],
+    ['meridianco.kr/dashboard/dashboard', '매출·매입·손익을 작년 같은 기간과 한 표에 놓습니다. 차이와 증감률까지 같이 봅니다.'],
+    ['meridianco.kr/dashboard/dashboard', '올해와 작년을 나란히 세운 막대. 계절성이 있는 업종에서 특히 잘 보입니다.'],
+    ['meridianco.kr/dashboard/dashboard', '카드 매입은 청구 시차가 있습니다. 숨기지 않고 며칠까지 반영됐는지 적어둡니다.'],
+    ['meridianco.kr/dashboard/dashboard', '증빙 유형별 구성과 상위 지출처. 어디에 얼마가 나가는지 비율로 봅니다.'],
+    ['meridianco.kr/dashboard/dashboard', '불공제 후보, 갑자기 늘어난 매입처, 고액 1회성 지출을 먼저 짚어줍니다.'],
+  ];
+  /* 기능 구간. 화면이 붙어 있는 동안 스크롤이 지나가며
+     왼쪽 문구와 오른쪽 화면이 함께 갈아탄다.
+     기기 틀은 스크롤에 맞춰 아주 조금씩 돌아간다 — 제품처럼 보이게. */
+  const copies = [...document.querySelectorAll('.fc')];
+  const panes  = [...document.querySelectorAll('.fpane')];
+  const dots   = [...(document.getElementById('fdots')?.children || [])];
+  const rail   = document.querySelector('.feat-rail');
+  let featIdx = -1;
+
+  function showFeat(i) {
+    if (i === featIdx) return;
+    // 한 번에 한 칸씩만. 두 칸 건너뛰면 카드가 순간이동한 것처럼 보인다.
+    if (featIdx >= 0) i = i > featIdx ? featIdx + 1 : featIdx - 1;
+    featIdx = i;
+
+    copies.forEach((o, k) => o.classList.toggle('on', k === i));
+    dots  .forEach((o, k) => o.classList.toggle('on', k === i));
+
+    // 카드 덱: 지나간 것은 우측 하단으로 빠지고,
+    // 대기 중인 것은 뒤에 겹쳐 살짝 보인다.
+    panes.forEach((p, k) => {
+      p.classList.remove('on', 'gone', 'wait');
+      // 방금 넘어간 카드가 맨 위에서 빠져야 자연스럽다.
+      // 뒤로 갈수록 낮춰서 겹침 순서를 유지한다.
+      if (k < i) { p.classList.add('gone'); p.style.zIndex = String(20 + k); }
+      else if (k === i) { p.classList.add('on'); p.style.zIndex = 10; }
+      else {
+        const d = k - i;
+        p.classList.add('wait');
+        p.style.setProperty('--dy', `${Math.min(d, 3) * 14}px`);
+        p.style.setProperty('--sc', String(1 - Math.min(d, 3) * 0.035));
+        p.style.zIndex = String(9 - Math.min(d, 3));
+      }
+    });
+  }
+
+  function featScroll() {
+    if (!rail || !panes.length) return;
+    showFeat(Math.min(stepOf(rail, panes.length).idx, panes.length - 1));
+  }
+
+  /* 근거 패널 */
+  /* 근거 데이터. KPI 4개 × 기간 4개 = 16가지가 다 달라야
+     "숫자를 누르면 그 숫자가 어디서 왔는지 나온다"가 증명된다. */
+  const EV = {
+    m: [
+      { f: '전자세금계산서 <em>매출</em> 합계<br>+ 현금영수증 <em>발행</em>분<br>+ 신용카드 <em>매출</em>전표<br><br>집계 <em>318</em>건',
+        t: '이 금액을 만든 거래처', n: '이번 달 318건을 합친 값입니다',
+        r: [['㈜대성물산','42,180,000'],['한빛테크㈜','31,640,000'],['㈜정우엔지니어링','24,905,000'],['그 외 41곳','86,195,000']] },
+      { f: '전자세금계산서 <em>매입</em> 합계<br>+ 사업용카드 <em>사용</em>액<br>+ 현금영수증 <em>수취</em>분<br><br>집계 <em>512</em>건',
+        t: '무엇에 썼나', n: '이번 달 512건을 항목별로 묶었습니다',
+        r: [['원자재 매입','58,310,000'],['외주 용역','27,440,000'],['임차·관리비','12,900,000'],['그 외','22,755,000']] },
+      { f: '매출 <em>184,920,000</em><br>− 매입 <em>121,405,000</em><br>− 인건비 <em>14,920,000</em><br><br>확정 전 <em>잠정</em>치',
+        t: '어떻게 이 값이 나왔나', n: '이번 달 기준, 더하고 뺀 과정 그대로입니다',
+        r: [['매출','184,920,000'],['매입','-121,405,000'],['인건비','-14,920,000'],['잠정 손익','63,515,000']] },
+      { f: '매출세액 <em>18,492,000</em><br>− 매입세액 <em>12,140,500</em><br><br>불공제 후보 <em>4</em>건 제외 전',
+        t: '아직 안 뺀 불공제 후보', n: '이번 달 4건, 회계사가 확인 중입니다',
+        r: [['접대성 경비','1,240,000'],['비영업용 차량','860,000'],['면세 관련 매입','420,000'],['증빙 미비','310,000']] },
+    ],
+    l: [
+      { f: '전자세금계산서 <em>매출</em> 합계<br>+ 현금영수증 <em>발행</em>분<br>+ 신용카드 <em>매출</em>전표<br><br>집계 <em>294</em>건',
+        t: '이 금액을 만든 거래처', n: '지난달 294건을 합친 값입니다',
+        r: [['㈜대성물산','38,900,000'],['㈜정우엔지니어링','29,120,000'],['한빛테크㈜','26,480,000'],['그 외 38곳','76,840,000']] },
+      { f: '전자세금계산서 <em>매입</em> 합계<br>+ 사업용카드 <em>사용</em>액<br>+ 현금영수증 <em>수취</em>분<br><br>집계 <em>487</em>건',
+        t: '무엇에 썼나', n: '지난달 487건을 항목별로 묶었습니다',
+        r: [['원자재 매입','55,700,000'],['외주 용역','26,880,000'],['임차·관리비','12,900,000'],['그 외','22,740,000']] },
+      { f: '매출 <em>171,340,000</em><br>− 매입 <em>118,220,000</em><br>− 인건비 <em>14,920,000</em><br><br>확정 전 <em>잠정</em>치',
+        t: '어떻게 이 값이 나왔나', n: '지난달 기준, 더하고 뺀 과정 그대로입니다',
+        r: [['매출','171,340,000'],['매입','-118,220,000'],['인건비','-14,920,000'],['잠정 손익','38,200,000']] },
+      { f: '매출세액 <em>17,134,000</em><br>− 매입세액 <em>11,822,000</em><br><br>불공제 후보 <em>2</em>건 제외 전',
+        t: '아직 안 뺀 불공제 후보', n: '지난달 2건, 회계사가 확인 중입니다',
+        r: [['접대성 경비','640,000'],['비영업용 차량','410,000'],['—','—'],['—','—']] },
+    ],
+    q: [
+      { f: '전자세금계산서 <em>매출</em> 합계<br>+ 현금영수증 <em>발행</em>분<br>+ 신용카드 <em>매출</em>전표<br><br>집계 <em>891</em>건',
+        t: '이 금액을 만든 거래처', n: '이번 분기 891건을 합친 값입니다',
+        r: [['㈜대성물산','118,400,000'],['한빛테크㈜','92,300,000'],['㈜정우엔지니어링','78,600,000'],['그 외 56곳','223,580,000']] },
+      { f: '전자세금계산서 <em>매입</em> 합계<br>+ 사업용카드 <em>사용</em>액<br>+ 현금영수증 <em>수취</em>분<br><br>집계 <em>1,438</em>건',
+        t: '무엇에 썼나', n: '이번 분기 1,438건을 항목별로 묶었습니다',
+        r: [['원자재 매입','167,900,000'],['외주 용역','79,200,000'],['임차·관리비','38,700,000'],['그 외','63,810,000']] },
+      { f: '매출 <em>512,880,000</em><br>− 매입 <em>349,610,000</em><br>− 인건비 <em>44,760,000</em><br><br>확정 전 <em>잠정</em>치',
+        t: '어떻게 이 값이 나왔나', n: '이번 분기 기준, 더하고 뺀 과정 그대로입니다',
+        r: [['매출','512,880,000'],['매입','-349,610,000'],['인건비','-44,760,000'],['잠정 손익','118,510,000']] },
+      { f: '매출세액 <em>51,288,000</em><br>− 매입세액 <em>34,961,000</em><br><br>불공제 후보 <em>9</em>건 제외 전',
+        t: '아직 안 뺀 불공제 후보', n: '이번 분기 9건, 회계사가 확인 중입니다',
+        r: [['접대성 경비','2,910,000'],['비영업용 차량','1,740,000'],['면세 관련 매입','980,000'],['증빙 미비','620,000']] },
+    ],
+    y: [
+      { f: '전자세금계산서 <em>매출</em> 합계<br>+ 현금영수증 <em>발행</em>분<br>+ 신용카드 <em>매출</em>전표<br><br>집계 <em>3,204</em>건',
+        t: '이 금액을 만든 거래처', n: '올해 3,204건을 합친 값입니다',
+        r: [['㈜대성물산','441,700,000'],['한빛테크㈜','352,900,000'],['㈜정우엔지니어링','287,400,000'],['그 외 73곳','864,220,000']] },
+      { f: '전자세금계산서 <em>매입</em> 합계<br>+ 사업용카드 <em>사용</em>액<br>+ 현금영수증 <em>수취</em>분<br><br>집계 <em>5,180</em>건',
+        t: '무엇에 썼나', n: '올해 5,180건을 항목별로 묶었습니다',
+        r: [['원자재 매입','639,800,000'],['외주 용역','301,400,000'],['임차·관리비','154,800,000'],['그 외','236,880,000']] },
+      { f: '매출 <em>1,946,220,000</em><br>− 매입 <em>1,332,880,000</em><br>− 인건비 <em>179,040,000</em><br><br>확정 전 <em>잠정</em>치',
+        t: '어떻게 이 값이 나왔나', n: '올해 기준, 더하고 뺀 과정 그대로입니다',
+        r: [['매출','1,946,220,000'],['매입','-1,332,880,000'],['인건비','-179,040,000'],['잠정 손익','434,300,000']] },
+      { f: '매출세액 <em>194,622,000</em><br>− 매입세액 <em>133,288,000</em><br><br>불공제 후보 <em>27</em>건 제외 전',
+        t: '아직 안 뺀 불공제 후보', n: '올해 27건, 회계사가 확인 중입니다',
+        r: [['접대성 경비','8,740,000'],['비영업용 차량','5,120,000'],['면세 관련 매입','2,940,000'],['증빙 미비','1,860,000']] },
+    ],
+  };
+  let period = 'm';
+  const kpis = [...document.querySelectorAll('.kpi')];
+  const form = document.getElementById('f-form');
+  const rows = document.getElementById('f-rows');
+  const rowTitle = document.getElementById('f-rowtitle');
+  const rowNote = document.getElementById('f-rownote');
+  let kpiIdx = 0;
+  const paint = (i) => {
+    kpiIdx = i;
+    const d = EV[period][i];
+    form.innerHTML = d.f;
+    if (rowTitle) rowTitle.textContent = d.t;
+    if (rowNote) rowNote.textContent = d.n;
+    rows.innerHTML = d.r.map(([a,b]) => `<div class="rw"><span>${a}</span><span>${b}</span></div>`).join('');
+  };
+  kpis.forEach((k, i) => k.addEventListener('click', () => {
+    kpis.forEach(o => o.setAttribute('aria-expanded', String(o === k)));
+    paint(i);
+  }));
+  paint(0);
+
+  document.querySelectorAll('.tab').forEach(tab => tab.addEventListener('click', () => {
+    document.querySelectorAll('.tab').forEach(t => t.setAttribute('aria-selected', String(t === tab)));
+    const p = tab.dataset.p;
+    period = p;
+    paint(kpiIdx);
+    document.querySelectorAll('.kpi .val').forEach(el => {
+      if (rm) { el.textContent = el.dataset[p]; return; }
+      countUp(el, el.dataset[p], 650);
+    });
+    document.querySelectorAll('.kpi .cmp').forEach(el => {
+      el.style.transition = 'opacity .25s';
+      el.style.opacity = 0;
+      setTimeout(() => { el.textContent = el.dataset[p]; el.style.opacity = 1; }, 130);
+    });
+  }));
+
+
+  /* 카드가 흩어져 있다가 한 격자로 모인다.
+     ui-ux-pro-max 의 GSAP 프리셋 조합:
+       · Scroll Reveal / Complex — pin + scrub (섹션을 붙여놓고 스크롤에 물린다)
+       · Stagger List / Standard — grid:'auto' 물결 (격자에서 자연스러운 순서)
+     Lenis 와 ScrollTrigger 가 같은 스크롤을 보도록 연결한다. */
+  // 좁은 화면에서는 흩뿌림을 하지 않는다. 카드가 화면 밖으로 나가 가로 스크롤이 생긴다.
+  const wideEnough = innerWidth > 700;
+  if (!rm && wideEnough && window.gsap && window.ScrollTrigger) {
+    gsap.registerPlugin(ScrollTrigger);
+
+    if (lenis) {
+      lenis.on('scroll', ScrollTrigger.update);
+      ScrollTrigger.scrollerProxy(document.documentElement, {
+        scrollTop(v) { return arguments.length ? lenis.scrollTo(v, { immediate: true }) : window.scrollY; },
+      });
+    }
+
+    const cards = gsap.utils.toArray('.gc');
+    if (cards.length) {
+      // 시작 위치를 카드마다 흩뿌린다. 화면 밖으로는 안 나가게 값을 묶는다.
+      cards.forEach((c, i) => {
+        const col = i % 5, row = Math.floor(i / 5);
+        // 제자리에서 조금씩만 흩어진다. 크게 밀면 서로 겹쳐서 한 장처럼 보인다.
+        gsap.set(c, {
+          xPercent: (col - 2) * 12,
+          yPercent: (row - 1) * 16,
+          rotate: (i % 2 ? 1 : -1) * (3 + (i % 4)),
+          scale: 0.9, opacity: 0.15,
+        });
+      });
+
+      gsap.timeline({
+        scrollTrigger: {
+          // sticky 로 이미 붙어 있으므로 pin 은 쓰지 않는다.
+          // pin + pinSpacing:false 를 같이 쓰면 뒷 섹션이 끌려 올라와 겹친다.
+          trigger: '#gather', start: 'top top', end: 'bottom bottom',
+          scrub: 1,
+        },
+      })
+      // 1단계: 흩어진 카드가 제자리를 찾는다
+      .to(cards, {
+        xPercent: 0, yPercent: 0, rotate: 0, scale: 1, opacity: 1,
+        ease: 'power2.out',
+        stagger: { each: 0.05, from: 'center', grid: 'auto' },
+      })
+      // 2단계: 틈이 닫히며 한 판이 된다
+      .to('.gather-grid', { gap: 0, ease: 'power2.inOut', duration: 0.5 }, '>-0.1')
+      .to(cards, {
+        borderRadius: 0, ease: 'power2.inOut', duration: 0.5,
+      }, '<')
+      ;
+    }
+
+    // 이미지·폰트가 늦게 오면 위치가 어긋난다. 다 온 뒤 다시 잰다.
+    addEventListener('load', () => ScrollTrigger.refresh(), { once: true });
+  }
+
+
+  /* 브레이크. 각 단계마다 "머무는 구간"을 둔다.
+     한 단계는 [머묾 62% + 넘어감 38%] 로 나뉜다.
+     머무는 동안은 스크롤해도 화면이 안 바뀐다 — 그래서 하나씩 보고 넘어간다.
+     관성으로 두 칸 밀리는 것도 이걸로 막힌다. */
+  function stepOf(el, steps, hold = 0.62) {
+    const r = el.getBoundingClientRect();
+    const span = el.offsetHeight - innerHeight;
+    if (span <= 0) return 0;
+    const t = Math.min(Math.max(-r.top / span, 0), 0.99999);
+    const unit = 1 / steps;
+    const idx = Math.floor(t / unit);
+    const within = (t - idx * unit) / unit;   // 그 단계 안에서의 진행도 0~1
+    // 머무는 구간(hold)을 지나야 다음 단계로 넘어간다
+    return { idx, within, passing: within > hold };
+  }
+
+  /* 스크롤이 멎으면 그 단계의 한가운데로 살짝 당긴다.
+     문턱 근처에서 애매하게 걸쳐 있는 걸 막는다. */
+  function makeSnap(el, steps) {
+    if (rm || !el) return;
+    let timer = null;
+    addEventListener('scroll', () => {
+      clearTimeout(timer);
+      timer = setTimeout(() => {
+        const span = el.offsetHeight - innerHeight;
+        if (span <= 0) return;
+        const t = -el.getBoundingClientRect().top / span;
+        if (t < -0.02 || t > 1.02) return;
+        const unit = 1 / steps;
+        const idx = Math.min(Math.max(Math.round(t / unit - 0.3), 0), steps - 1);
+        const target = el.offsetTop + span * (idx + 0.3) * unit;
+        if (Math.abs(target - scrollY) < 4) return;
+        if (lenis) lenis.scrollTo(target, { duration: .5, easing: (x) => 1 - Math.pow(1 - x, 3) });
+        else scrollTo({ top: target, behavior: 'smooth' });
+      }, 150);
+    }, { passive: true });
+  }
+  makeSnap(document.getElementById('why'), slabs.length * 2);
+  makeSnap(document.querySelector('.feat-rail'), panes.length);
+  makeSnap(document.querySelector('.stage'), tags.length);
+
+
+  /* 숫자가 0부터 올라간다. 값이 바뀔 때마다 다시 센다.
+     tabular-nums 라서 자릿수가 흔들려도 칸이 안 밀린다. */
+  function countUp(el, to, ms = 900) {
+    const target = Number(String(to).replace(/[^\d.-]/g, ''));
+    if (!isFinite(target)) { el.textContent = to; return; }
+    const suffix = String(to).replace(/[\d,.-]/g, '');
+    const t0 = performance.now();
+    cancelAnimationFrame(el._raf);
+    const tick = (now) => {
+      const p = Math.min((now - t0) / ms, 1);
+      const eased = 1 - Math.pow(1 - p, 3);
+      el.textContent = Math.round(target * eased).toLocaleString('ko-KR') + suffix;
+      if (p < 1) el._raf = requestAnimationFrame(tick);
+    };
+    el._raf = requestAnimationFrame(tick);
+  }
+
+  // 근거 섹션이 처음 보일 때 한 번 센다
+  const evidSec = document.getElementById('evid');
+  if (evidSec && !rm) {
+    const once = new IntersectionObserver((es) => {
+      es.forEach(e => {
+        if (!e.isIntersecting) return;
+        once.disconnect();
+        document.querySelectorAll('.kpi .val').forEach(v => countUp(v, v.textContent));
+      });
+    }, { threshold: .3 });
+    once.observe(evidSec);
+  }
+
+
+  /* 섹션 사이 브레이크. 경계를 지날 때 한 번 멎었다 간다.
+     붙어 있는 구간(rail)들은 자기 브레이크가 있으니 빼고,
+     평범한 섹션들만 경계에서 살짝 잡는다. */
+  const plainSecs = [...document.querySelectorAll('main > section, main > .wrap')]
+    .filter(el => !el.querySelector('.feat-rail, .stats-rail, .vs-rail, .gather, .pin-inner, .stage'));
+  if (!rm && plainSecs.length) {
+    let t = null, lastY = scrollY;
+    addEventListener('scroll', () => {
+      const down = scrollY > lastY;
+      lastY = scrollY;
+      clearTimeout(t);
+      t = setTimeout(() => {
+        // 화면 위쪽에 걸친 섹션 경계를 찾는다
+        for (const el of plainSecs) {
+          const top = el.getBoundingClientRect().top;
+          if (top > -90 && top < 220) {
+            const target = el.offsetTop - 66;   // 헤더 높이만큼 띄운다
+            if (Math.abs(target - scrollY) < 4) return;
+            if (lenis) lenis.scrollTo(target, { duration: .5, easing: (x) => 1 - Math.pow(1 - x, 3) });
+            else scrollTo({ top: target, behavior: 'smooth' });
+            return;
+          }
+        }
+      }, 170);
+    }, { passive: true });
+  }
+
+  // 모든 선언이 끝난 뒤 첫 그리기
+  frame();
+  addEventListener('load', frame, { once: true });
+})();
+</script>
+</body>
+</html>
