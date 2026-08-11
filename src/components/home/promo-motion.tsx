@@ -379,7 +379,9 @@ export default function PromoMotion() {
          Lenis 와 ScrollTrigger 가 같은 스크롤을 보도록 연결한다. */
       // 좁은 화면에서는 흩뿌림을 하지 않는다. 카드가 화면 밖으로 나가 가로 스크롤이 생긴다.
       const wideEnough = innerWidth > 700;
-      if (!rm && wideEnough && window.gsap && window.ScrollTrigger) {
+      // CDN 시절엔 window.gsap 을 봤다. 지금은 import 로 들어오므로 그 검사를 뺀다.
+      // 안 빼면 이 블록 전체가 건너뛰어져 카드 모이기·비교표·앵커가 죽는다.
+      if (!rm && wideEnough) {
         gsap.registerPlugin(ScrollTrigger);
 
         if (lenis) {

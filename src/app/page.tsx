@@ -17,6 +17,21 @@ export default function Home() {
   return (
     <div className="promo">
       <PromoMotion />
+
+      {/* 우측 앵커. 선과 빈 원. 원하는 데만 보고 갈 수 있게. */}
+      <nav className="anchor" id="anchor" aria-label="구역 바로가기">
+        <a href="#top" data-sec="top"><span className="lb">처음</span><span className="cir"></span></a>
+        <a href="#why" data-sec="why"><span className="lb">자주 듣는 이야기</span><span className="cir"></span></a>
+        <a href="#feat" data-sec="feat"><span className="lb">고객 화면</span><span className="cir"></span></a>
+        <a href="#evid" data-sec="evid"><span className="lb">근거</span><span className="cir"></span></a>
+        <a href="#creed" data-sec="creed"><span className="lb">우리의 생각</span><span className="cir"></span></a>
+        <a href="#svc" data-sec="svc"><span className="lb">하는 일</span><span className="cir"></span></a>
+        <a href="#flow" data-sec="flow"><span className="lb">시작하기</span><span className="cir"></span></a>
+        <a href="#vs" data-sec="vs"><span className="lb">비교</span><span className="cir"></span></a>
+        <a href="#insight" data-sec="insight"><span className="lb">인사이트</span><span className="cir"></span></a>
+        <a href="#end" data-sec="end"><span className="lb">상담</span><span className="cir"></span></a>
+      </nav>
+
       <div id="top">
 
       {/* 1. 히어로 */}
