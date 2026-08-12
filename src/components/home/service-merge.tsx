@@ -153,9 +153,12 @@ export default function ServiceMerge({ items }) {
 
         /* 대시보드 크기까지 커진다.
            scale 로 늘리면 그림자와 테두리까지 같이 늘어나 계단처럼 깨진다.
-           실제 폭·높이를 바꿔서 그림자·테두리는 원래 굵기를 지킨다. */
-        const toW = Math.min(s.width, innerWidth * 0.86);
-        const toH = toW * (s.height / s.width);
+           실제 폭·높이를 바꿔서 그림자·테두리는 원래 굵기를 지킨다.
+
+           크기를 줄여 잡으면(예: 화면 폭의 86%) 카드가 사라진 뒤 대시보드가
+           제 크기로 커지면서 화면이 한 번 튄다. 대시보드 크기 그대로 맞춘다. */
+        const toW = s.width;
+        const toH = s.height;
         const curW = CARD_W + (toW - CARD_W) * down;
         const curH = CARD_H + (toH - CARD_H) * down;
 
