@@ -25,7 +25,8 @@ export default function ServiceMerge({ items }) {
     const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
     const cards = [...root.querySelectorAll(".svm-card")];
     const target = root.querySelector(".svm-target");
-    const label = root.querySelector(".svm-label");
+    // 문구는 대시보드(.stage) 안에 있다 — 커진 네모 위에 떠야 하기 때문
+    const label = document.querySelector(".svm-label");
     if (!cards.length || !target) return;
 
     // 움직임을 줄이는 설정이면 스크롤 연동을 안 한다. 대시보드는 그냥 보인다.
@@ -64,74 +65,49 @@ export default function ServiceMerge({ items }) {
 
       const shot = document.querySelector(".shot");
       const stackEl = root.querySelector(".svm-stack");
-      const CARD_W = 420;
-      const CARD_H = 158;
 
-      /* 전부 스크롤이 몬다. 저절로 돌아가는 부분은 없다.
-         한 줄기 진행도 p (0 → 1) 를 두 구간으로 나눠 쓴다.
-
-           p 0.00 ~ 0.42   흩어진 6장이 한 장으로 모인다
-           p 0.42 ~ 1.00   그 한 장이 대시보드 자리로 가며 커진다
-
-         모이는 구간을 넉넉히 잡아야 "스르륵" 변한다.
-         짧으면 눈 깜짝할 새 끝나서 재미가 없다. */
+      /* 전부 스크롤이 몬다. 저절로 돌아가는 부분은 없다. */
       const onScroll = () => {
         if (!shot || !stackEl) return;
-
-        const st = stackEl.getBoundingClientRect();
-        // 스택 가운데 = 모이는 자리 (카드와 함께 움직이지 않는 기준)
-        const c = {
-          left: st.left + st.width * 0.12 - CARD_W / 2,
-          top: st.top + st.height / 2 - CARD_H / 2,
-          width: CARD_W,
-          height: CARD_H,
-        };
 
         /* 진행도는 "얼마나 스크롤했나"로 잰다.
            화면 위치로 재면 첫 화면에서 이미 스택이 가운데라 0 이 안 나온다.
 
            순서를 또렷하게 나눈다. 겹치면 무슨 일이 일어나는지 안 읽힌다.
 
-             p 0.00 ~ 0.45   흩어진 6장이 한 장으로 모인다
-             p 0.45 ~ 0.62   그 한 장이 아래로 넘어가며 사라진다
-             p 0.55 ~ 0.78   문구가 뜬다
-             p 0.78 ~ 1.00   문구가 물러나고 대시보드가 드러난다
-                             (그 뒤는 원래 있던 대시보드 애니메이션) */
-        const SPAN = innerHeight * 1.45;
+             p 0.00 ~ 0.35   흩어진 6장이 한 장으로 모인다 (여기까지 화면을 붙잡음)
+             p 0.38 ~ 0.50   붙잡기가 풀려 화면이 카드를 따라 내려가고 카드는 물러난다
+             p 0.42 ~ 0.62   커진 네모(대시보드)가 드러난다
+             p 0.52 ~ 0.72   그 네모 위에 문구가 떴다가 물러난다
+             그 뒤            원래 있던 대시보드 애니메이션 */
+        const SPAN = innerHeight * 2.6;
         const p = Math.min(Math.max(scrollY / SPAN, 0), 1);
         const ease = (v) => v * v * (3 - 2 * v);
         const seg = (a, b) => Math.min(Math.max((p - a) / (b - a), 0), 1);
 
-        // ── 1) 모인다 ──────────────────────────────
-        const m = ease(seg(0, 0.45));
+        // ── 1) 모인다. 다 모일 때까지 화면을 붙잡는다 ──
+        const m = ease(seg(0, 0.35));
 
-        // ── 2) 모인 장이 아래로 넘어가며 사라진다 ──
-        //    크기를 늘리지 않는다. 늘리면 안쪽 글씨가 같이 늘어나 깨져 보인다.
-        const away = ease(seg(0.45, 0.62));
-
-        const s = shot.getBoundingClientRect();
-        const dx = (s.left + s.width / 2) - (c.left + c.width / 2);
-        const dy = (s.top + s.height / 2) - (c.top + c.height / 2);
-
-        const cardFade = 1 - seg(0.45, 0.60);
+        // ── 2) 모인 장은 제자리에 남고, 화면이 아래로 흐르며 물러난다 ──
+        const cardFade = 1 - seg(0.38, 0.50);
 
         cards.forEach((card, i) => {
           gsap.set(card, {
-            x: moves[i].x * m + dx * away * 0.55,
-            y: moves[i].y * m + dy * away * 0.55,
+            x: moves[i].x * m,
+            y: moves[i].y * m,
             opacity: cardFade,
           });
         });
         gsap.set(target, {
-          x: dx * away * 0.55,
-          y: dy * away * 0.55,
-          opacity: (m > 0.85 ? 1 : 0) * cardFade,
+          opacity: (m > 0.9 ? 1 : 0) * cardFade,
         });
 
-        // ── 3) 문구가 뜬다. 카드가 사라진 뒤다 ──────
+        /* ── 3) 문구는 커진 네모 위에 뜬다 ──────────
+           대시보드가 드러나는 동안 떠 있다가, 다 드러나면 물러난다.
+           대시보드 자체 애니메이션(조각 확대)이 시작되기 전에 비켜준다. */
         gsap.set(label, {
-          opacity: seg(0.55, 0.68) * (1 - seg(0.78, 0.9)),
-          y: (1 - seg(0.55, 0.68)) * 14,
+          opacity: seg(0.52, 0.60) * (1 - seg(0.68, 0.76)),
+          y: (1 - seg(0.52, 0.60)) * 16,
         });
 
         /* ── 4) 대시보드가 드러난다 ──────────────────
@@ -140,7 +116,7 @@ export default function ServiceMerge({ items }) {
 
            대시보드의 transform 은 promo-motion 이 잡고 있다. 겹쳐 쓰면 서로
            덮어써서 깜빡인다. 그래서 여기서는 감싸는 .stage 의 투명도만 만진다. */
-        const reveal = ease(seg(0.72, 0.98));
+        const reveal = ease(seg(0.42, 0.62));
         const stageEl = shot.parentElement;
         if (stageEl) stageEl.style.opacity = String(reveal);
       };
@@ -172,11 +148,6 @@ export default function ServiceMerge({ items }) {
             <span className="svm-rows"><i /><i /><i /></span>
           </div>
         ))}
-        {/* 카드가 넘어간 뒤 그 자리에서 뜬다. 그래서 스택 안에 둔다. */}
-        <p className="svm-label">
-          <span className="s">따로 굴러다니던 일이</span>
-          <span className="s">한 화면으로 모입니다.</span>
-        </p>
       </div>
     </div>
   );

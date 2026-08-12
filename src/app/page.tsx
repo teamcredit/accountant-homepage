@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { Metadata } from "next";
 import { services } from "@/lib/data";
+import { siteConfig } from "@/lib/constants";
 import { getAllPosts } from "@/lib/posts";
 import PromoMotion from "@/components/home/promo-motion";
 import ServiceMerge from "@/components/home/service-merge";
@@ -57,7 +58,16 @@ export default function Home() {
           <p className="hero-sub"><span className="c">기장을 맡기시면</span><span className="c"><b>회사 전용 세무 대시보드</b>가 함께 제공됩니다.</span></p>
           <div className="hero-cta">
             <a className="btn btn-fill" href="#end">기장 이관 상담하기</a>
-            <a className="btn btn-line" href="#feat">화면 먼저 보기</a>
+            {/* 헤더의 '대시보드 시작하기'와 같은 곳으로 간다. 이름도 같게 —
+                같은 일을 하는 버튼은 어디서든 같은 이름이어야 한다. */}
+            <a
+              className="btn btn-line"
+              href={siteConfig.clientPortalUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              대시보드 시작하기
+            </a>
           </div>
           <p className="cta-note"><span className="s">상담은 무료입니다.</span><span className="s">쓰던 사무소에서 넘어오는 절차는 저희가 처리합니다.</span></p>
           {/* 팝업을 닫아도 여기서 다시 연다 */}
@@ -77,6 +87,12 @@ export default function Home() {
         {/* 붙잡힌 구간을 지나면 대시보드가 이어받는다 */}
         <div className="wrap">
           <div className="stage">
+            {/* 커진 네모 위에 뜨는 문구. 카드가 다 모여 대시보드가 되는 그 순간을
+                말로 짚어준다. service-merge 가 스크롤에 맞춰 띄우고 물린다. */}
+            <p className="svm-label" aria-hidden="true">
+              <span className="s">따로 굴러다니던 일이</span>
+              <span className="s">한 화면으로 모입니다.</span>
+            </p>
             <div className="shot" id="shot">
               <div className="shot-win" id="shotWin">
                 <div className="shot-caption" id="shotCap"></div>

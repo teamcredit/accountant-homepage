@@ -185,8 +185,14 @@ h2.sec { font-size: clamp(1.9rem, 4.4vw, var(--t-3)); margin-top: var(--s3); max
    안 붙잡으면 흩어짐 → 모임 → 문구가 끝나기 전에 위로 빠져나가
    중간을 통째로 못 본다. 다 끝나면 놓아주고 대시보드로 넘어간다.
    overflow 를 주면 안 된다 — 안쪽 sticky 가 죽는다. */
-.hero-hold { height: 200vh; position: relative; }
-.hero-hold > .wrap { position: sticky; top: calc(var(--hdr) + var(--s4)); }
+/* 높이 = 모이는 구간(진행도 0~0.35) + 화면 한 장.
+   SPAN 이 260vh 이므로 0.35 × 260 = 91vh, 거기에 화면 한 장을 더한다.
+   다 모이면 붙잡기가 풀려 화면이 카드를 따라 내려간다. */
+.hero-hold { height: 190vh; position: relative; }
+/* 붙는 자리는 "처음 보이던 그 자리" 여야 한다.
+   헤더 바로 밑에 붙이면 스크롤 시작하자마자 글이 위로 확 튄다.
+   .hero 의 padding-top(헤더 + s6) 만큼 그대로 내려서 붙인다. */
+.hero-hold > .wrap { position: sticky; top: calc(var(--hdr) + var(--s6)); }
 @media (max-width: 1000px) {
   /* 좁은 화면에서는 모이는 화면 자체를 빼므로 붙잡을 이유가 없다 */
   .hero-hold { height: auto; }
@@ -274,17 +280,27 @@ h2.sec { font-size: clamp(1.9rem, 4.4vw, var(--t-3)); margin-top: var(--s3); max
 .svm-p5 { left: -62%;  top: 27%; }
 .svm-p6 { left: -46%;  top: 84%; }
 
-/* 카드가 넘어간 뒤, 그 자리에서 문구가 뜬다.
-   카드가 있던 바로 그 자리라 시선이 안 흩어진다. */
+/* 커진 네모(대시보드) 위 오른쪽에 뜬다.
+   .stage 는 본문 폭 밖까지 넓으므로(margin-inline 음수) 오른쪽 기준으로 잡는다. */
 .svm-label {
-  position: absolute; z-index: 4;
-  left: 12%; top: 50%;
-  translate: -50% -50%;
-  width: max-content; max-width: 92%;
-  font-size: var(--t-2); font-weight: 700;
-  color: var(--tx); text-align: center;
+  position: sticky; z-index: 6;
+  top: calc(var(--hdr) + 20vh);
+  height: 0;                       /* 자리를 차지하면 아래 대시보드가 밀린다 */
+  /* .stage 는 본문 폭 밖까지 넓다(margin-inline 음수).
+     폭을 재지 않으면 화면 전체를 차지해 오른쪽 끝이 잘린다.
+     본문 폭 안으로 가둔 뒤 오른쪽에 붙인다. */
+  width: min(var(--wrap), 100%);
+  margin-inline: auto;
+  padding-right: calc(var(--pad) + 2vw);
+  text-align: right;
+  font-size: clamp(1.4rem, 2.3vw, 2.2rem); font-weight: 700;
+  line-height: 1.25; letter-spacing: -.03em;
+  color: var(--tx);
   opacity: 0;
+  pointer-events: none;
+  text-wrap: pretty; word-break: keep-all;
 }
+@media (max-width: 1000px) { .svm-label { display: none; } }
 
 /* 히어로에 남는 '일정 보기' 버튼. 팝업을 닫아도 여기서 다시 연다. */
 .sched-open {
