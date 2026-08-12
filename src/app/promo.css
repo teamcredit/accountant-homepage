@@ -167,8 +167,10 @@ h2.sec { font-size: clamp(1.9rem, 4.4vw, var(--t-3)); margin-top: var(--s3); max
   transition: background .18s ease, border-color .18s ease, color .18s ease;
   white-space: nowrap;
 }
-.btn-fill { background: var(--blue); color: #fff; }
-.btn-fill:hover { background: var(--blue-d); }
+/* `.promo a { color: inherit }` 가 (0,1,1) 로 `.btn-fill` (0,1,0) 보다
+   더 구체적이라 글자색을 검정으로 되돌린다. 같은 무게로 맞춰 이긴다. */
+.promo .btn-fill { background: var(--blue); color: #fff; }
+.promo .btn-fill:hover { background: var(--blue-d); }
 .btn-line { border-color: var(--w-3); color: var(--tx); }
 .btn-line:hover { border-color: var(--tx-2); }
 .invert .btn-line { border-color: #333333; color: #FFFFFF; }
@@ -247,6 +249,7 @@ h2.sec { font-size: clamp(1.9rem, 4.4vw, var(--t-3)); margin-top: var(--s3); max
   border: 1px solid var(--blue);
   border-radius: 12px;
   opacity: 0;
+  transform-origin: 50% 50%;
 }
 
 .svm-card {
@@ -257,6 +260,8 @@ h2.sec { font-size: clamp(1.9rem, 4.4vw, var(--t-3)); margin-top: var(--s3); max
   background: var(--w);
   box-shadow: 0 12px 30px -20px rgba(0,0,0,.4);
   will-change: transform;
+  /* 가운데를 기준으로 커진다 — 대시보드 자리에 정확히 맞추려면 필요하다 */
+  transform-origin: 50% 50%;
 }
 .svm-t {
   display: block;

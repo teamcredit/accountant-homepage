@@ -65,6 +65,7 @@ export default function ServiceMerge({ items }) {
 
       const shot = document.querySelector(".shot");
       const stackEl = root.querySelector(".svm-stack");
+      const CARD_W = 420;                 // .svm-card 의 CSS 폭과 같아야 한다
 
       /* 전부 스크롤이 몬다. 저절로 돌아가는 부분은 없다. */
       const onScroll = () => {
@@ -89,34 +90,49 @@ export default function ServiceMerge({ items }) {
         // ── 1) 모인다. 다 모일 때까지 화면을 붙잡는다 ──
         const m = ease(seg(0, 0.35));
 
-        /* ── 2) 모인 한 장이 아래 대시보드 자리까지 실제로 내려간다 ──
-           제자리에서 사라지면 "어디로 갔지" 가 된다. 눈으로 따라갈 수 있게
-           대시보드가 설 자리까지 데려간다. */
-        const down = ease(seg(0.35, 0.58));
+        /* ── 2) 모인 한 장이 화면 한가운데에 붙어 따라오며 커진다 ──
+           스크롤을 내려도 카드는 늘 화면 세로 한가운데에 있다.
+           그동안 가로로는 대시보드 자리로 옮겨가고, 크기는 대시보드만큼
+           커진다. 그래서 "이 카드가 곧 저 화면이 된다" 가 읽힌다. */
+        const down = ease(seg(0.35, 0.62));
 
         const st = stackEl.getBoundingClientRect();
         const s = shot.getBoundingClientRect();
-        /* 모인 자리(스택의 12% 지점) → 대시보드 윗부분까지.
-           대시보드 '한가운데' 를 노리면 카드가 화면 아래로 빠져나가
-           내려가는 모습을 못 본다. 화면 안에 머무는 윗머리로 데려간다. */
+
+        // 모인 자리 (스택의 12% 지점)
         const fromX = st.left + st.width * 0.12;
         const fromY = st.top + st.height / 2;
-        const dx = (s.left + s.width / 2) - fromX;
-        const dy = (s.top + Math.min(s.height * 0.18, 160)) - fromY;
 
-        // 다 내려가서 대시보드에 닿으면 자리를 넘기고 사라진다
-        const cardFade = 1 - seg(0.50, 0.62);
+        /* 목표: 가로는 대시보드 한가운데, 세로는 화면 한가운데.
+           세로를 화면 기준으로 잡아야 스크롤을 따라 붙어 온다.
+           세로 중앙은 헤더만큼 내려 잡는다 — 헤더가 화면을 가리고 있다. */
+        const toX = s.left + s.width / 2;
+        const toY = (innerHeight + 80) / 2;
+
+        const dx = (toX - fromX) * down;
+        const dy = (toY - fromY) * down;
+
+        /* 대시보드 크기까지 커진다. 다만 화면 폭의 80% 를 넘기지 않는다 —
+           넘으면 왼쪽 글을 덮어 글이 안 읽힌다. */
+        const growTo = Math.min(s.width, innerWidth * 0.8) / CARD_W;
+        const grow = 1 + (growTo - 1) * down;
+
+        // 다 커지면 진짜 대시보드에 자리를 넘긴다
+        const cardFade = 1 - seg(0.52, 0.62);
+        // 커지는 동안 안쪽 글씨는 같이 늘어나면 깨져 보인다. 먼저 물러난다.
+        const inkFade = 1 - seg(0.36, 0.50);
 
         cards.forEach((card, i) => {
           gsap.set(card, {
-            x: moves[i].x * m + dx * down,
-            y: moves[i].y * m + dy * down,
+            x: moves[i].x * m + dx,
+            y: moves[i].y * m + dy,
+            scale: grow,
             opacity: cardFade,
           });
+          gsap.set(card.children, { opacity: inkFade });
         });
         gsap.set(target, {
-          x: dx * down,
-          y: dy * down,
+          x: dx, y: dy, scale: grow,
           opacity: (m > 0.9 ? 1 : 0) * cardFade,
         });
 
