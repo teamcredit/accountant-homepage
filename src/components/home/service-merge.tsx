@@ -62,8 +62,8 @@ export default function ServiceMerge({ items }) {
          모인 그 한 장이 아래 대시보드로 이어진다. */
       const tl = gsap.timeline({ paused: true });
 
-      // 1) 흩어진 채로 잠깐 머문다 — 여기가 "따로 놀던" 상태다
-      tl.to({}, { duration: 1.1 });
+      // 1) 흩어진 채로 아주 잠깐만 머문다 — "따로 놀던" 상태를 보여줄 만큼만
+      tl.to({}, { duration: 0.45 });
 
       // 2) 한 장씩 가운데로 모인다
       cards.forEach((card, i) => {
@@ -72,10 +72,10 @@ export default function ServiceMerge({ items }) {
           {
             x: () => moves[i].x,
             y: () => moves[i].y,
-            duration: 1.15,
+            duration: 1.0,
             ease: "power3.inOut",
           },
-          1.1 + i * 0.12,
+          0.45 + i * 0.09,
         );
       });
 
@@ -100,7 +100,7 @@ export default function ServiceMerge({ items }) {
          그래서 "지금 팝업이 없다"만 보고 출발하면, 곧 뜰 팝업 뒤에서
          애니메이션이 다 끝나 버린다. 팝업이 뜰 기회를 한 번 준 뒤에 판단한다. */
       let popupSettled = false;
-      setTimeout(() => { popupSettled = true; tryStart(); }, 1400);
+      setTimeout(() => { popupSettled = true; tryStart(); }, 350);
 
       function tryStart() {
         if (started || !visible || !popupSettled) return;
@@ -114,22 +114,64 @@ export default function ServiceMerge({ items }) {
       io.observe(root);
       popWatch.observe(document.body, { childList: true, subtree: true });
 
-      /* 모인 한 장이 대시보드로 넘어간다.
-         스크롤을 내리면 모인 장이 아래 대시보드 쪽으로 끌려가며 사라지고,
-         그때 문구가 뜬다. 대시보드는 원래 하던 대로 일어선다. */
-      const stage = document.querySelector(".stage");
+      /* 모인 한 장이 그대로 대시보드가 된다.
+         스크롤을 내리면 모인 카드가 아래 대시보드 자리로 이동하면서 커지고,
+         다 커진 순간 진짜 대시보드로 바뀐다. 화면 밖으로 사라지지 않는다. */
+      const shot = document.querySelector(".shot");
       const onScroll = () => {
-        if (!started) return;
-        const r = root.getBoundingClientRect();
-        // 모인 장이 화면 위로 빠져나가는 정도 (0 → 1)
-        const t = Math.min(Math.max(1 - (r.bottom - 80) / innerHeight, 0), 1);
+        if (!started || !shot) return;
 
-        // 모인 장은 아래로 끌려가며 옅어진다 — 대시보드에 흡수되는 느낌
-        gsap.set(cards, { y: (i) => moves[i].y + t * 90, opacity: 1 - t * 1.2 });
-        gsap.set(target, { opacity: (1 - t * 1.4) });
+        /* 기준 자리는 스택(움직이지 않는 것)으로 잰다.
+           .svm-target 은 카드와 같이 움직이므로 그걸로 재면
+           거리가 늘 0 으로 나와 아무 일도 안 일어난다. */
+        const stackEl = root.querySelector(".svm-stack");
+        const st = stackEl.getBoundingClientRect();
+        const c = {
+          left: st.left + st.width / 2 - 150,       // 모인 카드 폭 300 의 절반
+          top: st.top + st.height / 2 - 59,         // 높이 118 의 절반
+          width: 300,
+          height: 118,
+        };
+        const s = shot.getBoundingClientRect();     // 대시보드가 설 자리
 
-        // 문구는 넘어가는 도중에 뜬다
-        gsap.set(label, { opacity: Math.min(Math.max((t - 0.15) * 3, 0), 1) });
+        /* 진행도: 모인 카드가 화면 가운데를 지나 위로 올라갈수록 1 에 가까워진다.
+           이 구간 동안 카드가 대시보드 자리로 이동하며 커진다. */
+        const startY = innerHeight * 0.52;
+        const endY = innerHeight * 0.06;
+        const t = Math.min(Math.max((startY - c.top) / (startY - endY), 0), 1);
+        const e = t * t * (3 - 2 * t);              // 부드럽게
+
+        // 카드 → 대시보드 자리까지의 거리와 크기 차이
+        const dx = (s.left + s.width / 2) - (c.left + c.width / 2);
+        const dy = (s.top + s.height / 2) - (c.top + c.height / 2);
+        const sx = s.width / c.width;
+        const sy = s.height / c.height;
+
+        const fade = 1 - Math.max((e - 0.6) / 0.4, 0);
+        // 커지는 동안 안쪽 글씨는 같이 늘어나면 안 된다. 일찍 물러난다.
+        const inkFade = 1 - Math.min(e / 0.35, 1);
+
+        cards.forEach((card, i) => {
+          gsap.set(card, {
+            x: moves[i].x + dx * e,
+            y: moves[i].y + dy * e,
+            scaleX: 1 + (sx - 1) * e,
+            scaleY: 1 + (sy - 1) * e,
+            opacity: fade,             // 다 커지면 진짜 대시보드에 자리를 넘긴다
+          });
+          gsap.set(card.children, { opacity: inkFade });
+        });
+        gsap.set(target, {
+          x: dx * e, y: dy * e,
+          scaleX: 1 + (sx - 1) * e,
+          scaleY: 1 + (sy - 1) * e,
+          opacity: fade,
+        });
+
+        // 문구는 넘어가는 도중에 떴다가, 대시보드가 되면 물러난다
+        gsap.set(label, {
+          opacity: Math.min(Math.max((e - 0.08) * 4, 0), 1) * (1 - Math.max((e - 0.6) / 0.3, 0)),
+        });
       };
       addEventListener("scroll", onScroll, { passive: true });
 

@@ -204,6 +204,8 @@ h2.sec { font-size: clamp(1.9rem, 4.4vw, var(--t-3)); margin-top: var(--s3); max
   min-height: 440px;
   opacity: 0;
   display: flex; flex-direction: column;
+  /* 카드가 커져 대시보드가 될 때 아래 구역 위로 덮여야 한다 */
+  z-index: 3;
 }
 .svm-stack {
   position: relative;
@@ -228,7 +230,11 @@ h2.sec { font-size: clamp(1.9rem, 4.4vw, var(--t-3)); margin-top: var(--s3); max
   background: var(--w);
   box-shadow: 0 12px 30px -20px rgba(0,0,0,.4);
   will-change: transform;
+  /* 가운데를 기준으로 커진다 — 대시보드 자리에 정확히 맞추려면 필요하다 */
+  transform-origin: 50% 50%;
 }
+/* 커지는 동안 안쪽 글씨는 같이 늘어나면 안 된다. 흐릿하게 물러난다. */
+.svm-card > * { transition: opacity .2s; }
 .svm-t {
   display: block;
   font-size: var(--t-1); font-weight: 700; color: var(--tx);
@@ -253,8 +259,10 @@ h2.sec { font-size: clamp(1.9rem, 4.4vw, var(--t-3)); margin-top: var(--s3); max
 .svm-p5 { left: -34%; top: 30%; }
 .svm-p6 { left: -16%; top: 86%; }
 
-/* 문구는 대시보드로 넘어가는 구간에서 뜬다. 여기서는 자리만 잡는다. */
+/* 문구는 대시보드로 넘어가는 구간에서 뜬다.
+   커지는 카드와 겹치지 않게 스택 아래에 자리를 따로 잡는다. */
 .svm-label {
+  position: relative; z-index: 2;
   margin-top: var(--s3);
   font-size: var(--t-1); font-weight: 700;
   color: var(--tx); text-align: center;
