@@ -117,7 +117,19 @@ export default function PromoMotion() {
           `rotateX(${(1 - e) * 14}deg) scale(${0.9 + e * 0.1})`;
         shot.style.opacity = String(0.35 + e * 0.65);
 
-        // 2단계: 대시보드 위에서 조각이 하나씩 확대된다
+        /* 2단계: 대시보드 위에서 조각이 하나씩 확대된다.
+           단, 위쪽 "한 화면으로 모입니다" 문구가 아직 떠 있으면 기다린다 —
+           둘이 겹치면 글자 위에 글자가 얹혀 아무것도 안 읽힌다.
+           service-merge 가 문구를 다 물린 뒤에 이어받는다. */
+        const label = document.querySelector('.svm-label');
+        if (label && parseFloat(getComputedStyle(label).opacity) > 0.02) {
+          tags.forEach(t => t.classList.remove('on'));
+          shotWin?.classList.remove('zoom');
+          if (shotCap) { shotCap.innerHTML = ''; capIdx = -2; }
+          hsIdx = -1;
+          return;
+        }
+
         const stage = shot.parentElement;
 
         // 지금 어느 구간인지 하나만 고른다. 마지막 조각은 끝까지 남는다

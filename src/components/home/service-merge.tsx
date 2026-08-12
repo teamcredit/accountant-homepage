@@ -82,9 +82,15 @@ export default function ServiceMerge({ items }) {
              p 0.34 ~ 0.62   붙잡기가 풀리고, 모인 한 장이 화면 한가운데를
                              따라오며 대시보드 크기까지 커진다
                              (안쪽 글씨는 먼저 지워진다 — 빈 흰 네모가 된다)
-             p 0.62 ~ 0.80   그 빈 흰 네모 한가운데에 문구가 떴다가 사라진다
-             p 0.80 ~ 1.00   네모가 물러나고 진짜 대시보드가 드러난다
-             그 뒤            원래 있던 대시보드 애니메이션 */
+             p 0.62 ~ 0.72   그 빈 흰 네모 한가운데에 문구가 뜬다
+             p 0.76 ~ 0.86   문구가 물러난다
+             p 0.84 ~ 0.94   문구가 거의 다 빠진 뒤 대시보드가 또렷하게 선다
+                             (투명도 없이 — 흰 네모가 그대로 대시보드가 된 것)
+             그 뒤            대시보드가 연해지고 「통장까지 붙어서」 부터
+                             원래 있던 조각 확대 애니메이션이 이어받는다
+
+           문구와 대시보드가 같이 떠 있으면 글자 위에 화면이 겹쳐 둘 다 안 읽힌다.
+           그래서 겹치는 구간을 두지 않는다. */
         /* 마지막 단계(대시보드 등장)가 끝나는 지점이 곧 전체 끝이어야 한다.
            남는 구간이 있으면 다 끝났는데도 스크롤이 헛돈다. */
         const SPAN = innerHeight * 2.2;
@@ -132,9 +138,9 @@ export default function ServiceMerge({ items }) {
         const curW = CARD_W + (toW - CARD_W) * down;
         const curH = CARD_H + (toH - CARD_H) * down;
 
-        /* 문구가 다 보이고 난 뒤에 물러난다. 그래야 "흰 네모 안에 문구" 가
-           또렷하게 한 장면으로 읽힌다. */
-        const cardFade = 1 - seg(0.80, 0.90);
+        /* 대시보드가 또렷하게 설 때 흰 네모는 자리를 넘긴다.
+           둘 다 떠 있으면 테두리가 두 겹으로 보인다. */
+        const cardFade = 1 - seg(0.84, 0.94);
         // 커지는 동안 안쪽 글씨는 같이 늘어나면 깨져 보인다. 먼저 지워진다.
         const inkFade = 1 - seg(0.36, 0.50);
 
@@ -176,8 +182,8 @@ export default function ServiceMerge({ items }) {
            문구는 화면에 붙어 있으므로 카드가 있는 화면 한가운데로 맞춘다. */
         const labelY = toY - innerHeight * 0.5;
         gsap.set(label, {
-          opacity: seg(0.62, 0.70) * (1 - seg(0.78, 0.86)),
-          y: labelY + (1 - easeOut(seg(0.62, 0.70))) * 14,
+          opacity: seg(0.62, 0.72) * (1 - seg(0.76, 0.86)),
+          y: labelY + (1 - easeOut(seg(0.62, 0.72))) * 14,
         });
 
         /* ── 4) 대시보드가 드러난다 ──────────────────
@@ -186,7 +192,7 @@ export default function ServiceMerge({ items }) {
 
            대시보드의 transform 은 promo-motion 이 잡고 있다. 겹쳐 쓰면 서로
            덮어써서 깜빡인다. 그래서 여기서는 감싸는 .stage 의 투명도만 만진다. */
-        const reveal = ease(seg(0.82, 1));
+        const reveal = ease(seg(0.84, 0.94));
         const stageEl = shot.parentElement;
         if (stageEl) stageEl.style.opacity = String(reveal);
       };

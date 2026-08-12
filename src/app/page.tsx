@@ -89,7 +89,7 @@ export default function Home() {
           {/* 빈 흰 네모 안에 뜨는 문구. .stage 밖에 둔다 —
               .stage 는 투명도 0 에서 시작하므로 그 안에 넣으면 같이 숨는다. */}
           <p className="svm-label" aria-hidden="true">
-            따로 굴러다니던 일이 <span className="hl">한 화면</span>으로 모입니다.
+            따로 퍼져있던 일이 <span className="hl">한 화면</span>으로 모입니다.
           </p>
 
           <div className="stage">
