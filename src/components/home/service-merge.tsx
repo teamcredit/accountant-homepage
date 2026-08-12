@@ -221,8 +221,11 @@ export default function ServiceMerge({ items }) {
            그 뒤 살짝 연해져서 문구가 읽히게 자리를 내준다. */
         const rising = ease(seg(0.40, 0.62)) * 0.55;      // 연하게, 최대 0.55
         const snap = seg(0.62, 0.645);                    // 도착 순간 확 채운다
-        // 문구가 뜨는 동안만 살짝 연해진다. 문구가 물러나면 다시 또렷해진다.
-        const dim = seg(0.68, 0.76) * (1 - seg(0.82, 0.90)) * 0.45;
+        /* 문구가 뜰 때 한 번 연해지고, 다시 진해지지 않는다.
+           또 밝아지면 화면이 두 번 번쩍여 산만하다.
+           연해진 그 상태로 조각 확대가 이어받는다 — 조각이 뜨면 어차피
+           나머지가 흐려지므로 흐름이 그대로 이어진다. */
+        const dim = seg(0.68, 0.76) * 0.4;
         const reveal = Math.min(rising + snap * (1 - 0.55), 1) - dim;
 
         const stageEl = shot.parentElement;
@@ -235,18 +238,23 @@ export default function ServiceMerge({ items }) {
         const cr = topCard.getBoundingClientRect();
         const sr = s;                            // 위에서 이미 원래 크기로 재뒀다
 
-        const fit = 1 - seg(0.90, 1);            // 끝에서 제 크기로 풀어준다
-        if (fit > 0.001) {
-          // promo-motion 이 transform 을 덮어쓰지 않게 표시해 둔다
-          shot.dataset.svmFit = "1";
-          const sx = (cr.width / sr.width - 1) * fit + 1;
-          const sy = (cr.height / sr.height - 1) * fit + 1;
-          const ox = (cr.left + cr.width / 2 - (sr.left + sr.width / 2)) * fit;
-          const oy = (cr.top + cr.height / 2 - (sr.top + sr.height / 2)) * fit;
+        /* 카드와 대시보드가 이미 같은 크기·같은 자리가 되도록 위에서 맞춰 뒀다.
+           그래도 남는 차이만 보정한다. 1px 아래는 건드리지 않는다 —
+           미세한 값이 스크롤마다 계속 바뀌면 화면이 떨린다. */
+        const ox = cr.left + cr.width / 2 - (sr.left + sr.width / 2);
+        const oy = cr.top + cr.height / 2 - (sr.top + sr.height / 2);
+        const sx = cr.width / sr.width;
+        const sy = cr.height / sr.height;
+
+        const needsFit =
+          Math.abs(ox) > 1 || Math.abs(oy) > 1 ||
+          Math.abs(sx - 1) > 0.002 || Math.abs(sy - 1) > 0.002;
+
+        if (needsFit) {
+          shot.dataset.svmFit = "1";            // promo-motion 이 덮어쓰지 않게
           shot.style.transformOrigin = "50% 50%";
-          shot.style.transform = `translate(${ox}px, ${oy}px) scale(${sx}, ${sy})`;
+          shot.style.transform = `translate(${ox.toFixed(1)}px, ${oy.toFixed(1)}px) scale(${sx.toFixed(4)}, ${sy.toFixed(4)})`;
         } else if (shot.dataset.svmFit) {
-          // 다 풀렸다. 원래 자리로 돌려주고 promo-motion 에 넘긴다
           delete shot.dataset.svmFit;
           shot.style.transform = "none";
         }
