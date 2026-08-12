@@ -190,6 +190,79 @@ h2.sec { font-size: clamp(1.9rem, 4.4vw, var(--t-3)); margin-top: var(--s3); max
    치수를 정확히 잡는다 — 헤더 66 + 위아래 여백 24씩 = 114.
    화면은 그 나머지를 정확히 채운다. 기울이지 않고, 흐리게 하지 않는다.
    붙어 있는 동안 스크롤이 지나가며 조각이 하나씩 짚어진다. */
+/* ── 히어로와 대시보드 사이. 서비스 6개가 한 장으로 모인다 ──
+   배경이 아니라 실제 요소다. 모인 자리가 그대로 아래 대시보드가 서는 곳이다.
+   흩어진 일들이 모여서 → 한 화면이 된다. */
+.svm {
+  margin-top: var(--s7);
+  opacity: 0;
+  display: flex; flex-direction: column; align-items: center;
+}
+.svm-stack {
+  position: relative;
+  width: 100%; height: 340px;
+}
+
+/* 모이는 자리. 다 모이면 테두리가 드러난다. */
+.svm-target {
+  position: absolute; left: 50%; top: 50%;
+  translate: -50% -50%;
+  width: 236px; height: 92px;
+  border: 1px solid var(--blue);
+  border-radius: 10px;
+  opacity: 0;
+}
+
+.svm-card {
+  position: absolute;
+  width: 236px; padding: 13px 15px;
+  border: 1px solid var(--w-3);
+  border-radius: 10px;
+  background: var(--w);
+  box-shadow: 0 8px 24px -18px rgba(0,0,0,.35);
+  will-change: transform;
+}
+.svm-t {
+  display: block;
+  font-size: var(--t-0); font-weight: 700; color: var(--tx);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+/* 서류처럼 보이는 줄 세 개. 글자가 아니라 결이다. */
+.svm-rows { display: block; margin-top: 10px; }
+.svm-rows i {
+  display: block; height: 4px; border-radius: 4px;
+  background: var(--w-3); margin-top: 6px;
+}
+.svm-rows i:nth-child(1) { width: 100%; }
+.svm-rows i:nth-child(2) { width: 72%; }
+.svm-rows i:nth-child(3) { width: 46%; }
+
+/* 흩어진 자리. 가운데(50%/50%) 를 넉넉히 둘러싼다. */
+.svm-p1 { left: 4%;  top: 2%; }
+.svm-p2 { left: 68%; top: 0; }
+.svm-p3 { left: 0;   top: 58%; }
+.svm-p4 { left: 74%; top: 54%; }
+.svm-p5 { left: 20%; top: 30%; }
+.svm-p6 { left: 52%; top: 74%; }
+
+.svm-label {
+  margin-top: var(--s5);
+  font-size: var(--t-2); font-weight: 700;
+  color: var(--tx); text-align: center;
+  opacity: 0;
+}
+
+@media (max-width: 900px) {
+  /* 좁은 화면에서는 흩어질 자리가 없다. 조용히 뺀다. */
+  .svm { display: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  /* 모인 상태로 조용히 서 있는다 */
+  .svm-card { position: static; margin: 0 auto var(--s2); }
+  .svm-stack { height: auto; }
+  .svm-target { display: none; }
+}
+
 .stage {
   margin-top: var(--s6); height: 400vh;
   margin-inline: calc(var(--pad) * -1);

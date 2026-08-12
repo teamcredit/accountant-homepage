@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import { services } from "@/lib/data";
 import { getAllPosts } from "@/lib/posts";
 import PromoMotion from "@/components/home/promo-motion";
+import ServiceMerge from "@/components/home/service-merge";
 import "./promo.css";
 
 export const metadata: Metadata = {
@@ -80,6 +81,10 @@ export default function Home() {
               <p className="note"><span className="s">국세청 기준 주요 신고·납부 기한.</span><span className="s">담당 법인의 신고 의무 및 마감일은</span><span className="s">실제와 상이할 수 있습니다.</span></p>
             </aside>
           </div>
+
+          {/* 흩어진 서비스 6개가 한 장으로 모인다.
+              모인 자리가 그대로 아래 대시보드가 서는 곳이다. */}
+          <ServiceMerge items={services.slice(0, 6).map(s => ({ slug: s.slug, title: s.title }))} />
 
           <div className="stage">
             <div className="shot" id="shot">
