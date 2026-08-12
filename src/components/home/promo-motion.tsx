@@ -112,9 +112,15 @@ export default function PromoMotion() {
            나타나고 사라지는 것(투명도)은 .stage 가 맡는다 — 위에서 모인 한 장이
            넘어온 뒤에야 드러나야 하고, 그 시점은 service-merge 가 안다. */
         const rise = Math.min(Math.max(1 - r.top / (innerHeight * 0.9), 0), 1);
-        const e = 1 - Math.pow(1 - rise, 3);            // 끝에서 부드럽게
+        let e = 1 - Math.pow(1 - rise, 3);              // 끝에서 부드럽게
+
+        /* 거의 다 선 뒤에는 딱 붙잡는다.
+           0.9995 같은 값이 계속 미세하게 바뀌면 박스가 움찔움찔 떨린다.
+           문턱을 넘으면 정확히 1 로 고정해 완전히 멈춘다. */
+        if (e > 0.985) e = 1;
+
         shot.style.transform =
-          `rotateX(${(1 - e) * 14}deg) scale(${0.9 + e * 0.1})`;
+          e === 1 ? 'none' : `rotateX(${(1 - e) * 14}deg) scale(${0.9 + e * 0.1})`;
         shot.style.opacity = String(0.35 + e * 0.65);
 
         /* 2단계: 대시보드 위에서 조각이 하나씩 확대된다.
@@ -122,7 +128,20 @@ export default function PromoMotion() {
            둘이 겹치면 글자 위에 글자가 얹혀 아무것도 안 읽힌다.
            service-merge 가 문구를 다 물린 뒤에 이어받는다. */
         const label = document.querySelector('.svm-label');
-        if (label && parseFloat(getComputedStyle(label).opacity) > 0.02) {
+        const labelUp = label && parseFloat(getComputedStyle(label).opacity) > 0.02;
+
+        const stage = shot.parentElement;
+
+        /* 문구가 떠 있는 동안, 그리고 대시보드가 다 선 직후 한동안은
+           아무 조각도 확대하지 않는다.
+
+           조각이 뜨면 나머지가 흐려져(.zoom) 대시보드 전체를 볼 수 없다.
+           "이게 그 화면이다" 를 통째로 보여주는 시점이 한 번은 있어야 한다.
+           그 뒤에 하나씩 짚어준다. */
+        const HOLD = 0.16;                    // 이만큼은 온전한 화면만 보여준다
+        const clear = stepOf(stage, 1).t;     // .stage 안에서의 진행도 0~1
+
+        if (labelUp || clear < HOLD) {
           tags.forEach(t => t.classList.remove('on'));
           shotWin?.classList.remove('zoom');
           if (shotCap) { shotCap.innerHTML = ''; capIdx = -2; }
@@ -130,13 +149,13 @@ export default function PromoMotion() {
           return;
         }
 
-        const stage = shot.parentElement;
-
         // 지금 어느 구간인지 하나만 고른다. 마지막 조각은 끝까지 남는다
         // (구간을 폭으로 재면 스크롤 끝에서 아무것도 안 뜬다).
         // 단계마다 머무는 구간이 있다. 문턱을 넘어야 다음 조각으로.
-        const st = stepOf(stage, tags.length);
-        let pick = Math.min(st.idx, tags.length - 1);
+        /* HOLD 만큼은 온전한 화면을 보여줬으니, 남은 구간을 조각 수로 나눈다.
+           그냥 stepOf 를 쓰면 앞의 HOLD 구간이 첫 조각에 먹혀 버린다. */
+        const after = (clear - HOLD) / (1 - HOLD);
+        let pick = Math.min(Math.floor(after * tags.length), tags.length - 1);
         if (hsIdx >= 0 && pick !== hsIdx) pick = pick > hsIdx ? hsIdx + 1 : hsIdx - 1;
         hsIdx = pick;
 
