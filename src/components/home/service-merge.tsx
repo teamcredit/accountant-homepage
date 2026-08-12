@@ -149,16 +149,22 @@ export default function ServiceMerge({ items }) {
         const fromX = st.left + st.width * 0.12;
         const fromY = innerHeight / 2;
 
-        /* 각 카드가 지금 있어야 할 자리 = 원래 자리에서 화면 중앙까지.
-           measure() 는 처음 한 번만 재므로 세로는 여기서 매번 보정한다. */
+        /* 스택은 스크롤을 따라 위로 올라간다(0 → -341px).
+           그만큼 되돌려 줘야 카드가 화면에서 제자리에 선다.
+           이걸 빼먹으면 스크롤할 때마다 카드가 같이 밀려 떨려 보인다. */
         const stackCenterNow = st.top + st.height / 2;
         const centerFix = fromY - stackCenterNow;
 
-        /* 목표: 가로는 대시보드 한가운데, 세로는 늘 화면 한가운데.
-           한 번 모인 뒤로는 스크롤이 어디에 있든 카드 중심이
-           화면 세로 한가운데에 딱 붙어 있어야 한다. */
+        /* 목표는 대시보드가 "붙어서 멈춰 설" 그 자리다.
+           - 화면 한가운데를 노리면, 커지는 동안 중심은 고정이어도
+             위쪽 가장자리가 위로 밀려나 스크롤마다 떨려 보인다.
+           - 지금 대시보드 위치를 그대로 쓰면, 그게 스크롤을 따라
+             움직이는 중이라 더 흔들린다.
+           대시보드는 sticky 로 헤더 밑에 붙는다. 그 붙는 자리를 계산해 쓴다. */
+        const stickTop = parseFloat(getComputedStyle(shot).top) || 0;
         const toX = s.left + s.width / 2;
-        const toY = innerHeight / 2;
+        // 카드 위쪽 가장자리가 대시보드가 붙어 설 자리에 오도록
+        const toY = stickTop + CARD_H / 2;
 
         /* 가로와 세로에 서로 다른 곡선을 준다.
            같은 속도로 가면 대각선이 자로 그은 듯 뻣뻣하다.
@@ -166,9 +172,12 @@ export default function ServiceMerge({ items }) {
            호를 그리며 안착한다. */
         const easeOut = (v) => 1 - Math.pow(1 - v, 3);
         const easeInOut = (v) => (v < 0.5 ? 4 * v * v * v : 1 - Math.pow(-2 * v + 2, 3) / 2);
+        /* 가로는 커지는 내내 부드럽게 옮겨간다.
+           세로는 모이는 동안(0~0.34) 끝내고, 커질 때는 이미 제자리다 —
+           커지면서 세로로도 움직이면 스크롤마다 위아래로 떨려 보인다. */
         const dxRaw = seg(0.34, 0.62);
         const dx = (toX - fromX) * easeOut(dxRaw);
-        const dy = (toY - fromY) * easeInOut(dxRaw);
+        const dy = (toY - fromY) * easeInOut(seg(0.08, 0.34));
 
         /* 대시보드 크기까지 커진다.
            scale 로 늘리면 그림자와 테두리까지 같이 늘어나 계단처럼 깨진다.
@@ -187,10 +196,12 @@ export default function ServiceMerge({ items }) {
         // 커지는 동안 안쪽 글씨는 같이 늘어나면 깨져 보인다. 먼저 지워진다.
         const inkFade = 1 - seg(0.36, 0.50);
 
-        /* 폭·높이를 늘리면 왼쪽 위를 기준으로 자라서 중심이 밀린다.
-           늘어난 만큼 절반을 되돌려 중심을 붙잡는다. */
+        /* 가로는 가운데를 잡는다 (좌우로 고르게 벌어져야 한다).
+           세로는 위쪽 가장자리를 잡는다 — 가운데를 잡으면 커지는 만큼
+           위쪽이 계속 위로 밀려나 스크롤마다 떨려 보인다.
+           위를 붙잡아 두면 아래로만 자라서 제자리에 선 채로 커진다. */
         const cx = -(curW - CARD_W) / 2;
-        const cy = -(curH - CARD_H) / 2;
+        const cy = 0;
 
         /* 커질수록 대시보드의 생김새를 닮아간다.
            모서리와 그림자가 카드 그대로면 커졌을 때 어색하다. */
@@ -206,7 +217,10 @@ export default function ServiceMerge({ items }) {
           const isTop = i === cards.length - 1;
           gsap.set(card, {
             x: moves[i].x * m + dx + cx,
-            y: moves[i].y * m + centerFix * m + dy + cy,
+            /* 세로는 "지금 있는 자리 → 가야 할 자리" 를 매 프레임 그대로 잰다.
+               여러 보정값을 겹쳐 더하면 스크롤마다 조금씩 어긋나 떨린다.
+               스택이 스크롤을 따라 올라가는 만큼(centerFix) 늘 상쇄한다. */
+            y: moves[i].y * m + centerFix + dy + cy,
             width: curW,
             height: curH,
             borderRadius: radius,
