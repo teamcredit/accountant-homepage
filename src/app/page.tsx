@@ -86,13 +86,13 @@ export default function Home() {
 
         {/* 붙잡힌 구간을 지나면 대시보드가 이어받는다 */}
         <div className="wrap">
+          {/* 빈 흰 네모 안에 뜨는 문구. .stage 밖에 둔다 —
+              .stage 는 투명도 0 에서 시작하므로 그 안에 넣으면 같이 숨는다. */}
+          <p className="svm-label" aria-hidden="true">
+            따로 굴러다니던 일이 <span className="hl">한 화면</span>으로 모입니다.
+          </p>
+
           <div className="stage">
-            {/* 커진 네모 위에 뜨는 문구. 카드가 다 모여 대시보드가 되는 그 순간을
-                말로 짚어준다. service-merge 가 스크롤에 맞춰 띄우고 물린다. */}
-            <p className="svm-label" aria-hidden="true">
-              <span className="s">따로 굴러다니던 일이</span>
-              <span className="s">한 화면으로 모입니다.</span>
-            </p>
             <div className="shot" id="shot">
               <div className="shot-win" id="shotWin">
                 <div className="shot-caption" id="shotCap"></div>

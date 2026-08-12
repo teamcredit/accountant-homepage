@@ -29,6 +29,9 @@ export default function PromoMotion() {
       let lenis = null;
       if (!rm && Lenis) {
         lenis = new Lenis({ lerp: 0.12, duration: 0.9, smoothWheel: true });
+        // 스크롤을 프로그램으로 옮겨야 할 때(자동 캡처·테스트) 붙잡을 손잡이.
+        // Lenis 를 거치지 않고 window.scrollTo 를 쓰면 곧바로 되돌려진다.
+        window.__lenis = lenis;
         const raf = (t) => { lenis.raf(t); requestAnimationFrame(raf); };
         requestAnimationFrame(raf);
         lenis.on('scroll', () => frame());
@@ -474,7 +477,10 @@ export default function PromoMotion() {
       }
       makeSnap(document.getElementById('why'), slabs.length * 2);
       makeSnap(document.querySelector('.feat-rail'), panes.length);
-      makeSnap(document.querySelector('.stage'), tags.length);
+      /* .stage 에는 스냅을 걸지 않는다.
+         히어로에서 카드가 모여 내려오는 구간이 .stage 와 겹치는데,
+         스냅이 그 구간에서 스크롤을 첫 단계(약 205px)로 계속 끌어당겨
+         스크롤이 아예 안 내려갔다. 대시보드 조각 확대는 스냅 없이도 돈다. */
 
 
       /* 숫자가 0부터 올라간다. 값이 바뀔 때마다 다시 센다.

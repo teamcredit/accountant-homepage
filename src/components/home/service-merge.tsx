@@ -77,10 +77,11 @@ export default function ServiceMerge({ items }) {
            순서를 또렷하게 나눈다. 겹치면 무슨 일이 일어나는지 안 읽힌다.
 
              p 0.00 ~ 0.35   흩어진 6장이 한 장으로 모인다 (여기까지 화면을 붙잡음)
-             p 0.35 ~ 0.58   모인 한 장이 아래 대시보드 자리까지 내려간다
-             p 0.50 ~ 0.62   대시보드 자리에 닿으면 그 자리를 넘겨주고 사라진다
-             p 0.50 ~ 0.66   커진 네모(대시보드)가 드러난다
-             p 0.60 ~ 0.78   그 네모 위에 문구가 떴다가 물러난다
+             p 0.35 ~ 0.58   붙잡기가 풀리고, 모인 한 장이 화면 한가운데를
+                             따라오며 대시보드 크기까지 커진다
+                             (안쪽 글씨는 먼저 지워진다 — 빈 흰 네모가 된다)
+             p 0.58 ~ 0.70   그 빈 흰 네모 한가운데에 문구가 떴다가 사라진다
+             p 0.70 ~ 0.84   네모가 물러나고 진짜 대시보드가 드러난다
              그 뒤            원래 있던 대시보드 애니메이션 */
         const SPAN = innerHeight * 2.6;
         const p = Math.min(Math.max(scrollY / SPAN, 0), 1);
@@ -117,10 +118,11 @@ export default function ServiceMerge({ items }) {
         const growTo = Math.min(s.width, innerWidth * 0.8) / CARD_W;
         const grow = 1 + (growTo - 1) * down;
 
-        // 다 커지면 진짜 대시보드에 자리를 넘긴다
-        const cardFade = 1 - seg(0.52, 0.62);
-        // 커지는 동안 안쪽 글씨는 같이 늘어나면 깨져 보인다. 먼저 물러난다.
-        const inkFade = 1 - seg(0.36, 0.50);
+        /* 문구가 다 보이고 난 뒤에 물러난다. 그래야 "흰 네모 안에 문구" 가
+           또렷하게 한 장면으로 읽힌다. */
+        const cardFade = 1 - seg(0.70, 0.80);
+        // 커지는 동안 안쪽 글씨는 같이 늘어나면 깨져 보인다. 먼저 지워진다.
+        const inkFade = 1 - seg(0.36, 0.48);
 
         cards.forEach((card, i) => {
           gsap.set(card, {
@@ -136,12 +138,14 @@ export default function ServiceMerge({ items }) {
           opacity: (m > 0.9 ? 1 : 0) * cardFade,
         });
 
-        /* ── 3) 문구는 커진 네모 위에 뜬다 ──────────
-           대시보드가 드러나는 동안 떠 있다가, 다 드러나면 물러난다.
-           대시보드 자체 애니메이션(조각 확대)이 시작되기 전에 비켜준다. */
+        /* ── 3) 빈 흰 네모 한가운데에 문구가 뜬다 ──────
+           카드가 대시보드 크기가 되고 안쪽 글씨가 지워진 그 순간,
+           그 흰 네모 안에 문구만 뜬다. 사라진 뒤에 대시보드가 나온다.
+           문구는 화면에 붙어 있으므로 카드가 있는 화면 한가운데로 맞춘다. */
+        const labelY = toY - innerHeight * 0.5;
         gsap.set(label, {
-          opacity: seg(0.60, 0.68) * (1 - seg(0.74, 0.82)),
-          y: (1 - seg(0.60, 0.68)) * 16,
+          opacity: seg(0.58, 0.64) * (1 - seg(0.68, 0.74)),
+          y: labelY + (1 - seg(0.58, 0.64)) * 14,
         });
 
         /* ── 4) 대시보드가 드러난다 ──────────────────
@@ -150,7 +154,7 @@ export default function ServiceMerge({ items }) {
 
            대시보드의 transform 은 promo-motion 이 잡고 있다. 겹쳐 쓰면 서로
            덮어써서 깜빡인다. 그래서 여기서는 감싸는 .stage 의 투명도만 만진다. */
-        const reveal = ease(seg(0.50, 0.66));
+        const reveal = ease(seg(0.70, 0.84));
         const stageEl = shot.parentElement;
         if (stageEl) stageEl.style.opacity = String(reveal);
       };
