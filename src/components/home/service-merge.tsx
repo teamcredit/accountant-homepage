@@ -74,6 +74,25 @@ export default function ServiceMerge({ items }) {
       const onScroll = () => {
         if (!shot || !stackEl) return;
 
+        /* 이 구간을 다 지났으면 손을 뗀다.
+           남은 값(카드 잔상, 흐린 대시보드)이 페이지 끝까지 따라다니면
+           스크롤을 아무리 내려도 안 사라지는 잔상이 된다. */
+        if (scrollY > innerHeight * 2.2) {
+          if (root.dataset.svmDone) return;
+          root.dataset.svmDone = "1";
+          gsap.set(cards, { opacity: 0 });
+          gsap.set(target, { opacity: 0 });
+          gsap.set(label, { opacity: 0 });
+          const st0 = shot.parentElement;
+          if (st0) st0.style.opacity = "1";
+          if (shot.dataset.svmFit) {
+            delete shot.dataset.svmFit;
+            shot.style.transform = "none";
+          }
+          return;
+        }
+        delete root.dataset.svmDone;
+
         /* 진행도는 "얼마나 스크롤했나"로 잰다.
            화면 위치로 재면 첫 화면에서 이미 스택이 가운데라 0 이 안 나온다.
 
@@ -221,15 +240,16 @@ export default function ServiceMerge({ items }) {
            그 뒤 살짝 연해져서 문구가 읽히게 자리를 내준다. */
         const rising = ease(seg(0.40, 0.62)) * 0.55;      // 연하게, 최대 0.55
         const snap = seg(0.62, 0.645);                    // 도착 순간 확 채운다
-        /* 문구가 뜰 때 한 번 연해지고, 다시 진해지지 않는다.
-           또 밝아지면 화면이 두 번 번쩍여 산만하다.
-           연해진 그 상태로 조각 확대가 이어받는다 — 조각이 뜨면 어차피
-           나머지가 흐려지므로 흐름이 그대로 이어진다. */
-        const dim = seg(0.68, 0.76) * 0.4;
+        /* 문구가 뜰 때 한 번 연해지고, 문구가 있는 동안만 그 상태로 둔다.
+           또 밝아지면 화면이 두 번 번쩍여 산만하다. */
+        const dim = seg(0.68, 0.76) * 0.4 * (1 - seg(0.88, 0.96));
         const reveal = Math.min(rising + snap * (1 - 0.55), 1) - dim;
 
         const stageEl = shot.parentElement;
-        if (stageEl) stageEl.style.opacity = String(Math.max(reveal, 0));
+        /* p 가 1 에 닿으면(이 구간을 다 지나면) 아예 손을 뗀다.
+           안 그러면 0.6 같은 값이 그대로 남아 페이지 끝까지 대시보드가
+           흐린 채로 보인다 — 스크롤을 아무리 내려도 안 사라지는 잔상. */
+        if (stageEl) stageEl.style.opacity = p >= 1 ? "1" : String(Math.max(reveal, 0));
 
         /* 대시보드를 흰 카드 안에 정확히 앉힌다.
            둘이 따로 놀면 "카드가 대시보드가 된다" 가 안 읽힌다.
