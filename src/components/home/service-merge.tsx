@@ -28,17 +28,24 @@ export default function ServiceMerge({ items }) {
     const label = root.querySelector(".svm-label");
     if (!cards.length || !target) return;
 
-    // 움직임을 줄이는 설정이면 모인 상태로 세워둔다. 스크롤 연동은 안 한다.
+    // 움직임을 줄이는 설정이면 스크롤 연동을 안 한다. 대시보드는 그냥 보인다.
     if (reduce) {
       gsap.set(root, { opacity: 1 });
       gsap.set(label, { opacity: 1 });
+      const stageEl = document.querySelector(".stage");
+      if (stageEl) stageEl.style.opacity = "1";
       return;
     }
 
     const ctx = gsap.context(() => {
-      // 모일 자리까지의 거리를 잰다. 창 크기가 바뀌면 다시 잰다.
+      /* 각 카드가 모이는 자리까지 가야 할 거리를 잰다.
+         기준은 스택(움직이지 않는 것)이다 — target 은 카드와 함께
+         움직이므로 그걸로 재면 거리가 0 이 되어 아무 일도 안 일어난다. */
       const measure = () => {
-        const t = target.getBoundingClientRect();
+        const stackEl = root.querySelector(".svm-stack");
+        const st = stackEl.getBoundingClientRect();
+        const cx = st.left + st.width * 0.12;      // 모이는 자리 = CSS 의 left:12%
+        const cy = st.top + st.height / 2;
         return cards.map((card) => {
           // 이동값을 빼고 원래 자리에서 잰다
           const prevX = gsap.getProperty(card, "x");
@@ -47,141 +54,105 @@ export default function ServiceMerge({ items }) {
           const r = card.getBoundingClientRect();
           gsap.set(card, { x: prevX, y: prevY });
           return {
-            x: t.left + t.width / 2 - (r.left + r.width / 2),
-            y: t.top + t.height / 2 - (r.top + r.height / 2),
+            x: cx - (r.left + r.width / 2),
+            y: cy - (r.top + r.height / 2),
           };
         });
       };
 
       let moves = measure();
 
-      gsap.set(root, { opacity: 1 });
-
-      /* 히어로 안(첫 화면)이라 스크롤로 모으면 구간이 안 나온다.
-         화면에 들어오면 저절로 모이고, 다 모인 채로 남는다.
-         모인 그 한 장이 아래 대시보드로 이어진다. */
-      const tl = gsap.timeline({ paused: true });
-
-      // 1) 흩어진 채로 아주 잠깐만 머문다 — "따로 놀던" 상태를 보여줄 만큼만
-      tl.to({}, { duration: 0.45 });
-
-      // 2) 한 장씩 가운데로 모인다
-      cards.forEach((card, i) => {
-        tl.to(
-          card,
-          {
-            x: () => moves[i].x,
-            y: () => moves[i].y,
-            duration: 1.0,
-            ease: "power3.inOut",
-          },
-          0.45 + i * 0.09,
-        );
-      });
-
-      // 3) 다 모이면 한 장으로 굳는다. 문구는 여기서 안 띄운다 —
-      //    스크롤을 내려 대시보드로 넘어갈 때 뜬다.
-      tl.to(target, { opacity: 1, duration: 0.4 }, ">");
-
-      /* 시작 조건: 화면에 들어와 있고 + 일정 팝업이 닫혀 있을 것.
-         팝업이 떠 있는 동안 돌려버리면, 닫았을 때 이미 끝나 있어
-         "합쳐지는 모습"을 통째로 놓친다. */
-      let visible = false;
-      let started = false;
-
-      const io = new IntersectionObserver(
-        (es) => { visible = es[0].isIntersecting; tryStart(); },
-        { threshold: 0.3 },
-      );
-      // 팝업이 닫히는 걸 지켜본다
-      const popWatch = new MutationObserver(() => tryStart());
-
-      /* 팝업은 이 컴포넌트보다 늦게 그려질 수 있다.
-         그래서 "지금 팝업이 없다"만 보고 출발하면, 곧 뜰 팝업 뒤에서
-         애니메이션이 다 끝나 버린다. 팝업이 뜰 기회를 한 번 준 뒤에 판단한다. */
-      let popupSettled = false;
-      setTimeout(() => { popupSettled = true; tryStart(); }, 350);
-
-      function tryStart() {
-        if (started || !visible || !popupSettled) return;
-        if (document.querySelector(".schp")) return;   // 팝업이 떠 있다
-        started = true;
-        tl.play();
-        io.disconnect();
-        popWatch.disconnect();
-      }
-
-      io.observe(root);
-      popWatch.observe(document.body, { childList: true, subtree: true });
-
-      /* 모인 한 장이 그대로 대시보드가 된다.
-         스크롤을 내리면 모인 카드가 아래 대시보드 자리로 이동하면서 커지고,
-         다 커진 순간 진짜 대시보드로 바뀐다. 화면 밖으로 사라지지 않는다. */
       const shot = document.querySelector(".shot");
+      const stackEl = root.querySelector(".svm-stack");
+      const CARD_W = 420;
+      const CARD_H = 158;
+
+      /* 전부 스크롤이 몬다. 저절로 돌아가는 부분은 없다.
+         한 줄기 진행도 p (0 → 1) 를 두 구간으로 나눠 쓴다.
+
+           p 0.00 ~ 0.42   흩어진 6장이 한 장으로 모인다
+           p 0.42 ~ 1.00   그 한 장이 대시보드 자리로 가며 커진다
+
+         모이는 구간을 넉넉히 잡아야 "스르륵" 변한다.
+         짧으면 눈 깜짝할 새 끝나서 재미가 없다. */
       const onScroll = () => {
-        if (!started || !shot) return;
+        if (!shot || !stackEl) return;
 
-        /* 기준 자리는 스택(움직이지 않는 것)으로 잰다.
-           .svm-target 은 카드와 같이 움직이므로 그걸로 재면
-           거리가 늘 0 으로 나와 아무 일도 안 일어난다. */
-        const stackEl = root.querySelector(".svm-stack");
         const st = stackEl.getBoundingClientRect();
+        // 스택 가운데 = 모이는 자리 (카드와 함께 움직이지 않는 기준)
         const c = {
-          left: st.left + st.width / 2 - 150,       // 모인 카드 폭 300 의 절반
-          top: st.top + st.height / 2 - 59,         // 높이 118 의 절반
-          width: 300,
-          height: 118,
+          left: st.left + st.width * 0.12 - CARD_W / 2,
+          top: st.top + st.height / 2 - CARD_H / 2,
+          width: CARD_W,
+          height: CARD_H,
         };
-        const s = shot.getBoundingClientRect();     // 대시보드가 설 자리
 
-        /* 진행도: 모인 카드가 화면 가운데를 지나 위로 올라갈수록 1 에 가까워진다.
-           이 구간 동안 카드가 대시보드 자리로 이동하며 커진다. */
-        const startY = innerHeight * 0.52;
-        const endY = innerHeight * 0.06;
-        const t = Math.min(Math.max((startY - c.top) / (startY - endY), 0), 1);
-        const e = t * t * (3 - 2 * t);              // 부드럽게
+        /* 진행도는 "얼마나 스크롤했나"로 잰다.
+           화면 위치로 재면 첫 화면에서 이미 스택이 가운데라 0 이 안 나온다.
 
-        // 카드 → 대시보드 자리까지의 거리와 크기 차이
+           순서를 또렷하게 나눈다. 겹치면 무슨 일이 일어나는지 안 읽힌다.
+
+             p 0.00 ~ 0.45   흩어진 6장이 한 장으로 모인다
+             p 0.45 ~ 0.62   그 한 장이 아래로 넘어가며 사라진다
+             p 0.55 ~ 0.78   문구가 뜬다
+             p 0.78 ~ 1.00   문구가 물러나고 대시보드가 드러난다
+                             (그 뒤는 원래 있던 대시보드 애니메이션) */
+        const SPAN = innerHeight * 1.45;
+        const p = Math.min(Math.max(scrollY / SPAN, 0), 1);
+        const ease = (v) => v * v * (3 - 2 * v);
+        const seg = (a, b) => Math.min(Math.max((p - a) / (b - a), 0), 1);
+
+        // ── 1) 모인다 ──────────────────────────────
+        const m = ease(seg(0, 0.45));
+
+        // ── 2) 모인 장이 아래로 넘어가며 사라진다 ──
+        //    크기를 늘리지 않는다. 늘리면 안쪽 글씨가 같이 늘어나 깨져 보인다.
+        const away = ease(seg(0.45, 0.62));
+
+        const s = shot.getBoundingClientRect();
         const dx = (s.left + s.width / 2) - (c.left + c.width / 2);
         const dy = (s.top + s.height / 2) - (c.top + c.height / 2);
-        const sx = s.width / c.width;
-        const sy = s.height / c.height;
 
-        const fade = 1 - Math.max((e - 0.6) / 0.4, 0);
-        // 커지는 동안 안쪽 글씨는 같이 늘어나면 안 된다. 일찍 물러난다.
-        const inkFade = 1 - Math.min(e / 0.35, 1);
+        const cardFade = 1 - seg(0.45, 0.60);
 
         cards.forEach((card, i) => {
           gsap.set(card, {
-            x: moves[i].x + dx * e,
-            y: moves[i].y + dy * e,
-            scaleX: 1 + (sx - 1) * e,
-            scaleY: 1 + (sy - 1) * e,
-            opacity: fade,             // 다 커지면 진짜 대시보드에 자리를 넘긴다
+            x: moves[i].x * m + dx * away * 0.55,
+            y: moves[i].y * m + dy * away * 0.55,
+            opacity: cardFade,
           });
-          gsap.set(card.children, { opacity: inkFade });
         });
         gsap.set(target, {
-          x: dx * e, y: dy * e,
-          scaleX: 1 + (sx - 1) * e,
-          scaleY: 1 + (sy - 1) * e,
-          opacity: fade,
+          x: dx * away * 0.55,
+          y: dy * away * 0.55,
+          opacity: (m > 0.85 ? 1 : 0) * cardFade,
         });
 
-        // 문구는 넘어가는 도중에 떴다가, 대시보드가 되면 물러난다
+        // ── 3) 문구가 뜬다. 카드가 사라진 뒤다 ──────
         gsap.set(label, {
-          opacity: Math.min(Math.max((e - 0.08) * 4, 0), 1) * (1 - Math.max((e - 0.6) / 0.3, 0)),
+          opacity: seg(0.55, 0.68) * (1 - seg(0.78, 0.9)),
+          y: (1 - seg(0.55, 0.68)) * 14,
         });
+
+        /* ── 4) 대시보드가 드러난다 ──────────────────
+           문구가 뜨는 동안엔 아직 안 보인다. 문구가 물러나면서 서서히 나타난다.
+           다 드러난 뒤부터는 원래 있던 대시보드 애니메이션이 이어받는다.
+
+           대시보드의 transform 은 promo-motion 이 잡고 있다. 겹쳐 쓰면 서로
+           덮어써서 깜빡인다. 그래서 여기서는 감싸는 .stage 의 투명도만 만진다. */
+        const reveal = ease(seg(0.72, 0.98));
+        const stageEl = shot.parentElement;
+        if (stageEl) stageEl.style.opacity = String(reveal);
       };
       addEventListener("scroll", onScroll, { passive: true });
+      gsap.set(root, { opacity: 1 });
+      onScroll();                       // 첫 화면 상태를 바로 그린다
 
       // 창 크기가 바뀌면 거리를 다시 잰다
       const onResize = () => { moves = measure(); };
       addEventListener("resize", onResize);
 
       return () => {
-        io.disconnect();
-        popWatch.disconnect();
         removeEventListener("resize", onResize);
         removeEventListener("scroll", onScroll);
       };
@@ -201,11 +172,12 @@ export default function ServiceMerge({ items }) {
             <span className="svm-rows"><i /><i /><i /></span>
           </div>
         ))}
+        {/* 카드가 넘어간 뒤 그 자리에서 뜬다. 그래서 스택 안에 둔다. */}
+        <p className="svm-label">
+          <span className="s">따로 굴러다니던 일이</span>
+          <span className="s">한 화면으로 모입니다.</span>
+        </p>
       </div>
-      <p className="svm-label">
-        <span className="s">따로 굴러다니던 일이</span>
-        <span className="s">한 화면으로 모입니다.</span>
-      </p>
     </div>
   );
 }

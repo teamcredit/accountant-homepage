@@ -180,6 +180,22 @@ h2.sec { font-size: clamp(1.9rem, 4.4vw, var(--t-3)); margin-top: var(--s3); max
 /* ── 1. 히어로 ────────────────────────────── */
 /* overflow:hidden 을 쓰면 안쪽 sticky 가 죽는다. clip 은 그렇지 않다. */
 .hero { padding-top: calc(var(--hdr) + var(--s6)); padding-bottom: 0; overflow: clip; }
+
+/* 히어로 윗부분(글 + 모이는 화면)을 붙잡아 둔 채로 스크롤이 지나간다.
+   안 붙잡으면 흩어짐 → 모임 → 문구가 끝나기 전에 위로 빠져나가
+   중간을 통째로 못 본다. 다 끝나면 놓아주고 대시보드로 넘어간다.
+   overflow 를 주면 안 된다 — 안쪽 sticky 가 죽는다. */
+.hero-hold { height: 200vh; position: relative; }
+.hero-hold > .wrap { position: sticky; top: calc(var(--hdr) + var(--s4)); }
+@media (max-width: 1000px) {
+  /* 좁은 화면에서는 모이는 화면 자체를 빼므로 붙잡을 이유가 없다 */
+  .hero-hold { height: auto; }
+  .hero-hold > .wrap { position: static; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .hero-hold { height: auto; }
+  .hero-hold > .wrap { position: static; }
+}
 .hero h1 { font-size: clamp(2.1rem, 5.2vw, 3.5rem); max-width: 16ch; margin-top: var(--s4); }
 .hero-sub b { color: var(--tx); font-weight: 700; }
 .hero-sub { margin-top: var(--s4); max-width: 36ch; font-size: var(--t-2); color: var(--tx-2); line-height: 1.5; }
@@ -199,24 +215,27 @@ h2.sec { font-size: clamp(1.9rem, 4.4vw, var(--t-3)); margin-top: var(--s3); max
    흩어진 일들이 모여서 → 한 화면이 된다. */
 /* 일정표가 있던 자리. 흩어진 서비스가 한 장으로 모인다.
    좁은 칸에 가두면 서류가 작아 보인다. 칸 밖으로 넉넉히 퍼지게 한다. */
+/* 히어로 오른쪽 칸에 있지만, 카드는 그 칸을 넘어 넓게 논다.
+   붙잡아 두는 건 히어로 전체(.hero)가 맡는다 — 여기서 sticky 를 쓰면
+   부모가 grid(align-items:start) 라 안 먹는다. */
 .svm {
   position: relative;
-  min-height: 440px;
+  min-height: 520px;
   opacity: 0;
-  display: flex; flex-direction: column;
-  /* 카드가 커져 대시보드가 될 때 아래 구역 위로 덮여야 한다 */
   z-index: 3;
 }
 .svm-stack {
   position: relative;
-  width: 100%; flex: 1; min-height: 380px;
+  width: 100%; height: 460px;
 }
 
-/* 모이는 자리. 다 모이면 테두리가 드러난다. */
+/* 모이는 자리. 다 모이면 테두리가 드러난다.
+   히어로 오른쪽 칸 기준이라 그냥 50% 면 화면 오른쪽에 치우친다.
+   본문 가운데 쪽으로 당긴다. */
 .svm-target {
-  position: absolute; left: 50%; top: 50%;
+  position: absolute; left: 12%; top: 50%;
   translate: -50% -50%;
-  width: 300px; height: 118px;
+  width: 420px; height: 158px;
   border: 1px solid var(--blue);
   border-radius: 12px;
   opacity: 0;
@@ -224,27 +243,23 @@ h2.sec { font-size: clamp(1.9rem, 4.4vw, var(--t-3)); margin-top: var(--s3); max
 
 .svm-card {
   position: absolute;
-  width: 300px; padding: 16px 18px;
+  width: 420px; padding: 20px 24px;
   border: 1px solid var(--w-3);
   border-radius: 12px;
   background: var(--w);
   box-shadow: 0 12px 30px -20px rgba(0,0,0,.4);
   will-change: transform;
-  /* 가운데를 기준으로 커진다 — 대시보드 자리에 정확히 맞추려면 필요하다 */
-  transform-origin: 50% 50%;
 }
-/* 커지는 동안 안쪽 글씨는 같이 늘어나면 안 된다. 흐릿하게 물러난다. */
-.svm-card > * { transition: opacity .2s; }
 .svm-t {
   display: block;
-  font-size: var(--t-1); font-weight: 700; color: var(--tx);
+  font-size: var(--t-2); font-weight: 700; color: var(--tx);
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
 /* 서류처럼 보이는 줄 세 개. 글자가 아니라 결이다. */
-.svm-rows { display: block; margin-top: 12px; }
+.svm-rows { display: block; margin-top: 16px; }
 .svm-rows i {
-  display: block; height: 5px; border-radius: 5px;
-  background: var(--w-3); margin-top: 7px;
+  display: block; height: 7px; border-radius: 7px;
+  background: var(--w-3); margin-top: 9px;
 }
 .svm-rows i:nth-child(1) { width: 100%; }
 .svm-rows i:nth-child(2) { width: 72%; }
@@ -252,19 +267,21 @@ h2.sec { font-size: clamp(1.9rem, 4.4vw, var(--t-3)); margin-top: var(--s3); max
 
 /* 흩어진 자리. 칸 밖으로 넉넉히 나간다 — 흩어져 있다는 게 보여야 한다.
    가운데(50%/50%) 를 둘러싼다. */
-.svm-p1 { left: -86%; top: -4%; }
-.svm-p2 { left: 18%;  top: 2%; }
-.svm-p3 { left: -94%; top: 58%; }
-.svm-p4 { left: 24%;  top: 64%; }
-.svm-p5 { left: -34%; top: 30%; }
-.svm-p6 { left: -16%; top: 86%; }
+.svm-p1 { left: -118%; top: -6%; }
+.svm-p2 { left: -6%;   top: 0; }
+.svm-p3 { left: -126%; top: 54%; }
+.svm-p4 { left: 2%;    top: 60%; }
+.svm-p5 { left: -62%;  top: 27%; }
+.svm-p6 { left: -46%;  top: 84%; }
 
-/* 문구는 대시보드로 넘어가는 구간에서 뜬다.
-   커지는 카드와 겹치지 않게 스택 아래에 자리를 따로 잡는다. */
+/* 카드가 넘어간 뒤, 그 자리에서 문구가 뜬다.
+   카드가 있던 바로 그 자리라 시선이 안 흩어진다. */
 .svm-label {
-  position: relative; z-index: 2;
-  margin-top: var(--s3);
-  font-size: var(--t-1); font-weight: 700;
+  position: absolute; z-index: 4;
+  left: 12%; top: 50%;
+  translate: -50% -50%;
+  width: max-content; max-width: 92%;
+  font-size: var(--t-2); font-weight: 700;
   color: var(--tx); text-align: center;
   opacity: 0;
 }
@@ -385,7 +402,11 @@ h2.sec { font-size: clamp(1.9rem, 4.4vw, var(--t-3)); margin-top: var(--s3); max
 .stage {
   margin-top: var(--s6); height: 400vh;
   margin-inline: calc(var(--pad) * -1);
+  /* 위에서 모인 한 장이 넘어온 뒤에야 드러난다.
+     실제 값은 service-merge 가 스크롤에 맞춰 넣는다. */
+  opacity: 0;
 }
+@media (prefers-reduced-motion: reduce) { .stage { opacity: 1; } }
 .stage > .shot {
   position: sticky; top: calc(var(--hdr) + 16px);   /* 헤더 + 여백 */
   height: calc(100svh - var(--hdr) - 40px);     /* 위 여백 + 아래 24 */

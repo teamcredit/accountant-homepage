@@ -106,13 +106,13 @@ export default function PromoMotion() {
         if (r.bottom < -200 || r.top > innerHeight + 200) return;
 
         /* 1단계: 눕은 것이 일어선다 (화면 아래에서 올라오는 동안).
-           위에서 모인 한 장이 여기로 넘어온다 — 그래서 작고 거의 안 보이는
-           상태에서 시작해, 커지면서 대시보드가 된다. */
+           나타나고 사라지는 것(투명도)은 .stage 가 맡는다 — 위에서 모인 한 장이
+           넘어온 뒤에야 드러나야 하고, 그 시점은 service-merge 가 안다. */
         const rise = Math.min(Math.max(1 - r.top / (innerHeight * 0.9), 0), 1);
         const e = 1 - Math.pow(1 - rise, 3);            // 끝에서 부드럽게
         shot.style.transform =
-          `rotateX(${(1 - e) * 14}deg) scale(${0.82 + e * 0.18})`;
-        shot.style.opacity = String(0.06 + e * 0.94);
+          `rotateX(${(1 - e) * 14}deg) scale(${0.9 + e * 0.1})`;
+        shot.style.opacity = String(0.35 + e * 0.65);
 
         // 2단계: 대시보드 위에서 조각이 하나씩 확대된다
         const stage = shot.parentElement;

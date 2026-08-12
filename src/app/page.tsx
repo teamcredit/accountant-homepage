@@ -47,6 +47,8 @@ export default function Home() {
 
       {/* 1. 히어로 */}
       <section className="hero">
+        {/* 글 + 모이는 화면. 다 모이고 문구가 뜰 때까지 화면에 붙잡아 둔다. */}
+        <div className="hero-hold">
         <div className="wrap">
           <div className="hero-grid">
             <div>
@@ -69,7 +71,11 @@ export default function Home() {
                 일정은 팝업으로 뺐다 — 히어로의 '일정 보기' 버튼으로 다시 연다. */}
             <ServiceMerge items={services.slice(0, 6).map(s => ({ slug: s.slug, title: s.title }))} />
           </div>
+        </div>
+        </div>
 
+        {/* 붙잡힌 구간을 지나면 대시보드가 이어받는다 */}
+        <div className="wrap">
           <div className="stage">
             <div className="shot" id="shot">
               <div className="shot-win" id="shotWin">
