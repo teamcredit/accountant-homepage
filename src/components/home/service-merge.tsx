@@ -65,7 +65,9 @@ export default function ServiceMerge({ items }) {
 
       const shot = document.querySelector(".shot");
       const stackEl = root.querySelector(".svm-stack");
-      const CARD_W = 420;                 // .svm-card 의 CSS 폭과 같아야 한다
+      // .svm-card 의 CSS 값과 같아야 한다
+      const CARD_W = 420;
+      const CARD_H = 158;
 
       /* 전부 스크롤이 몬다. 저절로 돌아가는 부분은 없다. */
       const onScroll = () => {
@@ -76,26 +78,28 @@ export default function ServiceMerge({ items }) {
 
            순서를 또렷하게 나눈다. 겹치면 무슨 일이 일어나는지 안 읽힌다.
 
-             p 0.00 ~ 0.35   흩어진 6장이 한 장으로 모인다 (여기까지 화면을 붙잡음)
-             p 0.35 ~ 0.58   붙잡기가 풀리고, 모인 한 장이 화면 한가운데를
+             p 0.00 ~ 0.34   흩어진 6장이 한 장으로 모인다 (여기까지 화면을 붙잡음)
+             p 0.34 ~ 0.62   붙잡기가 풀리고, 모인 한 장이 화면 한가운데를
                              따라오며 대시보드 크기까지 커진다
                              (안쪽 글씨는 먼저 지워진다 — 빈 흰 네모가 된다)
-             p 0.58 ~ 0.70   그 빈 흰 네모 한가운데에 문구가 떴다가 사라진다
-             p 0.70 ~ 0.84   네모가 물러나고 진짜 대시보드가 드러난다
+             p 0.62 ~ 0.80   그 빈 흰 네모 한가운데에 문구가 떴다가 사라진다
+             p 0.80 ~ 1.00   네모가 물러나고 진짜 대시보드가 드러난다
              그 뒤            원래 있던 대시보드 애니메이션 */
-        const SPAN = innerHeight * 2.6;
+        /* 마지막 단계(대시보드 등장)가 끝나는 지점이 곧 전체 끝이어야 한다.
+           남는 구간이 있으면 다 끝났는데도 스크롤이 헛돈다. */
+        const SPAN = innerHeight * 2.2;
         const p = Math.min(Math.max(scrollY / SPAN, 0), 1);
         const ease = (v) => v * v * (3 - 2 * v);
         const seg = (a, b) => Math.min(Math.max((p - a) / (b - a), 0), 1);
 
         // ── 1) 모인다. 다 모일 때까지 화면을 붙잡는다 ──
-        const m = ease(seg(0, 0.35));
+        const m = ease(seg(0, 0.34));
 
         /* ── 2) 모인 한 장이 화면 한가운데에 붙어 따라오며 커진다 ──
            스크롤을 내려도 카드는 늘 화면 세로 한가운데에 있다.
            그동안 가로로는 대시보드 자리로 옮겨가고, 크기는 대시보드만큼
            커진다. 그래서 "이 카드가 곧 저 화면이 된다" 가 읽힌다. */
-        const down = ease(seg(0.35, 0.62));
+        const down = ease(seg(0.34, 0.62));
 
         const st = stackEl.getBoundingClientRect();
         const s = shot.getBoundingClientRect();
@@ -110,33 +114,61 @@ export default function ServiceMerge({ items }) {
         const toX = s.left + s.width / 2;
         const toY = (innerHeight + 80) / 2;
 
-        const dx = (toX - fromX) * down;
-        const dy = (toY - fromY) * down;
+        /* 가로와 세로에 서로 다른 곡선을 준다.
+           같은 속도로 가면 대각선이 자로 그은 듯 뻣뻣하다.
+           가로는 먼저 빠지고(easeOut), 세로는 늦게 따라붙어(easeIn→Out)
+           호를 그리며 안착한다. */
+        const easeOut = (v) => 1 - Math.pow(1 - v, 3);
+        const easeInOut = (v) => (v < 0.5 ? 4 * v * v * v : 1 - Math.pow(-2 * v + 2, 3) / 2);
+        const dxRaw = seg(0.34, 0.62);
+        const dx = (toX - fromX) * easeOut(dxRaw);
+        const dy = (toY - fromY) * easeInOut(dxRaw);
 
-        /* 대시보드 크기까지 커진다. 다만 화면 폭의 80% 를 넘기지 않는다 —
-           넘으면 왼쪽 글을 덮어 글이 안 읽힌다. */
-        const growTo = Math.min(s.width, innerWidth * 0.8) / CARD_W;
-        const grow = 1 + (growTo - 1) * down;
+        /* 대시보드 크기까지 커진다.
+           scale 로 늘리면 그림자와 테두리까지 같이 늘어나 계단처럼 깨진다.
+           실제 폭·높이를 바꿔서 그림자·테두리는 원래 굵기를 지킨다. */
+        const toW = Math.min(s.width, innerWidth * 0.86);
+        const toH = toW * (s.height / s.width);
+        const curW = CARD_W + (toW - CARD_W) * down;
+        const curH = CARD_H + (toH - CARD_H) * down;
 
         /* 문구가 다 보이고 난 뒤에 물러난다. 그래야 "흰 네모 안에 문구" 가
            또렷하게 한 장면으로 읽힌다. */
-        const cardFade = 1 - seg(0.70, 0.80);
+        const cardFade = 1 - seg(0.80, 0.90);
         // 커지는 동안 안쪽 글씨는 같이 늘어나면 깨져 보인다. 먼저 지워진다.
-        const inkFade = 1 - seg(0.36, 0.48);
+        const inkFade = 1 - seg(0.36, 0.50);
+
+        /* 폭·높이를 늘리면 왼쪽 위를 기준으로 자라서 중심이 밀린다.
+           늘어난 만큼 절반을 되돌려 중심을 붙잡는다. */
+        const cx = -(curW - CARD_W) / 2;
+        const cy = -(curH - CARD_H) / 2;
+
+        /* 커질수록 대시보드의 생김새를 닮아간다.
+           모서리와 그림자가 카드 그대로면 커졌을 때 어색하다. */
+        const radius = 12 + (14 - 12) * down;
+        const shadowY = 12 + (24 - 12) * down;
+        const shadowBlur = 30 + (60 - 30) * down;
+
+        /* 커지기 시작하면 맨 위 한 장만 남긴다.
+           6장이 겹친 채 커지면 테두리가 여러 겹으로 비쳐 지저분하다. */
+        const stackFade = 1 - seg(0.36, 0.46);
 
         cards.forEach((card, i) => {
+          const isTop = i === cards.length - 1;
           gsap.set(card, {
-            x: moves[i].x * m + dx,
-            y: moves[i].y * m + dy,
-            scale: grow,
-            opacity: cardFade,
+            x: moves[i].x * m + dx + cx,
+            y: moves[i].y * m + dy + cy,
+            width: curW,
+            height: curH,
+            borderRadius: radius,
+            boxShadow: `0 ${shadowY}px ${shadowBlur}px -${20 + down * 14}px rgba(0,0,0,.4)`,
+            opacity: cardFade * (isTop ? 1 : stackFade),
           });
           gsap.set(card.children, { opacity: inkFade });
         });
-        gsap.set(target, {
-          x: dx, y: dy, scale: grow,
-          opacity: (m > 0.9 ? 1 : 0) * cardFade,
-        });
+        /* 모이는 자리 표시는 카드가 다 모이기 전까지만 쓴다.
+           커지는 동안 같이 두면 카드와 미세하게 어긋나 테두리가 겹쳐 보인다. */
+        gsap.set(target, { opacity: 0 });
 
         /* ── 3) 빈 흰 네모 한가운데에 문구가 뜬다 ──────
            카드가 대시보드 크기가 되고 안쪽 글씨가 지워진 그 순간,
@@ -144,8 +176,8 @@ export default function ServiceMerge({ items }) {
            문구는 화면에 붙어 있으므로 카드가 있는 화면 한가운데로 맞춘다. */
         const labelY = toY - innerHeight * 0.5;
         gsap.set(label, {
-          opacity: seg(0.58, 0.64) * (1 - seg(0.68, 0.74)),
-          y: labelY + (1 - seg(0.58, 0.64)) * 14,
+          opacity: seg(0.62, 0.70) * (1 - seg(0.78, 0.86)),
+          y: labelY + (1 - easeOut(seg(0.62, 0.70))) * 14,
         });
 
         /* ── 4) 대시보드가 드러난다 ──────────────────
@@ -154,7 +186,7 @@ export default function ServiceMerge({ items }) {
 
            대시보드의 transform 은 promo-motion 이 잡고 있다. 겹쳐 쓰면 서로
            덮어써서 깜빡인다. 그래서 여기서는 감싸는 .stage 의 투명도만 만진다. */
-        const reveal = ease(seg(0.70, 0.84));
+        const reveal = ease(seg(0.82, 1));
         const stageEl = shot.parentElement;
         if (stageEl) stageEl.style.opacity = String(reveal);
       };

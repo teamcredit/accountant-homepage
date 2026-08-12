@@ -195,7 +195,7 @@ h2.sec { font-size: clamp(1.9rem, 4.4vw, var(--t-3)); margin-top: var(--s3); max
 
    이 거리가 카드 출발 시점과 어긋나면 안 된다. 왼쪽이 아직 붙어 있는데
    카드만 움직이면 "내려가는" 느낌이 안 나고 카드만 떠다니는 것처럼 보인다. */
-.hero-hold { height: 143vh; position: relative; }
+.hero-hold { height: 127vh; position: relative; }
 /* 붙는 자리는 "처음 보이던 그 자리" 여야 한다.
    헤더 바로 밑에 붙이면 스크롤 시작하자마자 글이 위로 확 튄다.
    .hero 의 padding-top(헤더 + s6) 만큼 그대로 내려서 붙인다. */
@@ -257,14 +257,14 @@ h2.sec { font-size: clamp(1.9rem, 4.4vw, var(--t-3)); margin-top: var(--s3); max
 
 .svm-card {
   position: absolute;
-  width: 420px; padding: 20px 24px;
+  width: 420px; height: 158px; padding: 20px 24px;
+  /* 대시보드(.shot)와 같은 테두리·모서리. 커졌을 때 그대로 이어져야 한다. */
   border: 1px solid var(--w-3);
   border-radius: 12px;
   background: var(--w);
   box-shadow: 0 12px 30px -20px rgba(0,0,0,.4);
-  will-change: transform;
-  /* 가운데를 기준으로 커진다 — 대시보드 자리에 정확히 맞추려면 필요하다 */
-  transform-origin: 50% 50%;
+  overflow: hidden;               /* 커지는 동안 안쪽 글씨가 삐져나오지 않게 */
+  will-change: transform, width, height;
 }
 .svm-t {
   display: block;
