@@ -82,12 +82,12 @@ export default function ServiceMerge({ items }) {
              p 0.34 ~ 0.62   붙잡기가 풀리고, 모인 한 장이 화면 한가운데를
                              따라오며 대시보드 크기까지 커진다
                              (안쪽 글씨는 먼저 지워진다 — 빈 흰 네모가 된다)
-             p 0.62 ~ 0.70   그 빈 흰 네모 한가운데에 문구가 뜬다
-             p 0.74 ~ 0.80   문구가 물러난다
-             p 0.80 ~ 0.90   흰 네모 뒤에서 대시보드가 차오른다
-             p 0.90 ~ 0.96   다 차오르면 흰 네모가 조용히 물러난다
-             그 뒤            대시보드 전체가 쨍하게 보이는 구간을 지나고
-                             「통장까지 붙어서」 부터 조각 확대가 이어받는다
+             p 0.40 ~ 0.62   커지는 그 뒤에서 대시보드가 연하게 차오른다
+             p 0.62          제자리에 닿는 순간 딱 진해진다 (쨍한 한 장면)
+             p 0.62 ~ 0.68   흰 네모가 물러나고 대시보드가 연해진다
+             p 0.68 ~ 0.76   그 위에 문구가 뜬다
+             p 0.82 ~ 0.90   문구가 물러난다
+             그 뒤            바로 조각 확대(「통장까지 붙어서」)가 이어받는다
 
            문구와 대시보드가 같이 떠 있으면 글자 위에 화면이 겹쳐 둘 다 안 읽힌다.
            그래서 겹치는 구간을 두지 않는다. */
@@ -100,6 +100,12 @@ export default function ServiceMerge({ items }) {
 
         // ── 1) 모인다. 다 모일 때까지 화면을 붙잡는다 ──
         const m = ease(seg(0, 0.34));
+
+        /* 붙잡혀 있는 동안에도 왼쪽 글이 조금씩 올라간다.
+           완전히 멈춰 있으면 스크롤이 먹통인 것처럼 느껴진다.
+           카드가 모이는 만큼만 살짝 — 다 모이면 120px 올라가 있다. */
+        const holdEl = document.querySelector(".hero-hold");
+        if (holdEl) holdEl.style.setProperty("--svm-lift", `${seg(0, 0.34) * 120}px`);
 
         /* ── 2) 모인 한 장이 화면 한가운데에 붙어 따라오며 커진다 ──
            스크롤을 내려도 카드는 늘 화면 세로 한가운데에 있다.
@@ -138,11 +144,9 @@ export default function ServiceMerge({ items }) {
         const curW = CARD_W + (toW - CARD_W) * down;
         const curH = CARD_H + (toH - CARD_H) * down;
 
-        /* 흰 네모는 대시보드가 다 선 뒤에야 사라진다.
-           먼저 사라지면 그 사이 아무것도 없는 빈 화면이 생긴다.
-           대시보드가 뒤에서 차오르는 동안 흰 네모가 자리를 지키다가,
-           다 차오른 뒤 조용히 물러난다. */
-        const cardFade = 1 - seg(0.90, 0.96);
+        /* 제자리에 닿아 대시보드가 진해지는 그 순간 흰 네모는 자리를 넘긴다.
+           같은 자리에 같은 크기로 겹쳐 있으므로 바꿔치기가 티나지 않는다. */
+        const cardFade = 1 - seg(0.62, 0.68);
         // 커지는 동안 안쪽 글씨는 같이 늘어나면 깨져 보인다. 먼저 지워진다.
         const inkFade = 1 - seg(0.36, 0.50);
 
@@ -184,8 +188,8 @@ export default function ServiceMerge({ items }) {
            문구는 화면에 붙어 있으므로 카드가 있는 화면 한가운데로 맞춘다. */
         const labelY = toY - innerHeight * 0.5;
         gsap.set(label, {
-          opacity: seg(0.62, 0.70) * (1 - seg(0.74, 0.80)),
-          y: labelY + (1 - easeOut(seg(0.62, 0.70))) * 14,
+          opacity: seg(0.68, 0.76) * (1 - seg(0.82, 0.90)),
+          y: labelY + (1 - easeOut(seg(0.68, 0.76))) * 14,
         });
 
         /* ── 4) 대시보드가 드러난다 ──────────────────
@@ -194,9 +198,17 @@ export default function ServiceMerge({ items }) {
 
            대시보드의 transform 은 promo-motion 이 잡고 있다. 겹쳐 쓰면 서로
            덮어써서 깜빡인다. 그래서 여기서는 감싸는 .stage 의 투명도만 만진다. */
-        const reveal = ease(seg(0.80, 0.90));
+        /* 커지는 동안 뒤에서 연하게 차오르다가(0.40~0.62),
+           제자리에 닿는 순간(0.62) 딱 진해진다.
+           그 뒤 살짝 연해져서 문구가 읽히게 자리를 내준다. */
+        const rising = ease(seg(0.40, 0.62)) * 0.55;      // 연하게, 최대 0.55
+        const snap = seg(0.62, 0.645);                    // 도착 순간 확 채운다
+        // 문구가 뜨는 동안만 살짝 연해진다. 문구가 물러나면 다시 또렷해진다.
+        const dim = seg(0.68, 0.76) * (1 - seg(0.82, 0.90)) * 0.45;
+        const reveal = Math.min(rising + snap * (1 - 0.55), 1) - dim;
+
         const stageEl = shot.parentElement;
-        if (stageEl) stageEl.style.opacity = String(reveal);
+        if (stageEl) stageEl.style.opacity = String(Math.max(reveal, 0));
       };
       addEventListener("scroll", onScroll, { passive: true });
       gsap.set(root, { opacity: 1 });

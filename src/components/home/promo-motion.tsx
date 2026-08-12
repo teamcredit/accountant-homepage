@@ -132,16 +132,19 @@ export default function PromoMotion() {
 
         const stage = shot.parentElement;
 
-        /* 문구가 떠 있는 동안, 그리고 대시보드가 다 선 직후 한동안은
-           아무 조각도 확대하지 않는다.
-
-           조각이 뜨면 나머지가 흐려져(.zoom) 대시보드 전체를 볼 수 없다.
-           "이게 그 화면이다" 를 통째로 보여주는 시점이 한 번은 있어야 한다.
-           그 뒤에 하나씩 짚어준다. */
-        const HOLD = 0.16;                    // 이만큼은 온전한 화면만 보여준다
+        /* 문구가 떠 있는 동안만 기다린다.
+           문구가 물러나면 곧바로 첫 조각을 짚어준다 — 사이에 빈 구간을 두면
+           "다 끝났나?" 하고 흐름이 끊긴다.
+           대시보드 전체를 보여주는 시점은 그 앞(문구 뜨기 전)에 이미 있다. */
         const clear = stepOf(stage, 1).t;     // .stage 안에서의 진행도 0~1
 
-        if (labelUp || clear < HOLD) {
+        /* 문구가 떠 있는 동안, 그리고 문구가 뜨기 전 구간에는 조각을 안 띄운다.
+           안 막으면 대시보드가 처음 진해질 때 조각이 잠깐 떴다 사라져
+           깜빡이는 것처럼 보인다. */
+        /* 문구가 물러나는 지점(.stage 진행도 약 0.185)에 맞춘다.
+           더 뒤로 잡으면 문구가 사라진 뒤 빈 구간이 생겨 흐름이 끊긴다. */
+        const START = 0.185;
+        if (labelUp || clear < START) {
           tags.forEach(t => t.classList.remove('on'));
           shotWin?.classList.remove('zoom');
           if (shotCap) { shotCap.innerHTML = ''; capIdx = -2; }
@@ -152,9 +155,9 @@ export default function PromoMotion() {
         // 지금 어느 구간인지 하나만 고른다. 마지막 조각은 끝까지 남는다
         // (구간을 폭으로 재면 스크롤 끝에서 아무것도 안 뜬다).
         // 단계마다 머무는 구간이 있다. 문턱을 넘어야 다음 조각으로.
-        /* HOLD 만큼은 온전한 화면을 보여줬으니, 남은 구간을 조각 수로 나눈다.
-           그냥 stepOf 를 쓰면 앞의 HOLD 구간이 첫 조각에 먹혀 버린다. */
-        const after = (clear - HOLD) / (1 - HOLD);
+        /* 문구가 물러난 지점부터 남은 구간을 조각 수로 나눈다.
+           앞 구간을 빼지 않으면 문구가 사라지자마자 두 번째 조각이 떠 버린다. */
+        const after = Math.max((clear - START) / (1 - START), 0);
         let pick = Math.min(Math.floor(after * tags.length), tags.length - 1);
         if (hsIdx >= 0 && pick !== hsIdx) pick = pick > hsIdx ? hsIdx + 1 : hsIdx - 1;
         hsIdx = pick;

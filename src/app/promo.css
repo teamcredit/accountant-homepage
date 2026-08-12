@@ -198,8 +198,15 @@ h2.sec { font-size: clamp(1.9rem, 4.4vw, var(--t-3)); margin-top: var(--s3); max
 .hero-hold { height: 127vh; position: relative; }
 /* 붙는 자리는 "처음 보이던 그 자리" 여야 한다.
    헤더 바로 밑에 붙이면 스크롤 시작하자마자 글이 위로 확 튄다.
-   .hero 의 padding-top(헤더 + s6) 만큼 그대로 내려서 붙인다. */
-.hero-hold > .wrap { position: sticky; top: calc(var(--hdr) + var(--s6)); }
+   .hero 의 padding-top(헤더 + s6) 만큼 그대로 내려서 붙인다.
+
+   완전히 멈춰 있으면 스크롤이 먹통인 것처럼 느껴진다.
+   모이는 동안 왼쪽 글이 조금씩 올라가게 --svm-lift 를 빼준다.
+   값은 service-merge 가 스크롤에 맞춰 넣는다. */
+.hero-hold > .wrap {
+  position: sticky;
+  top: calc(var(--hdr) + var(--s6) - var(--svm-lift, 0px));
+}
 @media (max-width: 1000px) {
   /* 좁은 화면에서는 모이는 화면 자체를 빼므로 붙잡을 이유가 없다 */
   .hero-hold { height: auto; }
