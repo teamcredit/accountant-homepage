@@ -126,7 +126,7 @@ export default function RootLayout({
       <body className="min-h-screen flex flex-col antialiased">
         <SmoothScrollProvider>
           <Header />
-          <main className="flex-1 pt-18">{children}</main>
+          <main className="flex-1 pt-20">{children}</main>
           <Footer />
         </SmoothScrollProvider>
         <Analytics />

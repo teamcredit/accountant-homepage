@@ -4,6 +4,15 @@ import { services } from "@/lib/data";
 import { getAllPosts } from "@/lib/posts";
 import PromoMotion from "@/components/home/promo-motion";
 import ServiceMerge from "@/components/home/service-merge";
+import SchedulePopup from "@/components/home/schedule-popup";
+
+/* 히어로에서 팝업으로 뺀 이번 분기 일정. 한 곳에서만 고치면 되게 모아둔다. */
+const SCHEDULE = [
+  { what: "원천세 납부", dday: "D-31", when: "2026.09.10" },
+  { what: "원천세 납부", dday: "D-61", when: "2026.10.10" },
+  { what: "부가세 2기 예정신고", dday: "D-76", when: "2026.10.25" },
+  { what: "부가세 2기 확정신고", dday: "D-168", when: "2027.01.25" },
+];
 import "./promo.css";
 
 export const metadata: Metadata = {
@@ -18,6 +27,7 @@ export default function Home() {
   return (
     <div className="promo">
       <PromoMotion />
+      <SchedulePopup items={SCHEDULE} asOf="2026.08.10" trigger="schedOpen" />
 
       {/* 우측 앵커. 선과 빈 원. 원하는 데만 보고 갈 수 있게. */}
       <nav className="anchor" id="anchor" aria-label="구역 바로가기">
@@ -48,43 +58,17 @@ export default function Home() {
             <a className="btn btn-line" href="#feat">화면 먼저 보기</a>
           </div>
           <p className="cta-note"><span className="s">상담은 무료입니다.</span><span className="s">쓰던 사무소에서 넘어오는 절차는 저희가 처리합니다.</span></p>
+          {/* 팝업을 닫아도 여기서 다시 연다 */}
+          <button type="button" id="schedOpen" className="sched-open">
+            <span className="lb">이번 분기 주요 일정</span>
+            <span className="dd">원천세 D-31</span>
+          </button>
             </div>
 
-            {/* 세무를 맡기려는 사장님이 제일 먼저 궁금해하는 것: 다음 마감일 */}
-            <aside className="sched">
-              <div className="sched-hd">
-                <h2>이번 분기 주요 일정</h2>
-                <time dateTime="2026-08-10">as of 2026.08.10</time>
-              </div>
-              <ol>
-                <li className="near">
-                  <span className="what">원천세 납부</span>
-                  <span className="dday">D-31</span>
-                  <span className="when">2026.09.10</span>
-                </li>
-                <li>
-                  <span className="what">원천세 납부</span>
-                  <span className="dday">D-61</span>
-                  <span className="when">2026.10.10</span>
-                </li>
-                <li>
-                  <span className="what">부가세 2기 예정신고</span>
-                  <span className="dday">D-76</span>
-                  <span className="when">2026.10.25</span>
-                </li>
-                <li>
-                  <span className="what">부가세 2기 확정신고</span>
-                  <span className="dday">D-168</span>
-                  <span className="when">2027.01.25</span>
-                </li>
-              </ol>
-              <p className="note"><span className="s">국세청 기준 주요 신고·납부 기한.</span><span className="s">담당 법인의 신고 의무 및 마감일은</span><span className="s">실제와 상이할 수 있습니다.</span></p>
-            </aside>
+            {/* 일정표가 있던 자리. 흩어진 서비스가 한 장으로 모인다.
+                일정은 팝업으로 뺐다 — 히어로의 '일정 보기' 버튼으로 다시 연다. */}
+            <ServiceMerge items={services.slice(0, 6).map(s => ({ slug: s.slug, title: s.title }))} />
           </div>
-
-          {/* 흩어진 서비스 6개가 한 장으로 모인다.
-              모인 자리가 그대로 아래 대시보드가 서는 곳이다. */}
-          <ServiceMerge items={services.slice(0, 6).map(s => ({ slug: s.slug, title: s.title }))} />
 
           <div className="stage">
             <div className="shot" id="shot">

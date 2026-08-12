@@ -495,3 +495,31 @@ body {
   padding: 0.15em 0.4em;
   border-radius: 4px;
 }
+
+/* ── 헤더 CTA ─────────────────────────────────
+   홈(promo)의 .btn .btn-fill 과 같은 규칙을 쓴다.
+   모서리 10px, 코발트, 움직임은 색 하나만.
+   promo.css 는 .promo 안에 갇혀 있어 헤더까지 안 닿는다.
+   그래서 같은 값을 여기에 한 번 더 적는다. */
+.hdr-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  border-radius: 10px;
+  border: 1px solid transparent;
+  background: var(--color-accent);
+  color: var(--color-accent-foreground);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  padding: 11px 20px;
+  text-decoration: none;
+  white-space: nowrap;
+  transition: background 0.18s ease;
+}
+.hdr-cta:hover {
+  background: #0F4FA8;              /* promo 의 --blue-d 와 같은 값 */
+}
+.hdr-cta:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+}

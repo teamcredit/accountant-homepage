@@ -14,9 +14,6 @@
 
 import { useEffect, useRef } from "react";
 import { gsap } from "gsap";
-import { ScrollTrigger } from "gsap/ScrollTrigger";
-
-gsap.registerPlugin(ScrollTrigger);
 
 export default function ServiceMerge({ items }) {
   const rootRef = useRef(null);
@@ -60,45 +57,99 @@ export default function ServiceMerge({ items }) {
 
       gsap.set(root, { opacity: 1 });
 
-      // 스크롤에 맞춰 모인다. 스크럽이라 스크롤을 되돌리면 다시 흩어진다.
-      const tl = gsap.timeline({
-        scrollTrigger: {
-          trigger: root,
-          start: "top 82%",
-          end: "bottom 42%",
-          scrub: 0.6,
-          invalidateOnRefresh: true,
-        },
-      });
+      /* 히어로 안(첫 화면)이라 스크롤로 모으면 구간이 안 나온다.
+         화면에 들어오면 저절로 모이고, 다 모인 채로 남는다.
+         모인 그 한 장이 아래 대시보드로 이어진다. */
+      const tl = gsap.timeline({ paused: true });
 
+      // 1) 흩어진 채로 잠깐 머문다 — 여기가 "따로 놀던" 상태다
+      tl.to({}, { duration: 1.1 });
+
+      // 2) 한 장씩 가운데로 모인다
       cards.forEach((card, i) => {
         tl.to(
           card,
           {
             x: () => moves[i].x,
             y: () => moves[i].y,
-            duration: 1,
-            ease: "power2.inOut",
+            duration: 1.15,
+            ease: "power3.inOut",
           },
-          i * 0.06,
+          1.1 + i * 0.12,
         );
       });
 
-      // 다 모인 뒤에 문구가 뜬다. 모이는 중에 뜨면 흐릿하게 지나가 안 읽힌다.
-      tl.to(label, { opacity: 1, duration: 0.35 }, ">");
-      tl.to(target, { opacity: 1, duration: 0.35 }, "<");
+      // 3) 다 모이면 한 장으로 굳는다. 문구는 여기서 안 띄운다 —
+      //    스크롤을 내려 대시보드로 넘어갈 때 뜬다.
+      tl.to(target, { opacity: 1, duration: 0.4 }, ">");
+
+      /* 시작 조건: 화면에 들어와 있고 + 일정 팝업이 닫혀 있을 것.
+         팝업이 떠 있는 동안 돌려버리면, 닫았을 때 이미 끝나 있어
+         "합쳐지는 모습"을 통째로 놓친다. */
+      let visible = false;
+      let started = false;
+
+      const io = new IntersectionObserver(
+        (es) => { visible = es[0].isIntersecting; tryStart(); },
+        { threshold: 0.3 },
+      );
+      // 팝업이 닫히는 걸 지켜본다
+      const popWatch = new MutationObserver(() => tryStart());
+
+      /* 팝업은 이 컴포넌트보다 늦게 그려질 수 있다.
+         그래서 "지금 팝업이 없다"만 보고 출발하면, 곧 뜰 팝업 뒤에서
+         애니메이션이 다 끝나 버린다. 팝업이 뜰 기회를 한 번 준 뒤에 판단한다. */
+      let popupSettled = false;
+      setTimeout(() => { popupSettled = true; tryStart(); }, 1400);
+
+      function tryStart() {
+        if (started || !visible || !popupSettled) return;
+        if (document.querySelector(".schp")) return;   // 팝업이 떠 있다
+        started = true;
+        tl.play();
+        io.disconnect();
+        popWatch.disconnect();
+      }
+
+      io.observe(root);
+      popWatch.observe(document.body, { childList: true, subtree: true });
+
+      /* 모인 한 장이 대시보드로 넘어간다.
+         스크롤을 내리면 모인 장이 아래 대시보드 쪽으로 끌려가며 사라지고,
+         그때 문구가 뜬다. 대시보드는 원래 하던 대로 일어선다. */
+      const stage = document.querySelector(".stage");
+      const onScroll = () => {
+        if (!started) return;
+        const r = root.getBoundingClientRect();
+        // 모인 장이 화면 위로 빠져나가는 정도 (0 → 1)
+        const t = Math.min(Math.max(1 - (r.bottom - 80) / innerHeight, 0), 1);
+
+        // 모인 장은 아래로 끌려가며 옅어진다 — 대시보드에 흡수되는 느낌
+        gsap.set(cards, { y: (i) => moves[i].y + t * 90, opacity: 1 - t * 1.2 });
+        gsap.set(target, { opacity: (1 - t * 1.4) });
+
+        // 문구는 넘어가는 도중에 뜬다
+        gsap.set(label, { opacity: Math.min(Math.max((t - 0.15) * 3, 0), 1) });
+      };
+      addEventListener("scroll", onScroll, { passive: true });
 
       // 창 크기가 바뀌면 거리를 다시 잰다
-      ScrollTrigger.addEventListener("refreshInit", () => {
-        moves = measure();
-      });
+      const onResize = () => { moves = measure(); };
+      addEventListener("resize", onResize);
+
+      return () => {
+        io.disconnect();
+        popWatch.disconnect();
+        removeEventListener("resize", onResize);
+        removeEventListener("scroll", onScroll);
+      };
     }, root);
 
     return () => ctx.revert();
   }, []);
 
   return (
-    <div className="svm" ref={rootRef}>
+    <div className="svm" ref={rootRef} aria-hidden="true">
       <div className="svm-stack">
         {/* 모이는 자리. 다 모이면 테두리가 드러난다. */}
         <div className="svm-target" aria-hidden="true" />

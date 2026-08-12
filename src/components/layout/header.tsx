@@ -50,7 +50,13 @@ export default function Header() {
       <header
         className="fixed top-0 left-0 right-0 z-50 bg-background/90 backdrop-blur-xl shadow-[0_1px_0_0_rgba(0,0,0,0.06)]"
       >
-        <div className="max-w-7xl mx-auto px-6 lg:px-8 h-18 flex items-center justify-between">
+        {/* 본문(1600px)과 같은 폭을 쓴다. 1280 으로 가두면 넓은 화면에서
+            헤더만 좁아 보인다. 높이도 한 단계 키워 답답함을 던다. */}
+        <div
+          className="max-w-[1600px] mx-auto h-20 flex items-center justify-between"
+          /* 본문(.wrap)과 같은 좌우 여백. 어긋나면 로고와 본문 글이 안 맞는다. */
+          style={{ paddingInline: "clamp(20px, 4vw, 40px)" }}
+        >
           {/* Logo */}
           <Link
             href="/"
@@ -85,13 +91,15 @@ export default function Header() {
               })}
             </nav>
             <div className="flex items-center gap-3">
+              {/* 홈(promo)의 .btn .btn-fill 과 같은 생김새.
+                  모서리 10px, 코발트, 색만 바뀐다. */}
               <a
                 href={siteConfig.clientPortalUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-[0.75rem] font-medium tracking-[0.08em] uppercase px-4 py-2 border border-border text-muted hover:text-foreground hover:border-foreground transition-colors duration-300"
+                className="hdr-cta"
               >
-                Client Login
+                대시보드 시작하기
               </a>
             </div>
           </div>
@@ -185,9 +193,9 @@ export default function Header() {
               target="_blank"
               rel="noopener noreferrer"
               onClick={() => setMobileOpen(false)}
-              className="text-xs tracking-[0.12em] uppercase px-6 py-3 border border-border text-muted"
+              className="hdr-cta"
             >
-              Client Login
+              대시보드 시작하기
             </a>
           </div>
         </nav>
