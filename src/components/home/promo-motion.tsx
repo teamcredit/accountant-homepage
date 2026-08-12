@@ -119,8 +119,12 @@ export default function PromoMotion() {
            문턱을 넘으면 정확히 1 로 고정해 완전히 멈춘다. */
         if (e > 0.985) e = 1;
 
-        shot.style.transform =
-          e === 1 ? 'none' : `rotateX(${(1 - e) * 14}deg) scale(${0.9 + e * 0.1})`;
+        /* transform 은 service-merge 가 카드 안에 앉히는 동안 쓰고 있다.
+           여기서 덮어쓰면 둘이 싸워 깜빡인다. 다 앉힌 뒤에만 손댄다. */
+        if (!shot.dataset.svmFit) {
+          shot.style.transform =
+            e === 1 ? 'none' : `rotateX(${(1 - e) * 14}deg) scale(${0.9 + e * 0.1})`;
+        }
         shot.style.opacity = String(0.35 + e * 0.65);
 
         /* 2단계: 대시보드 위에서 조각이 하나씩 확대된다.

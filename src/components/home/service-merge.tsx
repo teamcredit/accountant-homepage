@@ -46,7 +46,8 @@ export default function ServiceMerge({ items }) {
         const stackEl = root.querySelector(".svm-stack");
         const st = stackEl.getBoundingClientRect();
         const cx = st.left + st.width * 0.12;      // 모이는 자리 = CSS 의 left:12%
-        const cy = st.top + st.height / 2;
+        // 모이는 자리도 화면 세로 한가운데다 — 잡히는 순간부터 중앙에 있어야 한다
+        const cy = innerHeight / 2;
         return cards.map((card) => {
           // 이동값을 빼고 원래 자리에서 잰다
           const prevX = gsap.getProperty(card, "x");
@@ -114,17 +115,31 @@ export default function ServiceMerge({ items }) {
         const down = ease(seg(0.34, 0.62));
 
         const st = stackEl.getBoundingClientRect();
+
+        /* 대시보드 크기를 잰다. 우리가 카드 안에 앉히려고 변형해 둔 상태라
+           그대로 재면 그 값이 다시 목표가 되어 카드가 안 커진다.
+           변형을 잠깐 지우고 원래 크기를 잰 뒤 되돌린다. */
+        const keepTf = shot.style.transform;
+        shot.style.transform = "none";
         const s = shot.getBoundingClientRect();
+        shot.style.transform = keepTf;
 
-        // 모인 자리 (스택의 12% 지점)
+        /* 모이는 자리. 가로는 스택의 12% 지점, 세로는 늘 화면 한가운데다.
+           스택은 스크롤을 따라 움직이므로, 세로만큼은 매 프레임 화면 기준으로
+           다시 재야 카드가 중앙에 붙어 있는다. */
         const fromX = st.left + st.width * 0.12;
-        const fromY = st.top + st.height / 2;
+        const fromY = innerHeight / 2;
 
-        /* 목표: 가로는 대시보드 한가운데, 세로는 화면 한가운데.
-           세로를 화면 기준으로 잡아야 스크롤을 따라 붙어 온다.
-           세로 중앙은 헤더만큼 내려 잡는다 — 헤더가 화면을 가리고 있다. */
+        /* 각 카드가 지금 있어야 할 자리 = 원래 자리에서 화면 중앙까지.
+           measure() 는 처음 한 번만 재므로 세로는 여기서 매번 보정한다. */
+        const stackCenterNow = st.top + st.height / 2;
+        const centerFix = fromY - stackCenterNow;
+
+        /* 목표: 가로는 대시보드 한가운데, 세로는 늘 화면 한가운데.
+           한 번 모인 뒤로는 스크롤이 어디에 있든 카드 중심이
+           화면 세로 한가운데에 딱 붙어 있어야 한다. */
         const toX = s.left + s.width / 2;
-        const toY = (innerHeight + 80) / 2;
+        const toY = innerHeight / 2;
 
         /* 가로와 세로에 서로 다른 곡선을 준다.
            같은 속도로 가면 대각선이 자로 그은 듯 뻣뻣하다.
@@ -144,9 +159,9 @@ export default function ServiceMerge({ items }) {
         const curW = CARD_W + (toW - CARD_W) * down;
         const curH = CARD_H + (toH - CARD_H) * down;
 
-        /* 제자리에 닿아 대시보드가 진해지는 그 순간 흰 네모는 자리를 넘긴다.
-           같은 자리에 같은 크기로 겹쳐 있으므로 바꿔치기가 티나지 않는다. */
-        const cardFade = 1 - seg(0.62, 0.68);
+        /* 흰 네모는 대시보드를 담는 그릇이다. 대시보드가 그 안에 들어 있으므로
+           끝까지 남아 있다가, 대시보드가 제 크기로 풀릴 때 함께 물러난다. */
+        const cardFade = 1 - seg(0.90, 1);
         // 커지는 동안 안쪽 글씨는 같이 늘어나면 깨져 보인다. 먼저 지워진다.
         const inkFade = 1 - seg(0.36, 0.50);
 
@@ -169,7 +184,7 @@ export default function ServiceMerge({ items }) {
           const isTop = i === cards.length - 1;
           gsap.set(card, {
             x: moves[i].x * m + dx + cx,
-            y: moves[i].y * m + dy + cy,
+            y: moves[i].y * m + centerFix * m + dy + cy,
             width: curW,
             height: curH,
             borderRadius: radius,
@@ -209,6 +224,29 @@ export default function ServiceMerge({ items }) {
 
         const stageEl = shot.parentElement;
         if (stageEl) stageEl.style.opacity = String(Math.max(reveal, 0));
+
+        /* 대시보드를 흰 카드 안에 정확히 앉힌다.
+           둘이 따로 놀면 "카드가 대시보드가 된다" 가 안 읽힌다.
+           카드가 다 커진 뒤에는 대시보드가 제 크기로 돌아간다. */
+        const topCard = cards[cards.length - 1];
+        const cr = topCard.getBoundingClientRect();
+        const sr = s;                            // 위에서 이미 원래 크기로 재뒀다
+
+        const fit = 1 - seg(0.90, 1);            // 끝에서 제 크기로 풀어준다
+        if (fit > 0.001) {
+          // promo-motion 이 transform 을 덮어쓰지 않게 표시해 둔다
+          shot.dataset.svmFit = "1";
+          const sx = (cr.width / sr.width - 1) * fit + 1;
+          const sy = (cr.height / sr.height - 1) * fit + 1;
+          const ox = (cr.left + cr.width / 2 - (sr.left + sr.width / 2)) * fit;
+          const oy = (cr.top + cr.height / 2 - (sr.top + sr.height / 2)) * fit;
+          shot.style.transformOrigin = "50% 50%";
+          shot.style.transform = `translate(${ox}px, ${oy}px) scale(${sx}, ${sy})`;
+        } else if (shot.dataset.svmFit) {
+          // 다 풀렸다. 원래 자리로 돌려주고 promo-motion 에 넘긴다
+          delete shot.dataset.svmFit;
+          shot.style.transform = "none";
+        }
       };
       addEventListener("scroll", onScroll, { passive: true });
       gsap.set(root, { opacity: 1 });
