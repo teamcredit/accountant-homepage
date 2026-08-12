@@ -76,9 +76,10 @@ export default function ServiceMerge({ items }) {
            순서를 또렷하게 나눈다. 겹치면 무슨 일이 일어나는지 안 읽힌다.
 
              p 0.00 ~ 0.35   흩어진 6장이 한 장으로 모인다 (여기까지 화면을 붙잡음)
-             p 0.38 ~ 0.50   붙잡기가 풀려 화면이 카드를 따라 내려가고 카드는 물러난다
-             p 0.42 ~ 0.62   커진 네모(대시보드)가 드러난다
-             p 0.52 ~ 0.72   그 네모 위에 문구가 떴다가 물러난다
+             p 0.35 ~ 0.58   모인 한 장이 아래 대시보드 자리까지 내려간다
+             p 0.50 ~ 0.62   대시보드 자리에 닿으면 그 자리를 넘겨주고 사라진다
+             p 0.50 ~ 0.66   커진 네모(대시보드)가 드러난다
+             p 0.60 ~ 0.78   그 네모 위에 문구가 떴다가 물러난다
              그 뒤            원래 있던 대시보드 애니메이션 */
         const SPAN = innerHeight * 2.6;
         const p = Math.min(Math.max(scrollY / SPAN, 0), 1);
@@ -88,17 +89,34 @@ export default function ServiceMerge({ items }) {
         // ── 1) 모인다. 다 모일 때까지 화면을 붙잡는다 ──
         const m = ease(seg(0, 0.35));
 
-        // ── 2) 모인 장은 제자리에 남고, 화면이 아래로 흐르며 물러난다 ──
-        const cardFade = 1 - seg(0.38, 0.50);
+        /* ── 2) 모인 한 장이 아래 대시보드 자리까지 실제로 내려간다 ──
+           제자리에서 사라지면 "어디로 갔지" 가 된다. 눈으로 따라갈 수 있게
+           대시보드가 설 자리까지 데려간다. */
+        const down = ease(seg(0.35, 0.58));
+
+        const st = stackEl.getBoundingClientRect();
+        const s = shot.getBoundingClientRect();
+        /* 모인 자리(스택의 12% 지점) → 대시보드 윗부분까지.
+           대시보드 '한가운데' 를 노리면 카드가 화면 아래로 빠져나가
+           내려가는 모습을 못 본다. 화면 안에 머무는 윗머리로 데려간다. */
+        const fromX = st.left + st.width * 0.12;
+        const fromY = st.top + st.height / 2;
+        const dx = (s.left + s.width / 2) - fromX;
+        const dy = (s.top + Math.min(s.height * 0.18, 160)) - fromY;
+
+        // 다 내려가서 대시보드에 닿으면 자리를 넘기고 사라진다
+        const cardFade = 1 - seg(0.50, 0.62);
 
         cards.forEach((card, i) => {
           gsap.set(card, {
-            x: moves[i].x * m,
-            y: moves[i].y * m,
+            x: moves[i].x * m + dx * down,
+            y: moves[i].y * m + dy * down,
             opacity: cardFade,
           });
         });
         gsap.set(target, {
+          x: dx * down,
+          y: dy * down,
           opacity: (m > 0.9 ? 1 : 0) * cardFade,
         });
 
@@ -106,8 +124,8 @@ export default function ServiceMerge({ items }) {
            대시보드가 드러나는 동안 떠 있다가, 다 드러나면 물러난다.
            대시보드 자체 애니메이션(조각 확대)이 시작되기 전에 비켜준다. */
         gsap.set(label, {
-          opacity: seg(0.52, 0.60) * (1 - seg(0.68, 0.76)),
-          y: (1 - seg(0.52, 0.60)) * 16,
+          opacity: seg(0.60, 0.68) * (1 - seg(0.74, 0.82)),
+          y: (1 - seg(0.60, 0.68)) * 16,
         });
 
         /* ── 4) 대시보드가 드러난다 ──────────────────
@@ -116,7 +134,7 @@ export default function ServiceMerge({ items }) {
 
            대시보드의 transform 은 promo-motion 이 잡고 있다. 겹쳐 쓰면 서로
            덮어써서 깜빡인다. 그래서 여기서는 감싸는 .stage 의 투명도만 만진다. */
-        const reveal = ease(seg(0.42, 0.62));
+        const reveal = ease(seg(0.50, 0.66));
         const stageEl = shot.parentElement;
         if (stageEl) stageEl.style.opacity = String(reveal);
       };

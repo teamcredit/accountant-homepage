@@ -179,7 +179,9 @@ h2.sec { font-size: clamp(1.9rem, 4.4vw, var(--t-3)); margin-top: var(--s3); max
 
 /* ── 1. 히어로 ────────────────────────────── */
 /* overflow:hidden 을 쓰면 안쪽 sticky 가 죽는다. clip 은 그렇지 않다. */
-.hero { padding-top: calc(var(--hdr) + var(--s6)); padding-bottom: 0; overflow: clip; }
+/* overflow 는 가로만 막는다. 세로까지 막으면 모인 카드가 아래 대시보드
+   자리로 내려가는 도중에 잘린다. */
+.hero { padding-top: calc(var(--hdr) + var(--s6)); padding-bottom: 0; overflow-x: clip; }
 
 /* 히어로 윗부분(글 + 모이는 화면)을 붙잡아 둔 채로 스크롤이 지나간다.
    안 붙잡으면 흩어짐 → 모임 → 문구가 끝나기 전에 위로 빠져나가
