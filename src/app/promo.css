@@ -247,6 +247,12 @@ h2.sec { font-size: clamp(1.9rem, 4.4vw, var(--t-3)); margin-top: var(--s3); max
 .svm-stack {
   position: relative;
   width: 100%; height: 460px;
+  /* 카드가 3D 로 돌 때 두께가 보이려면 원근이 필요하다.
+     이게 없으면 아무리 돌려도 납작하게 찌그러지기만 한다.
+     값이 작을수록 과장된다 — 제품 공개처럼 또렷하되 어지럽지 않게. */
+  perspective: 1600px;
+  perspective-origin: 12% 50%;
+  transform-style: preserve-3d;
 }
 
 /* 모이는 자리. 다 모이면 테두리가 드러난다.
@@ -264,14 +270,107 @@ h2.sec { font-size: clamp(1.9rem, 4.4vw, var(--t-3)); margin-top: var(--s3); max
 
 .svm-card {
   position: absolute;
-  width: 420px; height: 158px; padding: 20px 24px;
+  /* 크기는 대시보드와 똑같이 잡고, 처음엔 작게 줄여 둔다(scale).
+     예전엔 width/height 를 스크롤마다 바꿨는데, 그때마다 브라우저가
+     글자를 처음부터 다시 배치하느라 가장자리가 떨렸다.
+     이제 크기는 한 번만 정하고 확대·축소만 한다 — 떨릴 곳이 없다.
+     실제 값은 service-merge 가 넣는다. */
+  width: 420px; height: 158px;
   /* 대시보드(.shot)와 같은 테두리·모서리. 커졌을 때 그대로 이어져야 한다. */
   border: 1px solid var(--w-3);
   border-radius: 12px;
   background: var(--w);
   box-shadow: 0 12px 30px -20px rgba(0,0,0,.4);
   overflow: hidden;               /* 커지는 동안 안쪽 글씨가 삐져나오지 않게 */
-  will-change: transform, width, height;
+  /* 크기(width/height)는 매 프레임 다시 계산하게 만들어 가장자리가 떨렸다.
+     이제 크기는 고정하고 transform 만 움직인다 — 그래서 will-change 도 transform 뿐이다. */
+  will-change: transform, opacity;
+  transform-style: preserve-3d;
+  /* 뒷면이 비치면 돌아가는 동안 글씨가 거울처럼 뒤집혀 보인다. */
+  backface-visibility: hidden;
+}
+
+/* 카드 안 글씨. 카드는 처음부터 대시보드 크기라, 글씨를 그대로 두면
+   커다란 판에 작은 글씨가 놓인 꼴이 된다.
+   원래 보이던 크기(420×158)로 그린 뒤 카드 배율의 역수만큼 키워서
+   눈에는 예전과 똑같이 보이게 한다. 실제 값은 GSAP 이 넣는다. */
+.svm-ink {
+  position: absolute; inset: 0;
+  padding: 20px 24px;
+  transform-origin: 0 0;
+  /* 카드가 커지는 만큼 글씨판은 역으로 줄여, 눈에는 늘 같은 크기로 보인다.
+     가로·세로 배율이 다르므로 따로 준다 — 안 그러면 글자가 찌그러진다.
+     되돌리면서 생기는 세로 눌림은 .svm-ink > * 에서 다시 편다. */
+  transform: scale(var(--ink-sx, 1), var(--ink-sy, 1));
+  will-change: transform, opacity;
+}
+/* 판을 되돌린 만큼 글자를 다시 펴 준다. 글자는 늘 제 모양이다. */
+.svm-ink > * {
+  transform: scaleY(var(--ink-fix, 1));
+  transform-origin: 0 0;
+}
+
+/* 종이의 두께. 카드가 돌아갈 때만 옆면이 드러난다.
+   실제 3D 면을 세우면 무거우니, 오른쪽 모서리에 얇은 면 하나만 세운다. */
+.svm-card::after {
+  content: "";
+  position: absolute; inset: 0;
+  border-radius: inherit;
+  /* 돌아간 각도에 따라 GSAP 이 --edge 를 넣는다. 정면일 땐 0 이라 안 보인다. */
+  box-shadow:
+    calc(var(--edge, 0) * 1px) 0 0 rgba(15, 23, 42, .10),
+    calc(var(--edge, 0) * 2px) 0 0 rgba(15, 23, 42, .06);
+  pointer-events: none;
+}
+
+/* 표면을 훑고 지나가는 빛.
+   3D 가 "진짜 물건" 으로 보이는 건 각도가 아니라 빛 때문이다.
+   판이 돌아갈 때 유리 표면에 반사광이 미끄러지듯 지나가면
+   비로소 두께와 재질이 읽힌다. 위치·세기는 GSAP 이 각도에 맞춰 넣는다. */
+.svm-card::before {
+  content: "";
+  position: absolute; inset: 0;
+  border-radius: inherit;
+  /* 좁고 또렷한 빛줄기 하나. 넓게 퍼뜨리면 대시보드 전체가 뿌옇게 덮여
+     정작 보여줄 화면이 안 보인다. 유리에 스치는 반사처럼 가늘게 지나간다. */
+  background: linear-gradient(
+    100deg,
+    transparent calc(var(--gloss-x, 50%) - 20%),
+    rgba(255, 255, 255, .30) calc(var(--gloss-x, 50%) - 6%),
+    rgba(255, 255, 255, .85) var(--gloss-x, 50%),
+    rgba(255, 255, 255, .30) calc(var(--gloss-x, 50%) + 6%),
+    transparent calc(var(--gloss-x, 50%) + 20%)
+  );
+  opacity: var(--gloss, 0);
+  mix-blend-mode: screen;
+  pointer-events: none;
+  z-index: 3;                     /* 대시보드 미리보기 위를 지난다 */
+}
+
+/* 카드 안에 미리 들어있는 대시보드.
+   바꿔치기가 아니다 — 처음부터 이 안에 있고, 돌아오는 동안 배어 나온다.
+   그래서 "카드가 사라지고 대시보드가 켜지는" 순간이 아예 없다.
+
+   그림 파일이 아니라 진짜 대시보드(.db)를 통째로 축소해 넣는다.
+   커질 때 흐려지지 않고, 아래 대시보드와 생김새가 어긋날 일도 없다. */
+.svm-peek {
+  position: absolute; inset: 0;
+  border-radius: inherit;
+  overflow: hidden;
+  opacity: 0;                     /* 실제 값은 GSAP 이 스크롤에 맞춰 넣는다 */
+  pointer-events: none;
+}
+/* 대시보드는 제 크기(맨 아래 것과 같은)로 그린 뒤 카드에 맞춰 줄인다.
+   카드 크기에 맞춰 다시 흐르게 두면 글자만 커 보여 축소판처럼 안 읽힌다.
+   실제 배율은 GSAP 이 --peek-s 로 넣는다. */
+.svm-peek > .db {
+  position: absolute; top: 0; left: 0;
+  width: var(--peek-w, 1200px);
+  height: var(--peek-h, 760px);
+  /* 카드(420×158) 안에 들어가도록 줄인다. 카드가 대시보드 크기까지 커지면
+     이 축소분이 상쇄되어 아래 대시보드와 똑같은 크기·모양이 된다. */
+  transform: scale(var(--peek-sx, .29), var(--peek-sy, .2));
+  transform-origin: 0 0;
 }
 .svm-t {
   display: block;
@@ -309,12 +408,34 @@ h2.sec { font-size: clamp(1.9rem, 4.4vw, var(--t-3)); margin-top: var(--s3); max
   height: 0;
   width: 100%;
   text-align: center;
-  font-size: clamp(1.5rem, 2.6vw, 2.4rem); font-weight: 700;
+  /* 아래 조각 설명(.shot-caption p, 24.27px)과 크기를 맞춘다.
+     같은 화면에서 같은 역할을 하는 글이라 크기가 다르면 따로 논다.
+     둘의 딱 중간값(36 과 24.27 의 중간)인 30px 로 통일한다. */
+  font-size: 30px; font-weight: 700;
   line-height: 1.3; letter-spacing: -.03em;
   color: var(--tx);
   opacity: 0;
   pointer-events: none;
   text-wrap: pretty; word-break: keep-all;
+  /* 글자만 놓으면 뒤 대시보드 숫자와 겹쳐 둘 다 안 읽힌다.
+     글자 뒤에 흰 띠를 깔아 그 줄만 덮는다(::before).
+     flex 로 가운데 맞추면 <span> 앞뒤 공백을 삼켜 "일이한" 처럼 붙는다.
+     그래서 원래대로 text-align 으로만 가운데를 맞춘다. */
+  position: sticky;
+}
+/* 글자 뒤 흰 판. 문구가 놓이는 띠만 덮는다.
+   반투명이면 뒤 숫자가 비쳐 글자가 지저분해진다 — 완전히 불투명하게 둔다.
+   위아래 가장자리는 부드럽게 풀어 판의 경계선이 드러나지 않게 한다. */
+.svm-label::before {
+  content: "";
+  position: absolute; left: 50%; top: 50%;
+  translate: -50% -50%;
+  width: 100vw;
+  height: calc(1em * 1.3 + clamp(28px, 4vw, 56px));
+  background: var(--w);
+  -webkit-mask-image: linear-gradient(to bottom, transparent, #000 18%, #000 82%, transparent);
+          mask-image: linear-gradient(to bottom, transparent, #000 18%, #000 82%, transparent);
+  z-index: -1;
 }
 /* "한 화면" 만 파랗게 — 이 페이지가 파는 게 그거다 */
 .svm-label .hl { color: var(--blue); }
@@ -437,11 +558,15 @@ h2.sec { font-size: clamp(1.9rem, 4.4vw, var(--t-3)); margin-top: var(--s3); max
   margin-top: var(--s6); height: 400vh;
   margin-inline: calc(var(--pad) * -1);
   /* 위에서 모인 한 장이 넘어온 뒤에야 드러난다.
-     실제 값은 service-merge 가 스크롤에 맞춰 넣는다. */
+     실제 값은 service-merge 가 스크롤에 맞춰 넣는다.
+
+     투명도를 스크롤마다 조금씩 바꾸면 배경이 밝아졌다 어두워졌다 한다.
+     그래서 여기서는 0 또는 1 두 값만 쓴다 — 중간값을 두지 않는다.
+     카드 안에 이미 같은 대시보드가 들어 있어서, 딱 끊어 바꿔도 티가 안 난다. */
   opacity: 0;
-  /* 흰 네모(.svm, z-index 3) 위로 차오른다.
-     이게 낮으면 대시보드가 흰 네모 뒤에 가려 차오르는 게 안 보인다. */
-  position: relative; z-index: 4;
+  /* 흰 네모(.svm, z-index 3) 아래에 둔다.
+     흰 네모가 덮개 노릇을 하다가 걷히면서 대시보드가 드러난다. */
+  position: relative; z-index: 2;
 }
 @media (prefers-reduced-motion: reduce) { .stage { opacity: 1; } }
 .stage > .shot {
@@ -466,7 +591,11 @@ h2.sec { font-size: clamp(1.9rem, 4.4vw, var(--t-3)); margin-top: var(--s3); max
 }
 /* 조각이 뜰 때 뒤 화면은 물러난다 */
 .shot-win > .db { transition: opacity .45s ease; }
-.shot-win.zoom > .db { opacity: .1; }
+/* 조각이 확대될 때(.zoom), 그리고 위 문구가 떠 있을 때(.dim)
+   뒤 대시보드는 똑같은 정도로 물러난다. 같은 화면에서 가려지는 정도가
+   다르면 두 장면이 따로 논다. */
+.shot-win.zoom > .db,
+.shot-win.dim > .db { opacity: .1; }
 
 /* ── 히어로 대시보드. 실제 홈 화면을 요소로 그린다. ────── */
 .db { height: 100%; overflow: hidden; display: grid; grid-template-columns: 190px 1fr; background: #F7F8FB; text-align: left; }
@@ -675,7 +804,8 @@ h2.sec { font-size: clamp(1.9rem, 4.4vw, var(--t-3)); margin-top: var(--s3); max
   background: linear-gradient(to top, rgba(255,255,255,.97) 45%, rgba(255,255,255,0));
 }
 .shot-caption p {
-  font-family: var(--disp); font-size: var(--t-2); font-weight: 700;
+  /* 위 문구(.svm-label)와 같은 크기다. 같은 화면에서 같은 역할을 하는 글이다. */
+  font-family: var(--disp); font-size: 30px; font-weight: 700;
   letter-spacing: -.03em; color: var(--tx);
   opacity: 0; translate: 0 8px;
   transition: opacity .4s ease .3s, translate .4s ease .3s;
