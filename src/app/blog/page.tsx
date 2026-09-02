@@ -31,7 +31,7 @@ export default function BlogPage() {
           </div>
         </div>
 
-        <div className="relative z-10 mx-auto max-w-7xl px-6">
+        <div className="relative z-10 mx-auto max-w-[1600px] px-6">
           <AnimateOnScroll variant="fadeIn">
             <p className="mb-6 text-xs uppercase tracking-[0.4em] text-neutral-500">
               Blog

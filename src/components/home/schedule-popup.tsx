@@ -15,8 +15,53 @@ import { useEffect, useRef, useState } from "react";
 
 const KEY = "meridian.sched.hideUntil";
 
-export default function SchedulePopup({ items, asOf, trigger }) {
+/* 남은 날은 볼 때마다 센다. 미리 적어두면 하루만 지나도 틀린다.
+   자정 기준으로 자르므로 "오늘 마감"은 D-DAY 로 나온다. */
+function daysLeft(ymd) {
+  const [y, m, d] = ymd.split("-").map(Number);
+  const due = new Date(y, m - 1, d);
+  const now = new Date();
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  return Math.round((due - today) / 86400000);
+}
+
+function ddayLabel(ymd) {
+  const n = daysLeft(ymd);
+  if (n === 0) return "D-DAY";
+  return n > 0 ? `D-${n}` : `D+${-n}`;
+}
+
+const dotted = (ymd) => ymd.replaceAll("-", ".");
+
+/* 히어로에 남는 작은 버튼. 마감이 제일 가까운 한 건을 보여준다.
+   서버에서 그리면 배포 시점 날짜로 굳으므로, 브라우저에서 한 번 더 센다. */
+export function ScheduleButton({ items }) {
+  const [label, setLabel] = useState(null);
+
+  useEffect(() => {
+    const next = [...items].sort((a, b) => daysLeft(a.when) - daysLeft(b.when))
+      .find((it) => daysLeft(it.when) >= 0) ?? items[0];
+    if (next) setLabel(`${next.what.replace(/ .*$/, "")} ${ddayLabel(next.when)}`);
+  }, [items]);
+
+  return (
+    <button type="button" id="schedOpen" className="sched-open">
+      <span className="lb">이번 분기 주요 일정</span>
+      {/* 계산 전에는 비워 둔다. 잘못된 숫자가 한 프레임이라도 보이면 안 된다. */}
+      <span className="dd"><span>{label ?? "\u00a0"}</span></span>
+    </button>
+  );
+}
+
+export default function SchedulePopup({ items, trigger }) {
   const [open, setOpen] = useState(false);
+  /* 기준일도 고정하지 않는다. 붙박아 두면 "as of" 가 D-day 와 어긋난다. */
+  const [today, setToday] = useState("");
+  useEffect(() => {
+    const n = new Date();
+    const p2 = (v) => String(v).padStart(2, "0");
+    setToday(`${n.getFullYear()}-${p2(n.getMonth() + 1)}-${p2(n.getDate())}`);
+  }, []);
   const [dontShow, setDontShow] = useState(false);
   const panelRef = useRef(null);
   const lastFocus = useRef(null);
@@ -96,7 +141,7 @@ export default function SchedulePopup({ items, asOf, trigger }) {
         <div className="schp-hd">
           <div>
             <h2 id="schp-title">이번 분기 주요 일정</h2>
-            <time dateTime="2026-08-10">as of {asOf}</time>
+            <time dateTime={today}>as of {dotted(today)}</time>
           </div>
           <button type="button" className="schp-x" onClick={close} aria-label="닫기">
             <span aria-hidden="true">×</span>
@@ -107,8 +152,8 @@ export default function SchedulePopup({ items, asOf, trigger }) {
           {items.map((it, i) => (
             <li key={i} className={i === 0 ? "near" : undefined}>
               <span className="what">{it.what}</span>
-              <span className="dday">{it.dday}</span>
-              <span className="when">{it.when}</span>
+              <span className="dday">{ddayLabel(it.when)}</span>
+              <span className="when">{dotted(it.when)}</span>
             </li>
           ))}
         </ol>

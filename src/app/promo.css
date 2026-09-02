@@ -17,10 +17,19 @@
 
   --tx:     #000000;   /* 본문. 순흑 */
   --tx-2:   #4D4D4D;   /* 보조 */
-  --blue:   #1668D4;   /* 포인트. 메리디안 코발트 */
-  --blue-d: #0F4FA8;
-  --blue-b: #2080F5;   /* 본가 accent-bright */   /* 진한 바탕 위에서 쓰는 밝은 파랑 */
-  --blue-l: #E9F0FD;   /* 파란 옅은 면 */
+  /* 파랑 한 벌. hometax-dashboard 의 accent 사다리를 그대로 쓴다.
+     500 이 기준, 진한 바탕 위에서는 400, 눌린 상태는 600. */
+  --blue-900: #1B40CC; /* accent-700. 그라디언트의 바닥 */
+  --blue-d:   #1F4AE0; /* accent-600. hover·pressed */
+  --blue:     #2B5BFF; /* accent-500. 흰 바탕 위 기준색 */
+  --blue-b:   #4470FF; /* accent-400. 진한 바탕 위에서 쓰는 밝은 파랑 */
+  --blue-300: #7E9CFF; /* accent-300. 그라디언트의 꼭대기 */
+  --blue-200: #B9C8FF; /* accent-200. 진한 바탕 위 보조 글자 */
+  --blue-l:   #E7EEFF; /* accent-100. 파란 옅은 면 */
+  /* 파랑을 평면으로 쓰지 않는다. 칠하는 곳마다 이 그라디언트를 쓴다.
+     사다리 세 칸(600→500→400)을 밟아야 면이 접힌 게 읽힌다. */
+  --grad-blue:  linear-gradient(135deg, var(--blue-d), var(--blue) 52%, var(--blue-b));
+  --grad-blue-d:linear-gradient(135deg, var(--blue-900), var(--blue-d) 52%, var(--blue));
   --up:     #0E7C5A;
   --down:   #B4453C;
 
@@ -71,9 +80,15 @@ html:not(.lenis) { scroll-behavior: smooth; }
 
 .wrap { max-width: var(--wrap); margin-inline: auto; padding-inline: var(--pad); position: relative; }
 
-.promo h1, .promo h2, .promo h3 { margin: 0; font-family: var(--disp); font-weight: 700; letter-spacing: -.035em; line-height: 1.2; }
+/* 기본값 지우기(reset). :where() 로 감싸 무게를 0 으로 만든다.
+   그냥 `.promo p` 로 쓰면 (0,1,1) 이라 `.lede`·`.hero-sub` 같은
+   클래스 한 개짜리 규칙(0,1,0)을 이겨 버린다.
+   그래서 제목·부제목 사이 여백이 화면 곳곳에서 통째로 죽어 있었다.
+   :where 는 이기지 않는다 — 클래스에 적은 여백이 그대로 산다. */
+:where(.promo) h1, :where(.promo) h2, :where(.promo) h3 { margin: 0; }
+.promo h1, .promo h2, .promo h3 { font-family: var(--disp); font-weight: 700; letter-spacing: -.035em; line-height: 1.2; }
 .slab q, .bignum b, .stat b, .brand b { font-family: var(--disp); }
-.promo p { margin: 0; }
+:where(.promo) p { margin: 0; }
 .promo a { color: inherit; }
 .promo img { max-width: 100%; display: block; }
 
@@ -104,7 +119,7 @@ html:not(.lenis) { scroll-behavior: smooth; }
 
 /* 파란 마침표. 메리디안 본가에서 쓰는 표시다. 문장 끝에 점 하나만 색을 준다. */
 .dot-b { color: var(--blue); font-weight: 900; display: inline-block; line-height: 1; }
-.invert .dot-b { color: #2080F5; }
+.invert .dot-b { color: var(--blue-b); }
 
 /* 구분은 박스가 아니라 선으로. 테두리를 두르면 화면이 무거워진다. */
 .hr { border: 0; border-top: 1px solid var(--w-3); margin: 0; }
@@ -118,7 +133,7 @@ html:not(.lenis) { scroll-behavior: smooth; }
   font-size: var(--t--1); font-weight: 700; letter-spacing: .12em;
   text-transform: uppercase; color: var(--blue);
 }
-.tick::before { content: ""; width: 20px; height: 2px; background: var(--blue); border-radius: 2px; }
+.tick::before { content: ""; width: 20px; height: 2px; background: var(--grad-blue); border-radius: 2px; }
 
 /* 섹션 간격. 안에 두 덩어리 이상 들어가면 더 넉넉히 준다. */
 section { padding: clamp(96px, 13vh, 150px) 0; }
@@ -131,18 +146,22 @@ h2.sec { font-size: clamp(1.9rem, 4.4vw, var(--t-3)); margin-top: var(--s3); max
 /* overflow:hidden 을 쓰면 안쪽 sticky 가 죽는다. clip 은 그렇지 않다. */
 .invert {
   background: var(--navy); color: #FFFFFF; position: relative; overflow: clip;
+  /* 테일윈드에도 .invert 라는 유틸리티가 있다(--tw-invert: invert(100%)).
+     이름이 겹쳐서 이 구역 전체가 색반전으로 그려졌다 — 검정이 흰색이 되고
+     파랑이 황토색이 됐다. 여기서 되돌린다. */
+  filter: none;
 }
 .invert::before {
   content: ""; position: absolute; inset: -30% -10% auto; height: 90%;
-  background: radial-gradient(58% 66% at 50% 0%, rgba(32,128,245,.20), transparent 72%);
+  background: radial-gradient(58% 66% at 50% 0%, rgba(68,112,255,.20), transparent 72%);
   pointer-events: none; z-index: 0;
 }
 /* 내용이 빛 위로 오게 한다. position 은 건드리지 않는다 —
    sticky 를 relative 로 덮어쓰면 고정 스크롤이 죽는다. */
 .invert > * { z-index: 1; }
 .invert .lede { color: #A8A8A8; }
-.invert .tick { color: #2080F5; }
-.invert .tick::before { background: #2080F5; }
+.invert .tick { color: var(--blue-b); }
+.invert .tick::before { background: var(--blue-b); }
 
 /* 진한 바탕 위에 뜨는 흰 카드. 참고 3장의 핵심 문법. */
 .float {
@@ -169,15 +188,17 @@ h2.sec { font-size: clamp(1.9rem, 4.4vw, var(--t-3)); margin-top: var(--s3); max
 }
 /* `.promo a { color: inherit }` 가 (0,1,1) 로 `.btn-fill` (0,1,0) 보다
    더 구체적이라 글자색을 검정으로 되돌린다. 같은 무게로 맞춰 이긴다. */
-.promo .btn-fill { background: var(--blue); color: #fff; }
-.promo .btn-fill:hover { background: var(--blue-d); }
+.promo .btn-fill { background: var(--grad-blue); color: #fff; }
+.promo .btn-fill:hover { background: var(--grad-blue-d); }
 .btn-line { border-color: var(--w-3); color: var(--tx); }
 .btn-line:hover { border-color: var(--tx-2); }
 .invert .btn-line { border-color: #333333; color: #FFFFFF; }
 .invert .btn-line:hover { border-color: #FFFFFF; }
 
 .hcta { font-size: var(--t-0); padding: 9px 16px; }
-.cta-note { margin-top: var(--s3); font-size: var(--t-0); color: var(--tx-2); }
+/* `.promo p { margin: 0 }` 이 (0,1,1) 로 `.cta-note` (0,1,0) 를 이긴다.
+   그래서 여기 적은 margin-top 이 통째로 죽어 있었다. 같은 무게로 맞춰 이긴다. */
+.promo .cta-note { margin-top: var(--s4); font-size: var(--t-0); color: var(--tx-2); }
 
 /* ── 1. 히어로 ────────────────────────────── */
 /* overflow:hidden 을 쓰면 안쪽 sticky 가 죽는다. clip 은 그렇지 않다. */
@@ -218,7 +239,7 @@ h2.sec { font-size: clamp(1.9rem, 4.4vw, var(--t-3)); margin-top: var(--s3); max
 }
 .hero h1 { font-size: clamp(2.1rem, 5.2vw, 3.5rem); max-width: 16ch; margin-top: var(--s4); }
 .hero-sub b { color: var(--tx); font-weight: 700; }
-.hero-sub { margin-top: var(--s4); max-width: 36ch; font-size: var(--t-2); color: var(--tx-2); line-height: 1.5; }
+.hero-sub { margin-top: var(--s5); max-width: 36ch; font-size: var(--t-2); color: var(--tx-2); line-height: 1.5; }
 .hero-cta { display: flex; flex-wrap: wrap; gap: var(--s2); margin-top: var(--s5); }
 
 /* 히어로 아래 실제 대시보드 화면.
@@ -372,10 +393,74 @@ h2.sec { font-size: clamp(1.9rem, 4.4vw, var(--t-3)); margin-top: var(--s3); max
   transform: scale(var(--peek-sx, .29), var(--peek-sy, .2));
   transform-origin: 0 0;
 }
-.svm-t {
+/* 카드 안 대시보드가 "목업" 으로 보이는 동안의 부풀림.
+   돌아가는 내내 타일마다 모서리가 굵게 둥글고 그림자가 깊어져
+   판 위에 얹힌 물건처럼 튀어나와 보인다.
+   --puff 는 회전이 끝나는 순간 0 이 된다 — 그때는 진짜 대시보드여야 하므로
+   부풀림이 남아 있으면 아래 대시보드와 생김새가 어긋난다. */
+.svm-peek .db-card,
+.svm-peek .db-vat,
+.svm-peek .db-cells > div,
+.svm-peek .db-seg,
+.svm-peek .db-side {
+  border-radius: calc(12px + 20px * var(--puff, 0));
+  box-shadow:
+    0 calc(10px * var(--puff, 0)) calc(26px * var(--puff, 0)) calc(-6px * var(--puff, 0)) rgba(15, 23, 42, calc(.22 * var(--puff, 0))),
+    0 calc(2px * var(--puff, 0)) calc(5px * var(--puff, 0)) rgba(15, 23, 42, calc(.08 * var(--puff, 0))),
+    inset 0 calc(1.5px * var(--puff, 0)) 0 rgba(255, 255, 255, calc(.95 * var(--puff, 0)));
+  /* 살짝 오므리면 타일 사이가 벌어져 깊이가 읽힌다 */
+  transform: translateY(calc(-5px * var(--puff, 0))) scale(calc(1 - .014 * var(--puff, 0)));
+}
+/* 위에서 빛이 떨어지는 것처럼 윗면만 밝힌다. 이게 있어야 평면이 아니라
+   둥글게 솟은 면으로 보인다. */
+.svm-peek .db-card,
+.svm-peek .db-cells > div {
+  background-image: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, calc(.85 * var(--puff, 0))) 0%,
+    rgba(255, 255, 255, 0) 46%
+  );
+}
+.svm-peek .db-side { border-right-color: transparent; }
+
+/* 판의 뒷면. 한 바퀴 도는 동안 절반은 뒤가 보인다 —
+   그 자리에 아무것도 없으면 화면에서 판이 잠깐 사라진 것처럼 보인다.
+   카드 안에 넣으면 overflow:hidden 때문에 3D 가 납작해져서
+   스택 바로 밑에 형제로 둔다. 자리·크기·각도는 service-merge 가 맞춘다.
+   글씨는 없다. 뒷면에 정보가 있으면 읽으려다 회전을 놓친다. */
+.svm-back {
+  position: absolute;
+  width: 420px; height: 158px;
+  border: 1px solid var(--w-3);
+  border-radius: 12px;
+  background: radial-gradient(130% 150% at 50% 0%, #FFFFFF 0%, #F3F6FF 56%, #E7EEFF 100%);
+  backface-visibility: hidden;
+  transform-style: preserve-3d;
+  opacity: 0;
+  pointer-events: none;
+  will-change: transform, opacity;
+  display: grid; place-items: center;
+}
+.svm-back i {
   display: block;
+  width: 34%; height: 3px; border-radius: 3px;
+  background: var(--w-3);
+  box-shadow: 0 12px 0 var(--w-3), 0 24px 0 var(--w-3);
+}
+
+.svm-t {
+  display: flex; align-items: center; gap: 12px;
   font-size: var(--t-2); font-weight: 700; color: var(--tx);
-  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  white-space: nowrap; overflow: hidden;
+}
+.svm-t > span { overflow: hidden; text-overflow: ellipsis; }
+/* 제목 앞 표시. 선 하나 굵기의 단색이다.
+   여섯 장이 겹쳐 한 장이 되므로 색을 넣으면 그 자리가 얼룩으로 남는다.
+   글자보다 한 톤 연하게 둬서 제목을 가리지 않는다. */
+.svm-ic {
+  width: 26px; height: 26px; flex: none;
+  color: var(--tx-2);
+  opacity: .9;
 }
 /* 서류처럼 보이는 줄 세 개. 글자가 아니라 결이다. */
 .svm-rows { display: block; margin-top: 16px; }
@@ -389,12 +474,14 @@ h2.sec { font-size: clamp(1.9rem, 4.4vw, var(--t-3)); margin-top: var(--s3); max
 
 /* 흩어진 자리. 칸 밖으로 넉넉히 나간다 — 흩어져 있다는 게 보여야 한다.
    가운데(50%/50%) 를 둘러싼다. */
-.svm-p1 { left: -118%; top: -6%; }
-.svm-p2 { left: -6%;   top: 0; }
-.svm-p3 { left: -126%; top: 54%; }
-.svm-p4 { left: 2%;    top: 60%; }
-.svm-p5 { left: -62%;  top: 27%; }
-.svm-p6 { left: -46%;  top: 84%; }
+/* 칸 자체를 올려도 소용없다 — 스크립트가 뭉치의 한가운데를 화면 중앙에
+   다시 붙인다. 그래서 뭉치 안에서 각 장의 자리를 통째로 13% 올린다. */
+.svm-p1 { left: -118%; top: -19%; }
+.svm-p2 { left: -6%;   top: -13%; }
+.svm-p3 { left: -126%; top: 41%; }
+.svm-p4 { left: 2%;    top: 47%; }
+.svm-p5 { left: -62%;  top: 14%; }
+.svm-p6 { left: -46%;  top: 71%; }
 
 /* 빈 흰 네모(대시보드 크기가 된 카드) 한가운데에 뜬다.
    화면에 붙어 있어야 카드와 같은 자리에 머문다. */
@@ -417,25 +504,11 @@ h2.sec { font-size: clamp(1.9rem, 4.4vw, var(--t-3)); margin-top: var(--s3); max
   opacity: 0;
   pointer-events: none;
   text-wrap: pretty; word-break: keep-all;
-  /* 글자만 놓으면 뒤 대시보드 숫자와 겹쳐 둘 다 안 읽힌다.
-     글자 뒤에 흰 띠를 깔아 그 줄만 덮는다(::before).
-     flex 로 가운데 맞추면 <span> 앞뒤 공백을 삼켜 "일이한" 처럼 붙는다.
-     그래서 원래대로 text-align 으로만 가운데를 맞춘다. */
-  position: sticky;
-}
-/* 글자 뒤 흰 판. 문구가 놓이는 띠만 덮는다.
-   반투명이면 뒤 숫자가 비쳐 글자가 지저분해진다 — 완전히 불투명하게 둔다.
-   위아래 가장자리는 부드럽게 풀어 판의 경계선이 드러나지 않게 한다. */
-.svm-label::before {
-  content: "";
-  position: absolute; left: 50%; top: 50%;
-  translate: -50% -50%;
-  width: 100vw;
-  height: calc(1em * 1.3 + clamp(28px, 4vw, 56px));
-  background: var(--w);
-  -webkit-mask-image: linear-gradient(to bottom, transparent, #000 18%, #000 82%, transparent);
-          mask-image: linear-gradient(to bottom, transparent, #000 18%, #000 82%, transparent);
-  z-index: -1;
+  /* 글자 뒤에 흰 띠를 깔지 않는다.
+     문구는 대시보드가 연해진 뒤에야 나오므로 숫자와 겹쳐 안 읽히는 일이 없다.
+     띠가 있으면 이미 연해진 화면 위에 더 흰 줄이 하나 더 그어져 그것만 눈에 띈다.
+     flex 로 가운데 맞추면 <span> 앞뒤 공백을 삼켜 "일이한" 처럼 붙어서,
+     가운데 맞춤은 text-align 으로만 한다. */
 }
 /* "한 화면" 만 파랗게 — 이 페이지가 파는 게 그거다 */
 .svm-label .hl { color: var(--blue); }
@@ -446,7 +519,8 @@ h2.sec { font-size: clamp(1.9rem, 4.4vw, var(--t-3)); margin-top: var(--s3); max
   margin-top: var(--s5);
   display: inline-flex; align-items: center; gap: var(--s2);
   padding: 10px 14px;
-  border: 1px solid var(--w-3); border-radius: 999px;
+  /* 모서리는 사이트의 모든 버튼과 같은 10px. '대시보드 시작하기'가 기준이다. */
+  border: 1px solid var(--w-3); border-radius: 10px;
   background: var(--w); cursor: pointer;
   font-family: inherit;
   transition: border-color .2s, background .2s;
@@ -456,6 +530,26 @@ h2.sec { font-size: clamp(1.9rem, 4.4vw, var(--t-3)); margin-top: var(--s3); max
 .sched-open .dd {
   font-size: var(--t--1); font-weight: 700; color: var(--blue);
   font-variant-numeric: tabular-nums;
+}
+
+/* 마감 숫자가 큐브처럼 한 면씩 돌아 나온다.
+   글자를 갈아끼우는 게 아니라 같은 글자를 세로축으로 굴린다.
+   멈춰 있는 버튼 하나가 "지금 세고 있다"로 읽힌다. */
+.sched-open .dd { display: inline-block; perspective: 240px; }
+.sched-open .dd > span {
+  display: inline-block;
+  transform-style: preserve-3d;
+  animation: ddspin 4.2s cubic-bezier(.7,0,.3,1) infinite;
+}
+@keyframes ddspin {
+  0%, 62%  { transform: rotateX(0deg); }
+  /* 한 바퀴를 두 번에 나눠 돈다. 반 바퀴에서 잠깐 멈춰야 면이 읽힌다. */
+  78%      { transform: rotateX(-180deg); }
+  82%      { transform: rotateX(-180deg); }
+  100%     { transform: rotateX(-360deg); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .sched-open .dd > span { animation: none; }
 }
 
 @media (max-width: 900px) {
@@ -468,6 +562,7 @@ h2.sec { font-size: clamp(1.9rem, 4.4vw, var(--t-3)); margin-top: var(--s3); max
   .svm-card { position: static; margin: 0 auto var(--s2); }
   .svm-stack { flex: none; min-height: 0; }
   .svm-target { display: none; }
+  .svm-back { display: none; }
 }
 
 /* ── 이번 분기 주요 일정 팝업 ──
@@ -651,7 +746,9 @@ h2.sec { font-size: clamp(1.9rem, 4.4vw, var(--t-3)); margin-top: var(--s3); max
 .db-row2 { display: grid; grid-template-columns: 1fr 1.25fr; gap: var(--s3); }
 .db-vat {
   border-radius: 12px; padding: var(--s4); margin-top: var(--s3); color: #fff;
-  background: linear-gradient(120deg, #3B45D6, #5B5FE8);
+  /* 700 → 500 → 300. 두 칸만 쓰면 평평해서 종이처럼 보인다.
+     사다리를 세 칸 밟아야 면이 접히는 게 읽힌다. */
+  background: linear-gradient(120deg, var(--blue-900), var(--blue) 52%, var(--blue-300));
 }
 .db-vat .k3 { font-size: 11.5px; font-weight: 700; }
 .db-vat .k3 span { font-weight: 500; opacity: .8; margin-left: 5px; }
@@ -669,19 +766,20 @@ h2.sec { font-size: clamp(1.9rem, 4.4vw, var(--t-3)); margin-top: var(--s3); max
 .up { color: var(--up); font-weight: 700; }
 .dn { color: var(--down); font-weight: 700; }
 .ok { color: var(--up); font-weight: 700; }
-.warn { color: #B07A16; font-weight: 700; }
+.warn { color: var(--blue-d); font-weight: 700; }
 
 /* 표 */
 .ui-tb { width: 100%; border-collapse: collapse; font-size: var(--t-0); }
 .ui-tb th, .ui-tb td { padding: 9px 0; text-align: right; border-bottom: 1px solid var(--w-3); }
 .ui-tb thead th { font-size: var(--t--1); color: var(--tx-2); font-weight: 600; letter-spacing: .04em; }
 .ui-tb tbody th { text-align: left; font-weight: 600; }
-.ui-tb .tot th, .ui-tb .tot td { border-bottom: 0; border-top: 1.5px solid var(--tx); font-weight: 700; }
+.ui-tb .tot th, .ui-tb .tot td { border-bottom: 0; border-top: 1.5px solid var(--w-3); font-weight: 700; }
 .ui-tb td.num { font-variant-numeric: tabular-nums; }
 
 /* 3칸 */
 .ui-cols { display: grid; grid-template-columns: repeat(3,1fr); gap: var(--s3); margin-top: var(--s3); }
-.ui-cols > div { border-top: 1px solid var(--tx); padding-top: var(--s3); }
+/* 칸 나누는 선. 순흑으로 두면 숫자보다 선이 먼저 보인다. */
+.ui-cols > div { border-top: 1px solid var(--w-3); padding-top: var(--s3); }
 .ui-cols .k { font-size: var(--t-0); font-weight: 600; }
 .ui-cols .v { font-variant-numeric: tabular-nums; font-size: var(--t-2); font-weight: 700; letter-spacing: -.03em; margin-top: 4px; }
 .ui-cols .m { font-size: var(--t--1); color: var(--tx-2); margin-top: 4px; }
@@ -692,15 +790,18 @@ h2.sec { font-size: clamp(1.9rem, 4.4vw, var(--t-3)); margin-top: var(--s3); max
 .ui-mix .k { font-size: var(--t-0); font-weight: 600; }
 .ui-mix .v { font-variant-numeric: tabular-nums; font-size: var(--t-0); }
 .ui-mix .bar { grid-column: 1/3; height: 7px; border-radius: 4px; background: var(--w-3); position: relative; }
-.ui-mix .bar::before { content: ""; position: absolute; inset: 0 auto 0 0; width: var(--p); background: var(--blue); border-radius: 4px; }
+.ui-mix .bar::before { content: ""; position: absolute; inset: 0 auto 0 0; width: var(--p); background: var(--grad-blue); border-radius: 4px; }
 .ui-mix .m { grid-column: 1/3; font-size: var(--t--1); color: var(--tx-2); }
 
 /* 목록 */
 .ui-list { list-style: none; margin: var(--s4) 0 0; padding: 0; }
 .ui-list li { display: grid; grid-template-columns: 1fr auto; gap: 2px var(--s3); padding: 10px 0; border-bottom: 1px solid var(--w-3); }
-.ui-list .k { font-size: var(--t-0); font-weight: 600; }
-.ui-list .m { grid-column: 1; font-size: var(--t--1); color: var(--tx-2); }
-.ui-list .v { grid-row: 1/3; align-self: center; font-variant-numeric: tabular-nums; font-size: var(--t-0); font-weight: 700; }
+.ui-list .k { grid-column: 1; grid-row: 1; font-size: var(--t-0); font-weight: 600; }
+.ui-list .m { grid-column: 1; grid-row: 2; font-size: var(--t--1); color: var(--tx-2); }
+/* 이름은 왼쪽, 금액은 오른쪽. 열을 안 적으면 자동배치가 금액을 1열로 끌어와
+   이름과 금액이 좌우로 뒤바뀐다. 그래서 열·행을 다 못 박는다. */
+.ui-list .v { grid-column: 2; grid-row: 1/3; align-self: center; text-align: right;
+  font-variant-numeric: tabular-nums; font-size: var(--t-0); font-weight: 700; }
 
 /* 막대 그래프. span 은 기본이 inline 이라 flex 안에서 크기를 못 잡는다 — block 으로. */
 .ui-bars { display: flex; gap: var(--s3); align-items: flex-end; height: 132px; min-height: 132px;
@@ -710,10 +811,10 @@ h2.sec { font-size: clamp(1.9rem, 4.4vw, var(--t-3)); margin-top: var(--s3); max
   font-size: var(--t--1); color: var(--tx-2); }
 .b { display: block; flex: 1 1 0; min-width: 4px; height: var(--h); min-height: 3px;
   border-radius: 3px 3px 0 0; align-self: flex-end; }
-.b.now { background: var(--blue); }
+.b.now { background: var(--grad-blue); }
 .b.old { background: var(--blue-l); }
 .sw { display: inline-block; width: 9px; height: 9px; border-radius: 2px; vertical-align: -1px; flex: none; }
-.sw.now { background: var(--blue); }
+.sw.now { background: var(--grad-blue); }
 .sw.old { background: var(--blue-l); }
 
 .ui-bars.sm { height: 96px; gap: var(--s2); margin-top: var(--s2); margin-bottom: 22px; }
@@ -768,7 +869,7 @@ h2.sec { font-size: clamp(1.9rem, 4.4vw, var(--t-3)); margin-top: var(--s3); max
 .db-3 .m { font-size: var(--t--1); color: var(--tx-2); margin-top: 2px; }
 .pill { font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 999px; }
 .pill.ok { background: #E6F4EE; color: var(--up); }
-.pill.warn { background: #FBF1DC; color: #8A5D0B; }
+.pill.warn { background: var(--blue-l); color: var(--blue-900); }
 
 .db-2 { display: grid; grid-template-columns: 1fr 1fr; gap: var(--s5); margin-top: var(--s3); }
 .db-k2 { font-size: var(--t-0); font-weight: 600; border-top: 1px solid var(--tx); padding-top: var(--s2); }
@@ -824,7 +925,7 @@ h2.sec { font-size: clamp(1.9rem, 4.4vw, var(--t-3)); margin-top: var(--s3); max
 /* 납부 예상 부가세. 실제 홈에서도 이 카드만 파란 카드였다.
    그 정체성을 살려 조각 안에서도 파랗게 둔다. */
 .hs-in.vat {
-  background: linear-gradient(122deg, #1552C4, #2A72EE);
+  background: linear-gradient(122deg, var(--blue-900), var(--blue) 52%, var(--blue-300));
   border-color: transparent; color: #fff;
 }
 .vat-lab { font-size: var(--t-0); font-weight: 700; }
@@ -861,6 +962,9 @@ h2.sec { font-size: clamp(1.9rem, 4.4vw, var(--t-3)); margin-top: var(--s3); max
 
 /* ── 세금 일정. 사장님이 제일 먼저 궁금해하는 것 —
    "다음에 뭘 언제 내야 하나". 히어로 옆에 바로 붙인다. */
+/* 왼쪽 글. 다 모이면 물러나고 그 자리를 대시보드가 받는다.
+   실제 값은 service-merge 가 스크롤에 맞춰 넣는다. */
+.hero-copy { will-change: opacity, transform; }
 .hero-grid { display: grid; grid-template-columns: 1fr 380px; gap: var(--s6); align-items: start; }
 @media (max-width: 1000px) { .hero-grid { grid-template-columns: 1fr; gap: var(--s5); } }
 
@@ -925,7 +1029,7 @@ h2.sec { font-size: clamp(1.9rem, 4.4vw, var(--t-3)); margin-top: var(--s3); max
   font-weight: 800; letter-spacing: -.05em; line-height: 1; color: #fff;
   font-variant-numeric: tabular-nums;
 }
-.bignum span { display: block; margin-top: var(--s3); font-size: var(--t-0); color: #A9B8DC; }
+.bignum span { display: block; margin-top: var(--s3); font-size: var(--t-0); color: #B9C8FF; }
 @media (max-width: 760px) { .bignums { grid-template-columns: 1fr; } }
 
 /* ── 3. 문제 (반전) ───────────────────────── */
@@ -984,28 +1088,33 @@ h2.sec { font-size: clamp(1.9rem, 4.4vw, var(--t-3)); margin-top: var(--s3); max
 .slab .ans b { color: #C4C4C4; font-weight: 800; }
 .slab .ans .mer {
   display: block; margin-bottom: var(--s3);
-  font-size: var(--t-1); font-weight: 700; color: #2080F5; letter-spacing: -.01em;
+  font-size: var(--t-1); font-weight: 700; color: var(--blue-b); letter-spacing: -.01em;
 }
 .slab.answer .ans { transform: scale(1); color: #fff; }
-.slab.answer .ans b { color: #2080F5; }
+.slab.answer .ans b { color: var(--blue-b); }
 
 .prog { display: flex; gap: 6px; }
 .prog i { width: 44px; height: 3px; border-radius: 3px; background: #2E2E2E; flex: none; transition: background .3s; }
-.prog i.on { background: #2080F5; }
+.prog i.on { background: linear-gradient(90deg, var(--blue), var(--blue-300)); }
 
 
 /* ── 선언문. 이 사이트에서 제일 큰 문장. 다른 장식 없이 글자만. */
-.creed { padding: clamp(96px, 16vh, 180px) 0; text-align: center; }
+.creed { padding: clamp(96px, 16vh, 180px) 0; text-align: left; }
 .creed-q {
   font-family: var(--disp); font-weight: 800;
   font-size: clamp(1.9rem, 5vw, 3.4rem); line-height: 1.35; letter-spacing: -.04em;
+  /* 24ch 로 폭을 묶어 두면 text-align 만으로는 가운데로 안 온다.
+     묶인 상자 자체를 auto 로 가운데 놔야 제목·본문·버튼 축이 맞는다. */
   max-width: 24ch; margin-inline: auto;
 }
-.creed-q em { font-style: normal; color: #2080F5; }
-.creed-a {
+.creed-q em { font-style: normal; color: var(--blue-b); }
+.promo .creed-a {
   margin: var(--s6) auto 0; max-width: 46ch;
-  font-size: var(--t-1); line-height: 1.9; color: #A8A8A8;
+  font-size: 1.25rem; line-height: 1.9; color: #A8A8A8;
 }
+/* 글도 버튼도 다 가운데. */
+.creed { text-align: center; }
+.creed-cta { display: flex; justify-content: center; margin-top: var(--s7); }
 
 /* ── 4. 고객 화면 : 카드 덱.
    화면 전체를 쓴다. 스크롤마다 맨 앞 카드가 우측 하단으로 포물선을 그리며
@@ -1028,18 +1137,42 @@ h2.sec { font-size: clamp(1.9rem, 4.4vw, var(--t-3)); margin-top: var(--s3); max
 .fc { grid-area: 1/1; opacity: 0; translate: 0 24px; pointer-events: none;
       transition: opacity .5s ease, translate .55s cubic-bezier(.2,.85,.3,1); }
 .fc.on { opacity: 1; translate: 0; pointer-events: auto; }
-.fc .no { font-size: var(--t-0); color: var(--blue); font-weight: 800; letter-spacing: .06em; font-variant-numeric: tabular-nums; }
+.fc .no { font-size: var(--t--1); color: var(--blue); font-weight: 800; letter-spacing: .1em; font-variant-numeric: tabular-nums; }
 .fc h3 { font-size: clamp(1.3rem, 2.4vw, 1.9rem); margin: var(--s2) 0 var(--s3); max-width: 16ch; }
 .fc p { font-size: var(--t-1); color: var(--tx-2); line-height: 1.7; max-width: 30ch; }
 
 /* 카드 덱 */
 .deck { position: relative; height: min(46svh, 380px); }
+/* 카드 뒤에 연한 빛덩이 두 개를 깐다. 흰 화면에 카드만 떠 있으면 허전하다.
+   카드보다 크게 깔고 아주 흐리게 번지게 해서 배경으로만 읽히게 한다.
+
+   흐림(blur)을 안 쓴다. 그라디언트를 넓게 퍼뜨리면 눈에는 똑같이 보이는데,
+   blur 는 스크롤할 때마다 브라우저가 다시 그려야 해서 화면이 걸린다.
+   움직임도 뺐다. 천천히 도는 것보다 안 버벅이는 게 낫다.
+   (이 구간 스크롤 프레임 간격: 20ms → 9ms) */
+.deck::before, .deck::after {
+  content: ""; position: absolute; z-index: -1;
+  border-radius: 50%; pointer-events: none;
+}
+.deck::before {
+  width: 78%; aspect-ratio: 1; left: -22%; top: -46%;
+  background: radial-gradient(circle at 50% 50%,
+    rgba(43,91,255,.26) 0%, rgba(43,91,255,.13) 34%, rgba(43,91,255,0) 66%);
+}
+.deck::after {
+  width: 70%; aspect-ratio: 1; right: -18%; bottom: -46%;
+  background: radial-gradient(circle at 50% 50%,
+    rgba(126,156,255,.30) 0%, rgba(126,156,255,.15) 34%, rgba(126,156,255,0) 66%);
+}
 .fpane {
   position: absolute; inset: 0;
   container-type: size;                       /* 안쪽이 카드 크기에 반응한다 */
   background: var(--w); border: 1px solid var(--w-3); border-radius: 16px;
-  padding: clamp(18px, 5cqh, 30px) clamp(20px, 4cqw, 34px); overflow: hidden;
-  box-shadow: 0 30px 70px -34px rgba(0,0,0,.4);
+  padding: clamp(20px, 7cqh, 44px) clamp(22px, 5.2cqw, 52px); overflow: hidden;
+  /* 그림자 번짐을 70px 에서 34px 로 줄였다. 카드가 움직일 때마다
+     번진 만큼 다시 그려야 해서, 넓을수록 스크롤이 무거워진다.
+     떠 있어 보이는 건 그대로다. (긴 프레임 21회 → 14회) */
+  box-shadow: 0 18px 34px -20px rgba(0,0,0,.34);
   transform-origin: 50% 120%;
   transition: transform .7s cubic-bezier(.3,.85,.35,1), opacity .5s ease;
   will-change: transform;
@@ -1123,7 +1256,7 @@ h2.sec { font-size: clamp(1.9rem, 4.4vw, var(--t-3)); margin-top: var(--s3); max
 .fpane .bg i    { font-size: clamp(9px, 3.4cqh, 14px); bottom: clamp(-20px, -6cqh, -16px); }
 .fpane .ui-cols { gap: clamp(10px, 3cqw, 24px); margin-top: clamp(8px, 7cqh, 42px); }
 .fpane .ui-cols .k { font-size: clamp(10px, 4.6cqh, 19px); }
-.fpane .ui-cols .v { font-size: clamp(15px, 12cqh, 56px); margin-top: clamp(4px, 3cqh, 18px); line-height: 1.05; }
+.fpane .ui-cols .v { font-size: clamp(15px, 8.4cqh, 38px); margin-top: clamp(4px, 3cqh, 18px); line-height: 1.05; letter-spacing: -.03em; }
 .fpane .ui-cols .m { font-size: clamp(9px, 4cqh, 16px); margin-top: clamp(3px, 2.4cqh, 14px); }
 .fpane .ui-mix  { gap: clamp(8px, 5.6cqh, 30px); margin-top: clamp(8px, 4.4cqh, 26px); }
 .fpane .ui-mix .k, .fpane .ui-mix .v { font-size: clamp(11px, 4.6cqh, 19px); }
@@ -1136,7 +1269,7 @@ h2.sec { font-size: clamp(1.9rem, 4.4vw, var(--t-3)); margin-top: var(--s3); max
 /* 진행 눈금 */
 .fdots { display: flex; gap: 6px; margin-top: var(--s5); }
 .fdots i { width: 24px; height: 3px; border-radius: 3px; background: var(--w-3); transition: background .3s, width .3s; }
-.fdots i.on { background: var(--blue); width: 42px; }
+.fdots i.on { background: var(--grad-blue); width: 42px; }
 
 @media (max-width: 1000px) {
   .feat-rail { height: auto; }
@@ -1161,8 +1294,8 @@ h2.sec { font-size: clamp(1.9rem, 4.4vw, var(--t-3)); margin-top: var(--s3); max
   gap: var(--s5); padding-block: calc(var(--hdr) + var(--s4)) var(--s4);
 }
 .gather-head { flex: none; }
-.gather-head .sec { margin-top: var(--s2); }
-.gather-head .lede { margin-top: var(--s3); font-size: var(--t-1); line-height: 1.7; }
+.gather-head .sec { margin-top: var(--s3); }
+.gather-head .lede { margin-top: var(--s4); }
 /* 카드 격자. 15장이 한 화면에 다 들어가야 한다. */
 .gather-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: var(--s2); }
 /* 마지막에 틈이 닫혀 한 판이 된다. 바깥만 둥글게 남는다. */
@@ -1173,12 +1306,14 @@ h2.sec { font-size: clamp(1.9rem, 4.4vw, var(--t-3)); margin-top: var(--s3); max
 
 .gc {
   background: var(--w); border: 1px solid var(--w-3); border-radius: 10px;
-  padding: var(--s3); will-change: transform, opacity;
+  padding: var(--s4) var(--s3); will-change: transform, opacity;
   transition: gap .5s ease, border-radius .5s ease;
 }
-.gc .gk { font-size: var(--t--1); font-weight: 700; letter-spacing: .08em; color: var(--blue); }
-.gc b { display: block; font-size: var(--t-0); font-weight: 700; margin-top: 5px; letter-spacing: -.02em; }
-.gc p { font-size: var(--t--1); color: var(--tx-2); margin-top: 3px; line-height: 1.45; }
+/* 15장이 한 화면에 들어가야 해서 작게 잡았는데 너무 작았다.
+   한 칸씩 올리고 안쪽 여백도 같이 키운다. */
+.gc .gk { font-size: var(--t-0); font-weight: 700; letter-spacing: .08em; color: var(--blue); }
+.gc b { display: block; font-size: var(--t-1); font-weight: 700; margin-top: 6px; letter-spacing: -.02em; }
+.gc p { font-size: var(--t-0); color: var(--tx-2); margin-top: 5px; line-height: 1.5; }
 
 @media (max-width: 1100px) { .gather-grid { grid-template-columns: repeat(3, 1fr); } }
 @media (max-width: 700px) {
@@ -1214,7 +1349,7 @@ h2.sec { font-size: clamp(1.9rem, 4.4vw, var(--t-3)); margin-top: var(--s3); max
 .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--up); }
 .panel-top .grow { margin-left: auto; font-size: var(--t--1); }
 .tabs { display: flex; gap: 6px; padding: var(--s3) var(--s4); flex-wrap: wrap; border-bottom: 1px solid var(--w-3); }
-.tab { font: inherit; font-size: var(--t-0); font-weight: 500; cursor: pointer; background: var(--w); border: 1px solid var(--w-3); color: var(--tx-2); padding: 7px 15px; border-radius: 999px; transition: all .2s; }
+.tab { font: inherit; font-size: var(--t-0); font-weight: 500; cursor: pointer; background: var(--w); border: 1px solid var(--w-3); color: var(--tx-2); padding: 7px 15px; border-radius: 10px; transition: all .2s; }
 .tab[aria-selected="true"] { background: var(--blue); color: #fff; border-color: var(--blue); font-weight: 600; }
 .evid { display: grid; grid-template-columns: 1fr 1.1fr; gap: var(--s5); padding: var(--s4); border-top: 1px solid var(--w-3); }
 .evid h4 { font-size: var(--t--1); font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--tx-2); margin: 0 0 4px; }
@@ -1247,10 +1382,15 @@ h2.sec { font-size: clamp(1.9rem, 4.4vw, var(--t-3)); margin-top: var(--s3); max
 .svc a:hover .go { color: var(--blue); }
 .svc a { padding-left: var(--s4); }
 .svc a:nth-child(3n) { border-right: 0; }
-.svc .no { font-size: var(--t--1); color: var(--blue); font-weight: 700; }
-.svc h3 { font-size: var(--t-1); margin: var(--s2) 0 6px; }
-.svc p { font-size: var(--t-0); color: var(--tx-2); }
-.svc .go { display: block; margin-top: var(--s3); font-size: var(--t-0); color: var(--tx-2); transition: color .2s; }
+/* 카드 글씨를 한 칸씩 키운다. 제목은 t-1 과 t-2 사이(1.3rem)를 쓴다.
+   t-2 까지 올리면 3열 격자에서 제목이 두 줄로 접힌다. */
+.svc .no { font-size: var(--t-0); color: var(--blue); font-weight: 700; }
+.svc h3 { font-size: 1.3rem; margin: var(--s3) 0 var(--s2); }
+.svc p { font-size: var(--t-1); color: var(--tx-2); line-height: 1.65; }
+.svc .go { display: block; margin-top: var(--s4); font-size: var(--t-1); color: var(--tx-2); transition: color .2s; }
+/* 카드 본문은 지정한 자리에서 무조건 줄을 바꾼다.
+   .s 는 기본이 inline-block 이라 폭이 남으면 붙어버린다. */
+.svc p .s, .step p .s { display: block; padding-right: 0; }
 @media (max-width: 860px) { .svc { grid-template-columns: 1fr; } .svc a { border-right: 0; padding-left: 0; } }
 
 /* ── 담당 회계사. 사진 + 이력. 박스 없이 선으로만. */
@@ -1269,17 +1409,17 @@ h2.sec { font-size: clamp(1.9rem, 4.4vw, var(--t-3)); margin-top: var(--s3); max
 }
 .who-grid .shot-frame { overflow: hidden; border-radius: 2px; }
 .wname { font-family: var(--disp); font-size: clamp(2rem, 4vw, 3rem); font-weight: 800; letter-spacing: -.05em; line-height: 1; }
-.wrole { margin-top: var(--s3); font-size: var(--t-0); font-weight: 600; letter-spacing: .04em; color: var(--tx-2); }
-.wsay { margin-top: var(--s6); font-size: var(--t-1); line-height: 1.8; color: var(--tx-2); max-width: 46ch; }
-.wsay2 { margin-top: var(--s4); font-size: var(--t-1); line-height: 1.8; color: var(--tx-2); max-width: 46ch; }
+.wrole { margin-top: var(--s3); font-size: var(--t-1); font-weight: 600; letter-spacing: .04em; color: var(--tx-2); }
+.wsay { margin-top: var(--s6); font-size: 1.25rem; line-height: 1.8; color: var(--tx-2); max-width: 46ch; }
+.wsay2 { margin-top: var(--s4); font-size: 1.25rem; line-height: 1.8; color: var(--tx-2); max-width: 46ch; }
 .wsay2 b { color: var(--tx); font-weight: 700; }
 .wpa { margin-top: var(--s6); padding-top: var(--s5); border-top: 1px solid var(--w-3); }
-.wpa-lab { font-size: var(--t--1); font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: var(--tx-2); }
+.wpa-lab { font-size: var(--t-0); font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: var(--tx-2); }
 .wpa ul { list-style: none; margin: var(--s4) 0 0; padding: 0;
   display: grid; grid-template-columns: 1fr 1fr; gap: var(--s3) var(--s5); }
-.wpa li { position: relative; padding-left: 14px; font-size: var(--t-0); line-height: 1.6; }
-.wpa li::before { content: ""; position: absolute; left: 0; top: .62em; width: 4px; height: 4px; border-radius: 50%; background: var(--blue); }
-.wmore { display: inline-block; margin-top: var(--s6); font-size: var(--t-0); font-weight: 700;
+.wpa li { position: relative; padding-left: 16px; font-size: var(--t-1); line-height: 1.6; }
+.wpa li::before { content: ""; position: absolute; left: 0; top: .58em; width: 4px; height: 4px; border-radius: 50%; background: var(--blue); }
+.wmore { display: inline-block; margin-top: var(--s6); font-size: var(--t-1); font-weight: 700;
   border-bottom: 2px solid var(--tx); padding-bottom: 3px; text-decoration: none; transition: color .2s, border-color .2s; }
 .wmore:hover { color: var(--blue); border-color: var(--blue); }
 @media (max-width: 980px) {
@@ -1290,7 +1430,9 @@ h2.sec { font-size: clamp(1.9rem, 4.4vw, var(--t-3)); margin-top: var(--s3); max
 
 /* 사람·인사이트는 읽는 글이 주인이다. 넓히면 사진과 글이 벌어지고
    제목과 날짜가 멀어져서 한 줄로 안 읽힌다. 기본 폭을 쓴다. */
-#who > .wrap, #insight > .wrap { max-width: var(--wrap-read); }
+/* 예전엔 이 두 구역만 1280 이라 다른 구역(1600)보다 안쪽으로 들어가 보였다.
+   폭은 같게 두고, 글줄이 길어지는 건 각 글 요소의 max-width 로 잡는다. */
+#who > .wrap, #insight > .wrap { max-width: var(--wrap); }
 
 /* 사진과 글이 시차를 두고 올라온다. 같이 오면 밋밋하다. */
 .rise-slow { opacity: 0; translate: 0 34px; }
@@ -1323,20 +1465,41 @@ h2.sec { font-size: clamp(1.9rem, 4.4vw, var(--t-3)); margin-top: var(--s3); max
   position: absolute; top: 0; left: 0; 
   font-size: var(--t-0); font-weight: 700; color: var(--blue);
 }
-.step::after { content: ""; position: absolute; top: 9px; left: 34px; right: var(--s3); height: 1px; background: var(--w-3); overflow: hidden; }
-/* 1번에서 4번까지 파란 빛이 주르륵 흐른다. */
-.flow { position: relative; }
-.flow::after {
-  content: ""; position: absolute; top: 9px; left: 34px; right: 0; height: 1px;
-  background: linear-gradient(90deg, transparent, var(--blue) 12%, var(--blue) 18%, transparent 30%);
-  background-size: 260% 100%; background-repeat: no-repeat;
-  animation: flowline 3.4s linear infinite; pointer-events: none;
+.step::after { content: ""; position: absolute; top: 9px; left: 34px; right: var(--s3); height: 2px; background: var(--w-3); border-radius: 2px; overflow: hidden; }
+/* 선은 멈추지 않는다.
+   빛을 한 덩어리로 두면 지나간 뒤 그 칸이 꺼져서 깜빡여 보인다.
+   그래서 빛을 타일로 만들어 옆으로 이어 붙이고, 타일 폭만큼만 민다.
+   끝과 처음의 밝기가 둘 다 0 이라 이음매가 안 보이고 계속 흐른다. */
+.step::after {
+  background:
+    linear-gradient(90deg,
+      rgba(43,91,255,0)   0%,
+      rgba(43,91,255,.30) 26%,
+      var(--blue)         46%,
+      #9FB7FF             52%,
+      var(--blue)         58%,
+      rgba(43,91,255,.30) 74%,
+      rgba(43,91,255,0)  100%) repeat-x 0 0 / 150px 100%,
+    var(--w-3);
+  animation: flowseg 1.9s linear infinite;
 }
-@keyframes flowline { from { background-position: -60% 0 } to { background-position: 160% 0 } }
-@media (prefers-reduced-motion: reduce) { .flow::after { animation: none; opacity: 0; } }
-.step:last-child::after { display: none; }
-.step h3 { font-size: var(--t-1); margin-bottom: 5px; }
-.step p { font-size: var(--t-0); color: var(--tx-2); }
+/* 칸마다 위상을 어긋나게 해서 왼쪽에서 오른쪽으로 밀려가는 것처럼 보이게 한다.
+   음수 지연이라 처음부터 이미 흐르는 중이다. */
+.flow .step:nth-child(2)::after { animation-delay: -.63s; }
+.flow .step:nth-child(3)::after { animation-delay: -1.26s; }
+/* 타일 폭(150px)만큼만 민다. 더 밀거나 덜 밀면 이음매가 튄다. */
+@keyframes flowseg {
+  to { background-position: 150px 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .step::after { animation: none; background: var(--w-3); }
+}
+/* 마지막 칸에도 선을 둔다. 여기만 비우면 오른쪽이 텅 비어
+   네 칸짜리 줄이 왼쪽으로 쏠려 보인다. 대신 본문 오른쪽 끝까지 붙인다. */
+.step:last-child::after { right: 0; }
+.flow .step:nth-child(4)::after { animation-delay: -1.89s; }
+.step h3 { font-size: 1.3rem; margin-bottom: var(--s2); }
+.step p { font-size: var(--t-1); color: var(--tx-2); line-height: 1.65; }
 @media (max-width: 860px) { .flow { grid-template-columns: repeat(2,1fr); gap: var(--s4); } .step::after { display: none; } }
 
 /* ── 7. 비교표 ───────────────────────────── */
@@ -1397,8 +1560,13 @@ h2.sec { font-size: clamp(1.9rem, 4.4vw, var(--t-3)); margin-top: var(--s3); max
 
 /* ── 8. 마무리 ───────────────────────────── */
 .end { text-align: center; }
-.end h2 { font-size: clamp(1.9rem, 5vw, var(--t-3)); max-width: 18ch; margin-inline: auto; }
-.end .lede { margin-inline: auto; text-align: center; max-width: 34ch; }
+/* 위와 같은 이유로 `.promo` 를 붙여 무게를 맞춘다.
+   붙이지 않으면 눈금·제목·설명이 여백 0 으로 붙어 버린다. */
+.promo .end h2 {
+  font-size: clamp(1.9rem, 5vw, var(--t-3)); max-width: 18ch;
+  margin-inline: auto; margin-top: var(--s4);
+}
+.promo .end .lede { margin-inline: auto; text-align: center; max-width: 34ch; margin-top: var(--s4); }
 
 
 /* ── 우측 앵커. 선 하나와 빈 원들. 원하는 데로 바로 간다. ── */
@@ -1435,7 +1603,7 @@ h2.sec { font-size: clamp(1.9rem, 4.4vw, var(--t-3)); margin-top: var(--s3); max
 .anchor a:hover .lb, .anchor a:focus-visible .lb { opacity: 1; color: var(--blue); }
 .anchor a[aria-current="true"] .lb { opacity: 1; color: var(--blue); font-weight: 700; }
 .anchor.dark a:hover .lb,
-.anchor.dark a[aria-current="true"] .lb { color: #2080F5; }
+.anchor.dark a[aria-current="true"] .lb { color: var(--blue-b); }
 .anchor .cir {
   width: var(--cir); height: var(--cir); border-radius: 50%; flex: none;
   border: 1.5px solid var(--w-3);
@@ -1450,7 +1618,7 @@ h2.sec { font-size: clamp(1.9rem, 4.4vw, var(--t-3)); margin-top: var(--s3); max
 /* 남색 구간 위에 있을 때는 색을 뒤집는다.
    여기서도 안쪽은 반드시 막는다 — transparent 로 두면 선이 비쳤다. */
 .anchor.dark .cir { border-color: #3A3A3A; background: var(--navy); }
-.anchor.dark a[aria-current="true"] .cir { border-color: #2080F5; background: #2080F5; }
+.anchor.dark a[aria-current="true"] .cir { border-color: var(--blue-b); background: var(--blue-b); }
 .anchor.dark::before { background: #2E2E2E; }
 .anchor.dark .lb { color: #A8A8A8; }
 

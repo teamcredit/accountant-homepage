@@ -21,7 +21,7 @@ export default function PricingPage() {
             PRICING
           </div>
         </div>
-        <div className="max-w-7xl mx-auto px-6 relative z-10">
+        <div className="max-w-[1600px] mx-auto px-6 relative z-10">
           <AnimateOnScroll variant="fadeIn">
             <p className="text-xs tracking-[0.4em] text-neutral-500 mb-6 uppercase">
               Estimate
@@ -42,16 +42,16 @@ export default function PricingPage() {
           </AnimateOnScroll>
           <AnimateOnScroll variant="fadeUp" delay={0.6}>
             <div className="mt-8 flex flex-wrap gap-3">
-              <span className="text-[0.7rem] uppercase tracking-[0.15em] px-3 py-1.5 border border-neutral-700 text-neutral-400">
+              <span className="t-label t-label-d px-3 py-1.5 border border-neutral-700">
                 6개 질문
               </span>
-              <span className="text-[0.7rem] uppercase tracking-[0.15em] px-3 py-1.5 border border-neutral-700 text-neutral-400">
+              <span className="t-label t-label-d px-3 py-1.5 border border-neutral-700">
                 업종 검색
               </span>
-              <span className="text-[0.7rem] uppercase tracking-[0.15em] px-3 py-1.5 border border-neutral-700 text-neutral-400">
+              <span className="t-label t-label-d px-3 py-1.5 border border-neutral-700">
                 입력 즉시 반영
               </span>
-              <span className="text-[0.7rem] uppercase tracking-[0.15em] px-3 py-1.5 border border-neutral-700 text-neutral-400">
+              <span className="t-label t-label-d px-3 py-1.5 border border-neutral-700">
                 URL로 공유
               </span>
             </div>
@@ -61,7 +61,7 @@ export default function PricingPage() {
 
       {/* Calculator */}
       <section className="py-16 md:py-24">
-        <div className="max-w-7xl mx-auto px-6">
+        <div className="max-w-[1600px] mx-auto px-6">
           <PricingCalculator />
         </div>
       </section>

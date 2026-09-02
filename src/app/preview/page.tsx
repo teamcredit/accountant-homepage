@@ -166,7 +166,7 @@ function ColorCard({ option }: { option: ColorOption }) {
           Button hover ring
         </p>
         <button
-          className="px-6 py-3 bg-foreground text-white text-xs tracking-wider font-medium transition-all duration-300 hover:ring-2"
+          className="btn-blue rounded-[10px] px-6 py-3 text-xs tracking-wider font-medium transition-all duration-300 hover:ring-2"
           style={
             {
               "--tw-ring-color": option.hex,
@@ -240,7 +240,7 @@ export default function PreviewPage() {
     <>
       {/* Hero */}
       <section className="py-20 md:py-28 bg-foreground text-white">
-        <div className="max-w-7xl mx-auto px-6">
+        <div className="max-w-[1600px] mx-auto px-6">
           <p className="text-xs tracking-[0.4em] text-neutral-500 mb-6 uppercase">
             Internal · noindex
           </p>
@@ -256,7 +256,7 @@ export default function PreviewPage() {
 
       {/* Color Comparison */}
       <section className="py-24 md:py-32 bg-card">
-        <div className="max-w-7xl mx-auto px-6">
+        <div className="max-w-[1600px] mx-auto px-6">
           <div className="mb-12">
             <p className="text-xs tracking-[0.3em] text-muted uppercase font-medium mb-4">
               01 · Accent Color
@@ -283,7 +283,7 @@ export default function PreviewPage() {
 
       {/* Photo Treatment Comparison */}
       <section className="py-24 md:py-32">
-        <div className="max-w-7xl mx-auto px-6">
+        <div className="max-w-[1600px] mx-auto px-6">
           <div className="mb-12">
             <p className="text-xs tracking-[0.3em] text-muted uppercase font-medium mb-4">
               02 · Photo Treatment
@@ -317,7 +317,7 @@ export default function PreviewPage() {
 
       {/* How to switch */}
       <section className="py-24 md:py-32 bg-foreground text-white">
-        <div className="max-w-7xl mx-auto px-6">
+        <div className="max-w-[1600px] mx-auto px-6">
           <p className="text-xs tracking-[0.4em] text-neutral-500 mb-6 uppercase">
             How to Switch
           </p>

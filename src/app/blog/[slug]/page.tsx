@@ -273,7 +273,7 @@ export default async function BlogPostPage({ params }: Props) {
                   key={item.label}
                   className="rounded-2xl border border-white/30 bg-white/10 px-4 py-4"
                 >
-                  <dt className="text-[11px] font-semibold tracking-[0.24em] text-neutral-200">
+                  <dt className="t-label text-neutral-200">
                     {item.label}
                   </dt>
                   <dd className="mt-2 text-sm font-medium text-white">
@@ -313,10 +313,10 @@ export default async function BlogPostPage({ params }: Props) {
             <div className="rounded-3xl border border-border bg-card p-6 md:p-8">
               <div className="flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
                 <div>
-                  <p className="text-xs font-medium tracking-[0.28em] text-subtle">
+                  <p className="t-label">
                     SOURCES
                   </p>
-                  <h2 className="mt-2 text-xl font-bold tracking-tight text-foreground">
+                  <h2 className="t-h4 mt-2 text-foreground">
                     검토에 사용한 근거
                   </h2>
                 </div>
@@ -385,8 +385,8 @@ export default async function BlogPostPage({ params }: Props) {
 
       {relatedPosts.length > 0 && (
         <section className="bg-card py-20 md:py-24">
-          <div className="mx-auto max-w-7xl px-6">
-            <h3 className="mb-10 text-center text-lg font-bold tracking-tight">
+          <div className="mx-auto max-w-[1600px] px-6">
+            <h3 className="t-h4 mb-10 text-center">
               관련 글
             </h3>
             <div className="mx-auto grid max-w-5xl grid-cols-1 gap-6 md:grid-cols-3">
@@ -429,7 +429,7 @@ export default async function BlogPostPage({ params }: Props) {
           </p>
           <Link
             href="/contact"
-            className="group inline-flex items-center bg-white px-8 py-4 text-sm font-medium tracking-wider text-foreground transition-all duration-300 hover:bg-neutral-200"
+            className="group inline-flex items-center btn-blue rounded-[10px] px-8 py-4 text-sm font-medium tracking-wider transition-all duration-300"
           >
             문의하기
             <span className="ml-2 transition-transform duration-300 group-hover:translate-x-1">

@@ -80,7 +80,7 @@ export default function StickyScrollServices({
                     </p>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                       <div>
-                        <p className="text-[10px] tracking-[0.24em] text-subtle uppercase font-medium mb-3">
+                        <p className="t-label mb-3">
                           주요 범위
                         </p>
                         <div className="space-y-2">
@@ -96,7 +96,7 @@ export default function StickyScrollServices({
                         </div>
                       </div>
                       <div>
-                        <p className="text-[10px] tracking-[0.24em] text-subtle uppercase font-medium mb-3">
+                        <p className="t-label mb-3">
                           산출물
                         </p>
                         <div className="space-y-2">
@@ -127,7 +127,7 @@ export default function StickyScrollServices({
       ) : (
         /* Desktop: sticky scroll layout */
         <div className="sticky top-0 h-screen flex items-center">
-          <div className="max-w-7xl mx-auto px-6 w-full grid grid-cols-12 gap-16">
+          <div className="max-w-[1600px] mx-auto px-6 w-full grid grid-cols-12 gap-16">
             {/* Left — sticky title */}
             <div className="col-span-5 flex flex-col justify-center">
               {/* Progress bar */}
@@ -181,7 +181,7 @@ export default function StickyScrollServices({
                   </p>
                   <div className="grid grid-cols-2 gap-8">
                     <div>
-                      <p className="text-[10px] tracking-[0.24em] text-subtle uppercase font-medium mb-4">
+                      <p className="t-label mb-4">
                         주요 범위
                       </p>
                       <div className="space-y-3">
@@ -197,7 +197,7 @@ export default function StickyScrollServices({
                       </div>
                     </div>
                     <div>
-                      <p className="text-[10px] tracking-[0.24em] text-subtle uppercase font-medium mb-4">
+                      <p className="t-label mb-4">
                         산출물
                       </p>
                       <div className="space-y-3">

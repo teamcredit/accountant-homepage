@@ -25,7 +25,7 @@ export default function CopyUrlButton() {
   return (
     <button
       onClick={handleCopy}
-      className="flex h-9 w-9 items-center justify-center border border-border text-xs font-bold text-muted transition-colors hover:border-foreground hover:text-foreground"
+      className="flex h-9 w-9 items-center justify-center rounded-[10px] border border-border text-xs font-bold text-muted transition-colors hover:border-foreground hover:text-foreground"
       aria-label={copied ? "URL 복사 완료" : "URL 복사"}
     >
       {copied ? "✓" : "URL"}

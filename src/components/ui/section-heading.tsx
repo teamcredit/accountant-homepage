@@ -21,7 +21,7 @@ export default function SectionHeading({
     >
       {/* Optional Label */}
       {label && (
-        <p className="text-xs font-semibold tracking-[0.2em] uppercase text-muted mb-4">
+        <p className="t-eyebrow mb-4">
           {label}
         </p>
       )}

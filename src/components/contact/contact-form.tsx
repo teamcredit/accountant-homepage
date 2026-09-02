@@ -125,7 +125,7 @@ export default function ContactForm({ initialValues }: ContactFormProps) {
       </div>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
         <div className="relative">
-          <label htmlFor={fieldId("name")} className="block text-[10px] tracking-[0.2em] uppercase text-subtle font-medium mb-3">
+          <label htmlFor={fieldId("name")} className="t-label block mb-3">
             이름 *
           </label>
           <input
@@ -143,7 +143,7 @@ export default function ContactForm({ initialValues }: ContactFormProps) {
         </div>
 
         <div className="relative">
-          <label htmlFor={fieldId("email")} className="block text-[10px] tracking-[0.2em] uppercase text-subtle font-medium mb-3">
+          <label htmlFor={fieldId("email")} className="t-label block mb-3">
             이메일 *
           </label>
           <input
@@ -162,7 +162,7 @@ export default function ContactForm({ initialValues }: ContactFormProps) {
       </div>
 
       <div className="relative">
-        <label htmlFor={fieldId("phone")} className="block text-[10px] tracking-[0.2em] uppercase text-subtle font-medium mb-3">
+        <label htmlFor={fieldId("phone")} className="t-label block mb-3">
           전화번호
         </label>
         <input
@@ -179,7 +179,7 @@ export default function ContactForm({ initialValues }: ContactFormProps) {
       </div>
 
       <div className="relative">
-        <label htmlFor={fieldId("message")} className="block text-[10px] tracking-[0.2em] uppercase text-subtle font-medium mb-3">
+        <label htmlFor={fieldId("message")} className="t-label block mb-3">
           현재 상황 *
         </label>
         <textarea
@@ -210,7 +210,7 @@ export default function ContactForm({ initialValues }: ContactFormProps) {
         <button
           type="submit"
           disabled={status === "sending"}
-          className="group w-full md:w-auto inline-flex items-center justify-center px-12 py-4 bg-foreground text-white text-sm font-medium tracking-wider transition-all duration-300 hover:bg-neutral-800 disabled:opacity-40 disabled:cursor-not-allowed"
+          className="group w-full md:w-auto inline-flex items-center justify-center btn-blue rounded-[10px] px-12 py-4 text-sm font-medium tracking-wider transition-all duration-300 disabled:opacity-40 disabled:cursor-not-allowed"
         >
           {status === "sending" ? (
             <span className="flex items-center gap-3">

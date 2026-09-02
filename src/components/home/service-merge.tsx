@@ -15,6 +15,37 @@
 import { useEffect, useRef } from "react";
 import { gsap } from "gsap";
 
+/* 카드마다 제목 앞에 붙는 표시.
+   선 하나 굵기로만 그린 단색이다. 색도 채움도 없다 —
+   여섯 장이 겹쳐서 한 장이 될 때 색이 있으면 얼룩으로 남는다.
+   그림이 뜻을 대신하는 게 아니라, 제목을 찾기 쉽게 표를 다는 것뿐이다. */
+const ICONS = {
+  /* 장부: 줄 그은 종이 */
+  "tax-bookkeeping": (
+    <><rect x="3.5" y="2.5" width="17" height="19" rx="2.5" /><path d="M7.5 7.5h9M7.5 12h9M7.5 16.5h5" /></>
+  ),
+  /* 조정: 값을 맞추는 눈금 */
+  "tax-adjustment": (
+    <><path d="M4 7.5h16M4 16.5h16" /><circle cx="9" cy="7.5" r="2.5" /><circle cx="15" cy="16.5" r="2.5" /></>
+  ),
+  /* 자문: 미리 막아 두는 방패 */
+  "tax-advisory": (
+    <><path d="M12 2.5l7.5 3v6c0 4.5-3 8.4-7.5 10-4.5-1.6-7.5-5.5-7.5-10v-6z" /></>
+  ),
+  /* 평가: 무게를 다는 저울 */
+  "valuation": (
+    <><path d="M12 3v18M6 6.5h12M4 18h6l-3-8zM14 18h6l-3-8z" /></>
+  ),
+  /* 거래: 오가는 두 방향 */
+  "transaction-advisory": (
+    <><path d="M3.5 8.5h13m-3.5-3.5 3.5 3.5-3.5 3.5M20.5 15.5h-13m3.5 3.5-3.5-3.5 3.5-3.5" /></>
+  ),
+  /* 감사: 확인하고 표시한 서류 */
+  "audit-advisory": (
+    <><path d="M8 3.5H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-14a2 2 0 0 0-2-2h-2" /><rect x="8" y="2" width="8" height="3.5" rx="1.2" /><path d="M8.5 13.5l2.5 2.5 4.5-5" /></>
+  ),
+};
+
 export default function ServiceMerge({ items }) {
   const rootRef = useRef(null);
 
@@ -47,9 +78,29 @@ export default function ServiceMerge({ items }) {
       const CARD_W = 420;
       const CARD_H = 158;
 
+      /* CSS 변수는 자식에게 물려준다. 그래서 카드에 변수 하나를 쓰면
+         그 안에 든 대시보드 복제본(수백 칸)까지 전부 다시 계산한다.
+         값이 그대로면 안 쓴다. 소수점도 잘라서 미세한 값 변화로 헛돌지 않게 한다.
+         (재 보니 버벅임의 주범은 아니었다. 그래도 헛일은 안 하는 게 맞다.) */
+      const varCache = new WeakMap();
+      const setVar = (el, name, val) => {
+        let m = varCache.get(el);
+        if (!m) { m = {}; varCache.set(el, m); }
+        if (m[name] === val) return;
+        m[name] = val;
+        el.style.setProperty(name, val);
+      };
+      const r3 = (v) => (Math.round(v * 1000) / 1000).toString();
+
+      /* 카드 자리를 잰 그 순간 스택이 어디 있었는지. 스크롤을 내리면 스택이
+         위로 밀려 올라가는데, 그만큼 되돌려 줘야 카드가 제자리에 선다.
+         "얼마나 밀렸나" 는 이 값과 지금 자리의 차이로만 알 수 있다. */
+      let stackTop0 = 0;
+
       const measure = () => {
         const stackEl = root.querySelector(".svm-stack");
         const st = stackEl.getBoundingClientRect();
+        stackTop0 = st.top;
         const cx = st.left + st.width * 0.12;      // 모이는 자리 = CSS 의 left:12%
         // 모이는 자리도 화면 세로 한가운데다 — 잡히는 순간부터 중앙에 있어야 한다
         const cy = innerHeight / 2;
@@ -72,6 +123,18 @@ export default function ServiceMerge({ items }) {
 
       const shot = document.querySelector(".shot");
       const stackEl = root.querySelector(".svm-stack");
+      /* 한 바퀴 도는 동안 절반은 판의 뒤가 보인다. 그때 서는 면.
+         카드와 똑같이 움직이되 180° 돌아가 있어서,
+         카드가 등을 보이는 순간에만 이 면이 정면이 된다.
+         두 면 다 backface-visibility:hidden 이라 서로 겹치는 구간이 없다. */
+      const backEl = root.querySelector(".svm-back");
+      /* 왼쪽 글. 카드가 다 모이면 물러난다 — 그 뒤는 대시보드 차례다. */
+      const copyEl = document.querySelector(".hero-copy");
+      /* 매 프레임 다시 찾을 필요가 없는 것들. 스크롤 한 번에 세 번씩
+         DOM 을 뒤지면 그만큼 늦어진다 — 한 번만 찾아 들고 있는다. */
+      const holdEl = document.querySelector(".hero-hold");
+      const shotWinEl = shot?.querySelector(".shot-win");
+      const topCardRef = cards[cards.length - 1];
 
       /* 맨 위 카드 안에 대시보드를 미리 심는다.
          이게 이 연출의 핵심이다. 예전에는 카드를 지우고 대시보드를 켜는
@@ -124,12 +187,21 @@ export default function ServiceMerge({ items }) {
           const s = CARD_W / s0.width;
           peek.style.setProperty("--peek-s0", String(s));
         }
+        /* 뒷면은 카드 밖(스택 바로 밑)에 있다 — 카드 안에 넣으면
+           overflow:hidden 때문에 3D 가 납작해진다.
+           그래서 맨 위 카드가 원래 앉아 있는 자리를 그대로 베껴 준다.
+           transform 은 매 프레임 카드와 똑같이 넣으므로 여기서는 자리만 맞춘다. */
+        if (backEl && topCardEl) {
+          backEl.style.left = `${topCardEl.offsetLeft}px`;
+          backEl.style.top = `${topCardEl.offsetTop}px`;
+        }
         return s0;
       };
       /* 크기를 먼저 정하고 나서 자리를 잰다.
          순서가 반대면 커지기 전 자리로 재서, 카드가 거의 안 움직인다. */
       let base = sizeCards();
       let moves = measure();
+      let stickTop = null;
 
       /* 전부 스크롤이 몬다. 저절로 돌아가는 부분은 없다. */
       const onScroll = () => {
@@ -144,6 +216,9 @@ export default function ServiceMerge({ items }) {
           gsap.set(cards, { opacity: 0 });
           gsap.set(target, { opacity: 0 });
           gsap.set(label, { opacity: 0 });
+          if (backEl) gsap.set(backEl, { opacity: 0, display: "none" });
+          if (stackEl) { stackEl.style.perspective = ""; stackEl.style.transformStyle = ""; }
+          if (copyEl) gsap.set(copyEl, { opacity: 1, y: 0 });
           const st0 = shot.parentElement;
           if (st0) { st0.style.opacity = "1"; st0.style.visibility = ""; }
           if (shot.dataset.svmFit) {
@@ -189,7 +264,12 @@ export default function ServiceMerge({ items }) {
              0.38 ~ 0.72   그제서야 돌면서 커진다
              0.72          정면으로 서고 대시보드로 넘어간다 */
         const MERGE_END = 0.30;
-        const DWELL_END = 0.38;
+        const DWELL_END = 0.36;
+        /* 도는 일과 커지는 일을 나눈다.
+           같이 하면 판이 이미 세 배로 커진 채 돌아서 화면 밖으로 쓸려 나간다 —
+           무엇이 도는지 안 보이고 흰 얼룩만 지나간다.
+           작을 때 한 바퀴 다 돌고, 정면으로 선 뒤에 커진다. */
+        const SPIN_END = 0.56;
         const TURN_END = 0.72;
 
         // ── 1) 모인다. 다 모일 때까지 화면을 붙잡는다 ──
@@ -198,20 +278,21 @@ export default function ServiceMerge({ items }) {
         /* 붙잡혀 있는 동안에도 왼쪽 글이 조금씩 올라간다.
            완전히 멈춰 있으면 스크롤이 먹통인 것처럼 느껴진다.
            카드가 모이는 만큼만 살짝 — 다 모이면 120px 올라가 있다. */
-        const holdEl = document.querySelector(".hero-hold");
-        if (holdEl) holdEl.style.setProperty("--svm-lift", `${seg(0, MERGE_END) * 120}px`);
+        if (holdEl) setVar(holdEl, "--svm-lift", `${Math.round(seg(0, MERGE_END) * 120)}px`);
 
         /* ── 2) 모인 한 장이 화면 한가운데에 붙어 따라오며 커진다 ──
            스크롤을 내려도 카드는 늘 화면 세로 한가운데에 있다.
            그동안 가로로는 대시보드 자리로 옮겨가고, 크기는 대시보드만큼
            커진다. 그래서 "이 카드가 곧 저 화면이 된다" 가 읽힌다. */
-        const down = ease(seg(DWELL_END, TURN_END));
+        const down = ease(seg(SPIN_END, TURN_END));
 
         const st = stackEl.getBoundingClientRect();
 
         /* 대시보드 크기를 잰다. 우리가 카드 안에 앉히려고 변형해 둔 상태라
            그대로 재면 그 값이 다시 목표가 되어 카드가 안 커진다.
            변형을 잠깐 지우고 원래 크기를 잰 뒤 되돌린다. */
+        /* 대시보드의 "변형 없는 원래 자리" 를 재야 한다.
+           promo-motion 이 여기에 기울임을 걸어 두므로 잠깐 껐다 켠다. */
         const keepTf = shot.style.transform;
         shot.style.transform = "none";
         const s = shot.getBoundingClientRect();
@@ -231,10 +312,13 @@ export default function ServiceMerge({ items }) {
            그만큼 되돌려 줘야 카드가 화면에서 제자리에 선다.
            이걸 빼먹으면 스크롤할 때마다 카드가 같이 밀려 떨려 보인다. */
         /* 카드는 스택 안에 있으므로 스택이 스크롤을 따라 올라간 만큼 상쇄한다.
-           카드의 원래 자리(스택 세로 한가운데)를 기준으로 잰다 —
-           moves 를 잴 때 쓴 기준(cy = innerHeight/2)과 같아야 어긋나지 않는다. */
-        const stackCenterNow = st.top + st.height / 2;
-        const centerFix = innerHeight / 2 - stackCenterNow;
+           "잰 순간의 스택 자리" 와 "지금 자리" 의 차이가 곧 밀린 거리다.
+
+           예전엔 스택의 세로 한가운데를 화면 한가운데와 비교해서 구했는데,
+           그러면 창 높이에 따라 오차가 그대로 남는다(창 높이 900 에서는
+           우연히 0 이라 안 보였고, 1280 에서는 191px 어긋났다).
+           그래서 카드가 다 커진 뒤 대시보드로 넘어갈 때 화면이 한 번 튀었다. */
+        const centerFix = stackTop0 - st.top;
 
         /* 목표는 대시보드가 "붙어서 멈춰 설" 그 자리다.
            - 화면 한가운데를 노리면, 커지는 동안 중심은 고정이어도
@@ -242,7 +326,10 @@ export default function ServiceMerge({ items }) {
            - 지금 대시보드 위치를 그대로 쓰면, 그게 스크롤을 따라
              움직이는 중이라 더 흔들린다.
            대시보드는 sticky 로 헤더 밑에 붙는다. 그 붙는 자리를 계산해 쓴다. */
-        const stickTop = parseFloat(getComputedStyle(shot).top) || 0;
+        /* sticky 로 붙는 자리는 CSS 에 적힌 고정값이다. 매 프레임 물어보면
+           그때마다 브라우저가 레이아웃을 다시 계산한다(강제 리플로우).
+           한 번 재서 들고 있다가 창 크기가 바뀔 때만 다시 잰다. */
+        if (stickTop == null) stickTop = parseFloat(getComputedStyle(shot).top) || 0;
         const toX = s.left + s.width / 2;
         /* 카드는 이제 위쪽 가장자리를 축으로 커진다(transform-origin 50% 0).
            그래서 목표도 "위쪽 가장자리가 설 자리" 로 잡는다.
@@ -264,7 +351,7 @@ export default function ServiceMerge({ items }) {
         /* 가로는 커지는 내내 부드럽게 옮겨간다.
            세로는 모이는 동안(0~0.34) 끝내고, 커질 때는 이미 제자리다 —
            커지면서 세로로도 움직이면 스크롤마다 위아래로 떨려 보인다. */
-        const dxRaw = seg(DWELL_END, TURN_END);
+        const dxRaw = seg(SPIN_END, TURN_END);
         const dx = (toX - fromX) * easeOut(dxRaw);
         /* 세로도 커지는 내내 따라간다. 모이는 동안(0~0.34)에 끝내 버리면
            그 뒤 대시보드가 sticky 로 붙으며 자리를 옮길 때 카드가 못 따라가
@@ -272,7 +359,32 @@ export default function ServiceMerge({ items }) {
         /* 세로 이동은 모이기가 끝난 뒤에 시작한다.
            모이는 중(m)에 겹쳐서 움직이면 두 곡선이 서로 다른 속도로 더해져
            이음매에서 카드가 살짝 되튄다. 구간을 나눠 두면 한 방향으로만 간다. */
-        const dy = (toY - fromY) * easeInOut(seg(MERGE_END, TURN_END));
+        const dy = (toY - fromY) * easeInOut(seg(SPIN_END, TURN_END));
+
+        /* 도는 동안 한 번 아래로 처졌다가 제자리로 올라온다.
+           목표 지점까지 직선으로만 가면 "돌면서 내려간다" 가 아니라
+           "돌기만 하는 판" 으로 보인다. 회전의 한가운데(등을 보일 때)
+           가장 깊이 내려가 있다가, 정면으로 서면서 딱 제자리에 앉는다. */
+        const dropArc = Math.sin(ease(seg(DWELL_END, SPIN_END)) * Math.PI) * 150;
+
+        /* 회전이 끝나면 3D 를 끈다.
+           브라우저는 원근이 걸린 판을 "한 장의 그림" 으로 미리 구워 둔 뒤
+           그걸 늘려서 보여준다. 작을 때 구운 그림이라, 세 배로 커지면
+           글씨가 뭉개진다 — 사진을 확대한 것과 똑같다.
+           돌기가 끝난 뒤엔 각도가 전부 0 이라 3D 가 필요 없다.
+           그때부터 평면으로 바꾸면 브라우저가 매 크기마다 다시 그려서
+           끝까지 또렷하다. */
+        const flat = p >= SPIN_END;
+        if (stackEl) {
+          stackEl.style.perspective = flat ? "none" : "";
+          stackEl.style.transformStyle = flat ? "flat" : "";
+        }
+
+        /* 회전 진행도. 카드 루프 안에서 쓰는 shape() 와 같은 곡선이다 —
+           부풀림과 뒷면이 카드와 어긋나면 안 되므로 값을 하나만 쓴다. */
+        const shapeT = (v) => v * v * (3 - 2 * v);
+        const shape = shapeT;
+        const turnP = shapeT(seg(DWELL_END, SPIN_END));
 
         /* 대시보드 크기까지 커진다.
            scale 로 늘리면 그림자와 테두리까지 같이 늘어나 계단처럼 깨진다.
@@ -308,16 +420,17 @@ export default function ServiceMerge({ items }) {
         const SWAP_AT = TURN_END;
         const cardFade = p >= SWAP_AT ? 0 : 1;
         // 커지는 동안 안쪽 글씨는 같이 늘어나면 깨져 보인다. 먼저 지워진다.
-        const inkFade = 1 - seg(DWELL_END, DWELL_END + 0.06);
+        const inkFade = 1 - seg(DWELL_END, DWELL_END + 0.04);
 
         /* 카드 안 대시보드가 배어 나온다.
            돌기 시작하는 그 순간부터 바로 드러나고, 회전이 절반쯤 갔을 때
            이미 다 찬다. 늦게 띄우면 한참을 빈 흰 판이 도는 것만 보여
            "무엇이 오고 있는지" 가 안 읽힌다.
            보여줄 게 대시보드니까, 도는 내내 그게 보여야 한다. */
-        const peekIn = seg(DWELL_END, DWELL_END + (TURN_END - DWELL_END) * 0.45);
+        const peekIn = seg(DWELL_END, DWELL_END + 0.05);
         if (peek) {
-          peek.style.opacity = String(peekIn);
+          const peekOp = r3(peekIn);
+          if (peek.style.opacity !== peekOp) peek.style.opacity = peekOp;
           /* 카드 안 대시보드는 찌그러지면 안 되므로 가로·세로 같은 배율로 줄인다.
              그런데 카드가 세로로 더 많이 눌려 있어서, 그대로 두면 아래가 잘려
              빈 칸이 보인다. 카드가 커질수록 그 눌림이 풀리므로
@@ -327,8 +440,17 @@ export default function ServiceMerge({ items }) {
              대신 카드가 세로로 눌려 있는 만큼 그림을 미리 세로로 늘려 두고,
              그걸 카드의 눌림이 상쇄해 화면에서는 정상 비율로 보이게 한다.
              카드가 커지면서 눌림이 풀리면 그림도 자연히 제 크기가 된다. */
-          peek.style.setProperty("--peek-sx", String(s0v));
-          peek.style.setProperty("--peek-sy", String(s0v * (scaleX / scaleY)));
+          setVar(peek, "--peek-sx", r3(s0v));
+          setVar(peek, "--peek-sy", r3(s0v * (scaleX / scaleY)));
+
+          /* 도는 동안 안쪽 타일이 둥글게 부풀어 판 위로 떠오른다.
+             지금은 목업이지 진짜 화면이 아니다 — 그러니 물건처럼 보여도 된다.
+             정면으로 서는 순간(회전 끝) 0 이 되어 아래 대시보드와 똑같아진다.
+             안 그러면 넘기는 순간 모서리 굵기가 달라 두 장인 게 들통난다. */
+          /* 도는 동안 한껏 부풀었다가, 커지기 시작하면 스르르 가라앉는다.
+             정면으로 서서 대시보드가 될 때는 0 이어야 한다 —
+             부풀림이 남아 있으면 아래 대시보드와 모서리 굵기가 달라 두 장인 게 들통난다. */
+          setVar(peek, "--puff", r3(1 - down));
         }
 
         /* 카드는 위쪽 가운데를 축으로 커진다(transform-origin 50% 0).
@@ -379,7 +501,7 @@ export default function ServiceMerge({ items }) {
 
              각도는 "돌았다가 되돌아오는" 산 모양이다.
              turn 0 → 0, 0.5 에서 최대, 1 → 0. */
-          const turnRaw = seg(DWELL_END, TURN_END);
+          const turnRaw = seg(DWELL_END, SPIN_END);
 
           /* 애플이 고급스러운 진짜 이유는 각도가 아니라 "구간마다 속도가 다른 것"이다.
              실제 애플 페이지를 재보면, 스크롤의 앞 절반에서 움직임의 87% 를 끝내고
@@ -389,20 +511,26 @@ export default function ServiceMerge({ items }) {
              여기서도 같은 비율을 쓴다.
                앞 절반(0~0.5) : 열렸다가 되돌아오는 움직임의 87% 를 해치운다
                뒤 절반(0.5~1) : 남은 13% 를 천천히 —  정면에 사뿐히 안착한다 */
-          const shape = (v) =>
-            v < 0.5
-              ? easeOut(v / 0.5) * 0.87
-              : 0.87 + (1 - Math.pow(1 - (v - 0.5) / 0.5, 2.4)) * 0.13;
+          /* 예전 곡선은 앞 절반에서 87% 를 끝내는 것이었다.
+             그건 조금 열렸다 닫히는 움직임에는 맞았지만, 한 바퀴에는 안 맞는다 —
+             스크롤을 조금만 내려도 이미 270° 를 지나가 버려서
+             판이 휙 돌고 나서 남은 각도를 기어간다.
+             한 바퀴는 고르게 돌아야 한 바퀴로 읽힌다. 시작과 끝만 부드럽게 한다. */
           const prog = shape(turnRaw);
 
           /* 열렸다가(prog 0.42 부근 최대) 다시 정면으로 닫힌다. */
           const swing = Math.sin(prog * Math.PI);
 
-          /* 각도를 키운다. 얕게 돌면 판이 얇아 보여 종이가 되고,
-             깊게 돌아야 두께와 재질이 읽힌다. 다만 90° 를 넘기면 뒷면이
-             드러나는데 거기엔 그림이 없으므로 46° 까지만 연다. */
-          const ry = -46 * swing;                   // 옆으로 열렸다가 정면으로 닫힌다
-          const rx = 24 * swing;                    // 눕었다가 다시 일어선다
+          /* 한 바퀴(360°) 돈다. 예전엔 46° 까지만 열었다가 되돌아왔는데,
+             그건 "잠깐 기울인 종이" 로 보였다. 끝까지 돌려야 판에 앞뒤가
+             있다는 게 읽히고, 다 돌아 정면으로 서는 순간이 곧 대시보드다.
+
+             뒷면이 보이는 구간(90°~270°)에는 .svm-back 이 대신 선다.
+             거기엔 글씨가 없다 — 뒷면에 정보가 있으면 읽으려다 회전을 놓친다. */
+          const ry = -360 * prog;
+          /* 세로로도 살짝 눕는다. 가로로만 돌면 회전축이 자로 그은 선처럼
+             뻣뻣하다. 중간에 가장 많이 눕고 끝에서 다시 반듯해진다. */
+          const rx = 10 * swing;
 
           /* 던져질 때 살짝 비스듬하다가 자리에 앉으며 반듯해진다.
              모이는 동안에만 준다 — 회전 구간까지 남으면 두 기울기가 겹쳐
@@ -410,11 +538,16 @@ export default function ServiceMerge({ items }) {
              장마다 방향을 엇갈리게 해서 아무렇게나 놓인 서류처럼 보이게 한다. */
           const tossTilt = (i % 2 === 0 ? -1 : 1) * 7 * (1 - raw);
           const rz = -2.4 * swing + tossTilt;
-          /* 뒤로 물러났다가 앞으로 나온다. 원근이 걸려 튀어나오는 느낌이 난다. */
-          const tz = -260 * swing;
+          /* 도는 동안 앞으로 튀어나온다. 뒤로 물리면 원근에 눌려 작아지는데,
+             그건 멀어지는 것이지 도는 게 아니다. 앞으로 나와야 손에 잡힐 듯 보인다. */
+          const tz = 90 * swing;
 
-          /* 돌아간 만큼 옆면(두께)이 드러난다. 정면이면 0 이라 안 보인다. */
-          card.style.setProperty("--edge", String(Math.abs(ry) * 0.2));
+          /* 돌아간 만큼 옆면(두께)이 드러난다. 정면·뒷면이면 0 이다.
+             각도를 그대로 쓰면 한 바퀴 도는 동안 두께가 72px 까지 벌어져
+             판이 아니라 벽돌이 된다. 옆으로 얼마나 기울었는지(sin)로 잡는다. */
+          const face = Math.cos((ry * Math.PI) / 180);   // 1 정면 / -1 뒷면
+          const side = Math.abs(Math.sin((ry * Math.PI) / 180));
+          setVar(card, "--edge", r3(side * 9));
 
           /* 표면을 훑는 빛. 판이 기울수록 강해지고, 각도에 따라 자리가 옮겨간다.
              빛이 지나가야 유리처럼 보인다 — 이게 애플 느낌의 핵심이다.
@@ -424,28 +557,36 @@ export default function ServiceMerge({ items }) {
                진행도로 대충 밀면 판은 가만있는데 빛만 흐르는 순간이 생겨
                스티커에 하이라이트를 그려 넣은 것처럼 보인다.
                면이 기울면 반사각이 그만큼 옮겨가므로, 각도에 그대로 물린다. */
-            card.style.setProperty("--gloss-x", `${50 - ry * 1.25}%`);
+            setVar(card, "--gloss-x", `${r3(50 + Math.sin((ry * Math.PI) / 180) * 90)}%`);
             /* 세기도 각도를 따른다. 정면일 때 0 — 마주 볼 땐 반사가 안 보인다. */
-            card.style.setProperty("--gloss", String(Math.min(Math.abs(ry) / 34, 1) * 0.9));
+            setVar(card, "--gloss", r3(side * 0.85));
           } else {
-            card.style.setProperty("--gloss", "0");
+            setVar(card, "--gloss", "0");
           }
-          card.style.setProperty("--ink-sx", String(inkSX));
-          card.style.setProperty("--ink-sy", String(inkSY));
-          card.style.setProperty("--ink-fix", String(inkFix));
+          /* 판을 미리 구워 두게 만드는 세 가지를 같이 끈다.
+             하나라도 남으면 브라우저는 여전히 그림을 늘려서 보여준다. */
+          card.style.transformStyle = flat ? "flat" : "";
+          card.style.backfaceVisibility = flat ? "visible" : "";
+          card.style.willChange = flat ? "auto" : "";
+
+          setVar(card, "--ink-sx", r3(inkSX));
+          setVar(card, "--ink-sy", r3(inkSY));
+          setVar(card, "--ink-fix", r3(inkFix));
 
           gsap.set(card, {
             x: moves[i].x * mine + dx + cx,
             /* 세로는 "지금 있는 자리 → 가야 할 자리" 를 매 프레임 그대로 잰다.
                여러 보정값을 겹쳐 더하면 스크롤마다 조금씩 어긋나 떨린다.
                스택이 스크롤을 따라 올라가는 만큼(centerFix) 늘 상쇄한다. */
-            y: moves[i].y * mine + centerFix + dy + cy,
+            y: moves[i].y * mine + centerFix + dy + cy + dropArc,
             scaleX,
             scaleY,
-            rotateX: rx,
-            rotateY: ry,
-            rotateZ: rz,
-            z: tz,
+            rotateX: flat ? 0 : rx,
+            /* 360° 는 0° 와 같은 자리다. 평면으로 바꿔도 그림은 그대로다. */
+            rotateY: flat ? 0 : ry,
+            rotateZ: flat ? 0 : rz,
+            z: flat ? 0 : tz,
+            force3D: !flat,
             /* 커지는 축은 위쪽 가장자리다(그래야 제자리에 선 채로 자란다).
                돌아가는 축도 같아야 한다 — 축이 둘이면 도는 동안 자리가
                어긋나 떨린다. 위를 붙잡고 돌아서 아래쪽이 앞으로 나온다. */
@@ -454,7 +595,7 @@ export default function ServiceMerge({ items }) {
                느낌이라 뻣뻣하다. 판이 돌 때 시점이 가까워졌다가(원근이 강해짐)
                정면으로 설 때 다시 멀어지면, 카메라가 다가갔다 물러나는 것처럼
                보여 스크롤과 한 몸으로 움직인다. */
-            transformPerspective: 1600 - swing * 700,
+            transformPerspective: flat ? 0 : 1900 - swing * 500,
             /* 모서리는 배율만큼 나눠 둬야 화면에서 늘 같은 굵기로 보인다.
                가로·세로 배율이 다르므로 둘의 중간을 쓴다. */
             borderRadius: radius / ((scaleX + scaleY) / 2),
@@ -481,7 +622,40 @@ export default function ServiceMerge({ items }) {
           });
           const ink = card.querySelector(".svm-ink");
           if (ink) gsap.set(ink, { opacity: inkFade });
+
+          /* 뒷면을 맨 위 카드와 똑같이 움직인다.
+             판 하나가 도는 것처럼 보이려면 자리·크기·기울기가 전부 같아야 한다.
+             다른 점은 180° 더 돌아가 있다는 것뿐 — 그래서 카드가 등을 보일 때
+             이 면이 정면으로 선다. 둘 다 뒷면을 감추므로 겹치는 구간이 없다. */
+          if (isTop && backEl) {
+            gsap.set(backEl, {
+              /* 평면으로 바뀐 뒤에도 남아 있으면 대시보드 뒤에 흰 판이 비친다. */
+              display: flat ? "none" : "grid",
+              x: moves[i].x * mine + dx + cx,
+              y: moves[i].y * mine + centerFix + dy + cy + dropArc,
+              scaleX, scaleY,
+              rotateX: rx,
+              rotateY: ry + 180,
+              rotateZ: rz,
+              z: tz,
+              transformOrigin: "50% 0%",
+              transformPerspective: 1900 - swing * 500,
+              borderRadius: radius / ((scaleX + scaleY) / 2),
+              /* 카드가 살아 있는 동안에만 뒤가 있다. 회전이 끝나면 같이 꺼진다. */
+              opacity: cardFade,
+            });
+          }
         });
+        /* 왼쪽 글은 지우지 않는다. 그냥 스크롤을 따라 위로 올라가 화면을 뜬다.
+           사라지게 하면 "글이 증발했다" 로 읽혀서, 읽던 사람이 방금 본 게
+           어디 갔나 하고 되돌아간다. 종이가 위로 넘어가듯 밀려 올라가면
+           같은 페이지를 계속 읽고 있는 것으로 읽힌다.
+
+           올라가는 일은 붙잡기(sticky)가 풀리면 저절로 된다. 그래서 여기서는
+           아무것도 안 한다 — 투명도와 세로 위치를 원래대로 되돌려 놓기만 하고,
+           올라가는 건 스크롤에 맡긴다. */
+        if (copyEl) gsap.set(copyEl, { opacity: 1, y: 0 });
+
         /* 모이는 자리 표시는 카드가 다 모이기 전까지만 쓴다.
            커지는 동안 같이 두면 카드와 미세하게 어긋나 테두리가 겹쳐 보인다. */
         gsap.set(target, { opacity: 0 });
@@ -496,10 +670,21 @@ export default function ServiceMerge({ items }) {
            카드가 사라진 뒤에 띄우면 그 사이에 빈 화면이 한 번 생겨
            흐름이 끊긴다. 넘겨받을 것이 먼저 대기하고 있어야 한다.
            카드는 위쪽을 붙잡고 아래로 자라므로, 그 실제 중앙을 매번 잰다. */
-        const topCardNow = cards[cards.length - 1].getBoundingClientRect();
-        const labelY = topCardNow.top + topCardNow.height / 2 - innerHeight * 0.5;
+        /* 카드 위치를 다시 재지 않는다 — 방금 우리가 넣은 값이라 이미 안다.
+           재려면 브라우저가 레이아웃을 다시 계산해야 하고, 그게 프레임마다
+           걸리면 스크롤이 걸리적거린다.
+           카드 위 가장자리 = 원래 자리(fromY) + 이번 프레임에 더한 세로 이동. */
+        const lastI = cards.length - 1;
+        const cardTopNow =
+          st.top + topCardRef.offsetTop +
+          (moves[lastI].y + centerFix + dy + cy + dropArc);
+        const labelY = cardTopNow + (CARD_H * scaleY) / 2 - innerHeight * 0.5;
+        /* 문구는 바꿔치기가 끝난 뒤에 나온다(0.72 부터).
+           예전엔 카드가 아직 밝을 때 미리 떠서, 글자가 숫자 위에 겹쳤다.
+           그래서 글자 뒤에 흰 띠를 깔아야 읽혔다.
+           지금은 화면이 먼저 연해지고 그다음 글자가 뜨므로 띠가 필요 없다. */
         gsap.set(label, {
-          opacity: seg(TURN_END - 0.05, TURN_END) * (1 - seg(0.90, 0.96)),
+          opacity: seg(TURN_END, TURN_END + 0.05) * (1 - seg(0.90, 0.96)),
           y: labelY,
         });
 
@@ -538,26 +723,13 @@ export default function ServiceMerge({ items }) {
         /* 인라인 스타일로 투명도를 넣으면, 뒤이어 조각 확대(.zoom)가
            같은 값을 CSS 로 잡을 때 서로 덮어써 깜빡인다.
            그래서 .zoom 과 똑같이 클래스 하나만 켜고 끈다. */
-        const shotWinEl = shot.querySelector(".shot-win");
         if (shotWinEl) {
-          const labelUp = seg(TURN_END - 0.05, TURN_END) * (1 - seg(0.90, 0.96)) > 0.02;
+          /* 연해지는 건 글자보다 먼저 시작한다(0.66). 대시보드가 나타나는
+             순간에 이미 연해져 있어야, 밝은 화면이 한 번 번쩍이지 않는다.
+             .stage 는 그 전까지 감춰져 있으므로 연해지는 과정은 안 보인다. */
+          const labelUp = p >= TURN_END - 0.06 && seg(0.90, 0.96) < 0.98;
           shotWinEl.classList.toggle("dim", labelUp);
         }
-
-        /* 대시보드를 흰 카드 안에 정확히 앉힌다.
-           둘이 따로 놀면 "카드가 대시보드가 된다" 가 안 읽힌다.
-           카드가 다 커진 뒤에는 대시보드가 제 크기로 돌아간다. */
-        const topCard = cards[cards.length - 1];
-        const cr = topCard.getBoundingClientRect();
-        const sr = s;                            // 위에서 이미 원래 크기로 재뒀다
-
-        /* 카드와 대시보드가 이미 같은 크기·같은 자리가 되도록 위에서 맞춰 뒀다.
-           그래도 남는 차이만 보정한다. 1px 아래는 건드리지 않는다 —
-           미세한 값이 스크롤마다 계속 바뀌면 화면이 떨린다. */
-        const ox = cr.left + cr.width / 2 - (sr.left + sr.width / 2);
-        const oy = cr.top + cr.height / 2 - (sr.top + sr.height / 2);
-        const sx = cr.width / sr.width;
-        const sy = cr.height / sr.height;
 
         /* 대시보드는 건드리지 않는다.
            카드에 맞추려고 매 프레임 옮기면(translate -473 → -105) 그 자체가
@@ -574,7 +746,7 @@ export default function ServiceMerge({ items }) {
       onScroll();                       // 첫 화면 상태를 바로 그린다
 
       // 창 크기가 바뀌면 거리와 카드 크기를 다시 잰다
-      const onResize = () => { base = sizeCards() || base; moves = measure(); onScroll(); };
+      const onResize = () => { stickTop = null; base = sizeCards() || base; moves = measure(); onScroll(); };
       addEventListener("resize", onResize);
 
       return () => {
@@ -591,13 +763,22 @@ export default function ServiceMerge({ items }) {
       <div className="svm-stack">
         {/* 모이는 자리. 다 모이면 테두리가 드러난다. */}
         <div className="svm-target" aria-hidden="true" />
+        {/* 한 바퀴 도는 동안 절반은 판의 뒤가 보인다. 그때 서는 면이다.
+            카드 안에 넣으면 잘려서 납작해지므로 형제로 둔다. */}
+        <div className="svm-back" aria-hidden="true"><i /></div>
         {items.map((s, i) => (
           <div className={`svm-card svm-p${i + 1}`} key={s.slug}>
             {/* 맨 위 한 장에만 대시보드 복제본이 들어간다.
                 아래 대시보드(.db)를 그대로 베껴 넣는다 — 실행 중에 채운다. */}
             <div className="svm-peek" />
             <div className="svm-ink">
-              <span className="svm-t">{s.title}</span>
+              <span className="svm-t">
+                <svg className="svm-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                     strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                  {ICONS[s.slug]}
+                </svg>
+                <span>{s.title}</span>
+              </span>
               <span className="svm-rows"><i /><i /><i /></span>
             </div>
           </div>

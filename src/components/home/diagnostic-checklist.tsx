@@ -86,27 +86,27 @@ export default function DiagnosticChecklist() {
                   [item.id]: !current[item.id],
                 }))
               }
-              className={`text-left border p-6 md:p-7 transition-all duration-300 ${
+              className={`text-left rounded-[10px] border p-6 md:p-7 transition-all duration-300 ${
                 checked
                   ? "border-foreground bg-white"
                   : "border-border bg-card hover:border-neutral-400"
               }`}
             >
               <div className="flex items-start justify-between gap-4">
-                <p className="text-xs tracking-[0.24em] text-subtle uppercase font-medium">
+                <p className="t-label">
                   {String(index + 1).padStart(2, "0")}
                 </p>
                 <span
                   className={`inline-flex items-center rounded-full px-3 py-1 text-[10px] tracking-[0.2em] uppercase ${
                     checked
-                      ? "bg-foreground text-white"
+                      ? "btn-blue"
                       : "bg-white text-muted border border-border"
                   }`}
                 >
                   {checked ? "정리됨" : "미정리"}
                 </span>
               </div>
-              <h3 className="mt-5 text-lg md:text-xl font-bold tracking-tight leading-snug">
+              <h3 className="t-h4 mt-5">
                 {item.title}
               </h3>
               <p className="mt-3 text-sm text-muted leading-relaxed">
@@ -119,10 +119,10 @@ export default function DiagnosticChecklist() {
 
       <div className="xl:col-span-4">
         <div className="border border-foreground bg-foreground text-white p-8 md:p-10 xl:sticky xl:top-32">
-          <p className="text-xs tracking-[0.24em] text-neutral-500 uppercase font-medium">
+          <p className="t-label t-label-d">
             Diagnostic Summary
           </p>
-          <h3 className="mt-4 text-3xl font-bold tracking-tight">
+          <h3 className="t-h2 mt-4">
             {unresolved}/6 항목이
             <br />
             미정리 상태입니다
@@ -134,7 +134,7 @@ export default function DiagnosticChecklist() {
             {summary.body}
           </p>
           <div className="mt-8 pt-8 border-t border-white/10 space-y-3">
-            <p className="text-[10px] tracking-[0.24em] text-neutral-500 uppercase font-medium">
+            <p className="t-label t-label-d">
               추천 다음 단계
             </p>
             <p className="text-sm text-neutral-300 leading-relaxed">
@@ -145,7 +145,7 @@ export default function DiagnosticChecklist() {
             href={`/contact?type=${encodeURIComponent("전체 진단")}&bottleneck=${encodeURIComponent(
               `${unresolved}/6 항목 미정리`
             )}&output=${encodeURIComponent("운영 진단 및 우선순위 메모")}`}
-            className="group mt-10 inline-flex items-center px-8 py-4 bg-white text-foreground text-sm font-medium tracking-wider transition-all duration-300 hover:bg-neutral-200"
+            className="group mt-10 inline-flex items-center btn-blue rounded-[10px] px-8 py-4 text-sm font-medium tracking-wider transition-all duration-300"
           >
             진단 결과 보내기
             <span className="ml-3 transition-transform duration-300 group-hover:translate-x-1">

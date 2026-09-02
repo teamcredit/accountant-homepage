@@ -27,7 +27,7 @@ export default function PeoplePage() {
             PEOPLE
           </div>
         </div>
-        <div className="max-w-7xl mx-auto px-6 relative z-10">
+        <div className="max-w-[1600px] mx-auto px-6 relative z-10">
           <AnimateOnScroll variant="fadeIn">
             <p className="text-xs tracking-[0.4em] text-neutral-500 mb-6 uppercase">
               People
@@ -53,7 +53,7 @@ export default function PeoplePage() {
       {/* Founder */}
       {lead && (
         <section className="py-24 md:py-32">
-          <div className="max-w-7xl mx-auto px-6">
+          <div className="max-w-[1600px] mx-auto px-6">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20 items-center">
               {/* Photo */}
               <div className="bg-card border border-border overflow-hidden">
@@ -77,23 +77,23 @@ export default function PeoplePage() {
               </div>
               {/* Info */}
               <AnimateOnScroll variant="fadeUp" delay={0.15}>
-                <p className="text-xs tracking-[0.3em] text-muted mb-4 uppercase">
+                <p className="t-eyebrow mb-4">
                   Founder
                 </p>
-                <h2 className="text-3xl md:text-4xl font-bold tracking-tight">
+                <h2 className="t-h2">
                   {lead.name}
                 </h2>
-                <p className="mt-2 text-muted font-medium">{lead.role}</p>
+                <p className="t-subtitle mt-2">{lead.role}</p>
                 <div className="mt-6 h-px w-16 bg-accent" />
                 {lead.description && (
-                  <p className="mt-6 text-muted leading-relaxed text-lg">
+                  <p className="t-desc mt-6">
                     {lead.description}
                   </p>
                 )}
 
                 {lead.practiceAreas && lead.practiceAreas.length > 0 && (
                   <div className="mt-10">
-                    <p className="text-xs tracking-[0.2em] text-subtle mb-4 uppercase font-medium">
+                    <p className="t-label mb-4">
                       전문 영역 · Practice Areas
                     </p>
                     <div className="space-y-3">
@@ -111,7 +111,7 @@ export default function PeoplePage() {
 
                 {lead.credentials && lead.credentials.length > 0 && (
                   <div className="mt-10">
-                    <p className="text-xs tracking-[0.2em] text-subtle mb-4 uppercase font-medium">
+                    <p className="t-label mb-4">
                       자격 · 학력
                     </p>
                     <div className="space-y-3">
@@ -128,7 +128,7 @@ export default function PeoplePage() {
                 )}
 
                 <div className="mt-10">
-                  <p className="text-xs tracking-[0.2em] text-subtle mb-4 uppercase font-medium">
+                  <p className="t-label mb-4">
                     경력
                   </p>
                   <div className="space-y-3">
@@ -154,7 +154,7 @@ export default function PeoplePage() {
 
           {/* Coming Soon — TBD collaborators */}
           <section className="py-24 md:py-32 bg-card">
-            <div className="max-w-7xl mx-auto px-6">
+            <div className="max-w-[1600px] mx-auto px-6">
               <AnimateOnScroll>
                 <SectionHeading
                   label="Joining Soon"
@@ -173,10 +173,10 @@ export default function PeoplePage() {
                           </span>
                         </div>
                         <div>
-                          <p className="text-[10px] tracking-[0.25em] text-subtle uppercase font-medium mb-1">
+                          <p className="t-label mb-1">
                             {member.role}
                           </p>
-                          <h3 className="text-lg font-bold tracking-tight">
+                          <h3 className="t-h4">
                             {member.name}
                           </h3>
                         </div>

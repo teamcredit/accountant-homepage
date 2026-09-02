@@ -250,7 +250,7 @@ export default function PricingCalculator() {
       {/* ─── Wizard ─── */}
       <section className="lg:col-span-7 xl:col-span-7">
         <div className="mb-6">
-          <p className="text-xs font-semibold tracking-[0.2em] uppercase text-muted mb-2">
+          <p className="t-label mb-2">
             Estimator
           </p>
           <h2 className="text-2xl md:text-3xl font-bold tracking-tight">
@@ -296,7 +296,7 @@ export default function PricingCalculator() {
                                 key={type}
                                 type="button"
                                 onClick={() => dispatch({ type: "setBusinessType", value: type })}
-                                className={`text-left px-4 py-4 border transition-all ${
+                                className={`text-left rounded-[10px] px-4 py-4 border transition-all ${
                                   isSelected
                                     ? "border-foreground bg-card"
                                     : "border-border hover:border-strong"
@@ -357,7 +357,7 @@ export default function PricingCalculator() {
                             <button
                               type="button"
                               onClick={() => onSelectIndustry("other")}
-                              className="text-left px-3 py-2.5 hover:bg-card transition-colors"
+                              className="text-left rounded-[10px] px-3 py-2.5 hover:bg-card transition-colors"
                             >
                               <strong className="block text-sm">기타·잘 모르겠음</strong>
                               <span className="block text-xs text-muted mt-0.5">
@@ -372,9 +372,9 @@ export default function PricingCalculator() {
                                   key={industry.id}
                                   type="button"
                                   onClick={() => onSelectIndustry(industry.id)}
-                                  className={`text-left px-3 py-2.5 transition-colors ${
+                                  className={`text-left rounded-[10px] px-3 py-2.5 transition-colors ${
                                     isSelected
-                                      ? "bg-foreground text-white"
+                                      ? "btn-blue"
                                       : "hover:bg-card"
                                   }`}
                                 >
@@ -466,9 +466,9 @@ export default function PricingCalculator() {
                                 key={amount}
                                 type="button"
                                 onClick={() => dispatch({ type: "setRevenue", value: amount })}
-                                className={`text-xs px-3 py-1.5 border transition-colors ${
+                                className={`text-xs rounded-[10px] px-3 py-1.5 border transition-colors ${
                                   isActive
-                                    ? "border-foreground bg-foreground text-white"
+                                    ? "btn-blue border-transparent"
                                     : "border-border hover:border-strong text-muted"
                                 }`}
                               >
@@ -621,7 +621,7 @@ export default function PricingCalculator() {
                                     key={mode}
                                     type="button"
                                     onClick={() => dispatch({ type: "setPayrollMode", value: mode })}
-                                    className={`w-full text-left px-3 py-3 border transition-colors ${
+                                    className={`w-full text-left rounded-[10px] px-3 py-3 border transition-colors ${
                                       isSelected
                                         ? "border-foreground bg-card"
                                         : "border-border hover:border-strong"
@@ -652,9 +652,9 @@ export default function PricingCalculator() {
                                     key={count}
                                     type="button"
                                     onClick={() => dispatch({ type: "setStaff", value: count })}
-                                    className={`text-xs px-3 py-1.5 border transition-colors ${
+                                    className={`text-xs rounded-[10px] px-3 py-1.5 border transition-colors ${
                                       isActive
-                                        ? "border-foreground bg-foreground text-white"
+                                        ? "btn-blue border-transparent"
                                         : "border-border hover:border-strong text-muted"
                                     }`}
                                   >
@@ -679,9 +679,9 @@ export default function PricingCalculator() {
                                     onClick={() =>
                                       dispatch({ type: "setNonEmployeePayees", value: count })
                                     }
-                                    className={`text-xs px-3 py-1.5 border transition-colors ${
+                                    className={`text-xs rounded-[10px] px-3 py-1.5 border transition-colors ${
                                       isActive
-                                        ? "border-foreground bg-foreground text-white"
+                                        ? "btn-blue border-transparent"
                                         : "border-border hover:border-strong text-muted"
                                     }`}
                                   >
@@ -711,7 +711,7 @@ export default function PricingCalculator() {
                                 key={key}
                                 type="button"
                                 onClick={() => dispatch({ type: "setSetupMode", value: key })}
-                                className={`text-left px-4 py-4 border transition-colors ${
+                                className={`text-left rounded-[10px] px-4 py-4 border transition-colors ${
                                   isSelected
                                     ? "border-foreground bg-card"
                                     : "border-border hover:border-strong"
@@ -742,7 +742,7 @@ export default function PricingCalculator() {
                         </p>
 
                         <div>
-                          <p className="text-[0.7rem] uppercase tracking-[0.15em] text-muted mb-2">
+                          <p className="t-label mb-2">
                             추가 대행업무
                           </p>
                           <div className="grid grid-cols-1 gap-2">
@@ -753,7 +753,7 @@ export default function PricingCalculator() {
                                   key={addon.id}
                                   type="button"
                                   onClick={() => dispatch({ type: "toggleAddOn", id: addon.id })}
-                                  className={`text-left px-4 py-3 border transition-colors flex items-start gap-3 ${
+                                  className={`text-left rounded-[10px] px-4 py-3 border transition-colors flex items-start gap-3 ${
                                     isSelected
                                       ? "border-foreground bg-card"
                                       : "border-border hover:border-strong"
@@ -762,7 +762,7 @@ export default function PricingCalculator() {
                                 >
                                   <span
                                     className={`mt-0.5 w-4 h-4 border flex items-center justify-center text-[10px] flex-shrink-0 ${
-                                      isSelected ? "bg-foreground border-foreground text-white" : "border-border"
+                                      isSelected ? "btn-blue border-transparent" : "border-border"
                                     }`}
                                   >
                                     {isSelected ? "✓" : ""}
@@ -783,7 +783,7 @@ export default function PricingCalculator() {
                         </div>
 
                         <div>
-                          <p className="text-[0.7rem] uppercase tracking-[0.15em] text-muted mb-2">
+                          <p className="t-label mb-2">
                             별도 협의가 필요한 경우
                           </p>
                           <div className="grid grid-cols-1 gap-2">
@@ -794,7 +794,7 @@ export default function PricingCalculator() {
                                   key={flag.id}
                                   type="button"
                                   onClick={() => dispatch({ type: "toggleFlag", id: flag.id })}
-                                  className={`text-left px-4 py-3 border transition-colors flex items-start gap-3 ${
+                                  className={`text-left rounded-[10px] px-4 py-3 border transition-colors flex items-start gap-3 ${
                                     isSelected
                                       ? "border-foreground bg-card"
                                       : "border-border hover:border-strong"
@@ -803,7 +803,7 @@ export default function PricingCalculator() {
                                 >
                                   <span
                                     className={`mt-0.5 w-4 h-4 border flex items-center justify-center text-[10px] flex-shrink-0 ${
-                                      isSelected ? "bg-foreground border-foreground text-white" : "border-border"
+                                      isSelected ? "btn-blue border-transparent" : "border-border"
                                     }`}
                                   >
                                     {isSelected ? "✓" : ""}
@@ -870,7 +870,7 @@ export default function PricingCalculator() {
 
           {/* Total card */}
           <div className="px-5 md:px-6 py-6 border-b border-border">
-            <span className="text-[0.7rem] uppercase tracking-[0.15em] text-muted">
+            <span className="t-label">
               {estimate.needsRevenue
                 ? "연매출 입력 후 계산"
                 : estimate.isCustom
@@ -915,7 +915,7 @@ export default function PricingCalculator() {
               borderTop
             />
             <div className="col-span-2 border-t border-border px-4 py-3 bg-card">
-              <span className="text-[0.65rem] uppercase tracking-[0.15em] text-muted">산정 기준</span>
+              <span className="t-label">산정 기준</span>
               <strong className="block text-sm mt-1 leading-snug">
                 {selectedPricing.label} · {selectedIndustry.label} (
                 {getIndustryPricingBasis(state.industryId)})
@@ -944,20 +944,20 @@ export default function PricingCalculator() {
               <button
                 type="button"
                 onClick={onShareLink}
-                className="text-xs font-medium tracking-wider uppercase px-4 py-2.5 bg-foreground text-white hover:bg-strong transition-colors"
+                className="text-xs font-medium tracking-wider uppercase btn-blue rounded-[10px] px-4 py-2.5 transition-colors"
               >
                 견적 링크 복사
               </button>
               <button
                 type="button"
                 onClick={onCopyInquiry}
-                className="text-xs font-medium tracking-wider uppercase px-4 py-2.5 border border-border text-muted hover:text-foreground hover:border-foreground transition-colors"
+                className="text-xs font-medium tracking-wider uppercase rounded-[10px] px-4 py-2.5 border border-border text-muted hover:text-foreground hover:border-foreground transition-colors"
               >
                 문의 내용 복사
               </button>
               <a
                 href={contactHref}
-                className="text-xs font-medium tracking-wider uppercase px-4 py-2.5 border border-border text-muted hover:text-foreground hover:border-foreground transition-colors"
+                className="text-xs font-medium tracking-wider uppercase rounded-[10px] px-4 py-2.5 border border-border text-muted hover:text-foreground hover:border-foreground transition-colors"
               >
                 상담 신청
               </a>
@@ -967,7 +967,7 @@ export default function PricingCalculator() {
           {/* Breakdown */}
           <div className="px-5 md:px-6 py-5 border-b border-border">
             <div className="flex items-baseline justify-between mb-3">
-              <h3 className="text-sm font-bold tracking-tight uppercase tracking-[0.1em]">
+              <h3 className="t-label text-foreground">
                 산정 내역
               </h3>
               <button
@@ -1007,7 +1007,7 @@ export default function PricingCalculator() {
 
           {/* Included */}
           <div className="px-5 md:px-6 py-5 border-b border-border">
-            <h3 className="text-sm font-bold uppercase tracking-[0.1em] mb-3">
+            <h3 className="t-label text-foreground mb-3">
               이 금액에 포함된 기본 범위
             </h3>
             <ul className="space-y-2">
@@ -1075,7 +1075,7 @@ function MiniMetric({
         borderTop ? "border-t border-border" : ""
       }`}
     >
-      <span className="text-[0.65rem] uppercase tracking-[0.15em] text-muted">{label}</span>
+      <span className="t-label">{label}</span>
       <strong className="block text-sm md:text-base mt-1 tabular-nums">{value}</strong>
       {note && <p className="text-[0.65rem] text-subtle mt-1 leading-relaxed">{note}</p>}
     </div>

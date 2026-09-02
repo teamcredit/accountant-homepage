@@ -1,25 +1,60 @@
 import Link from "next/link";
 import type { Metadata } from "next";
 import { services } from "@/lib/data";
+
+/* 하는 일 카드 줄바꿈. 마침표·쉼표 자리에서만 끊는다.
+   data.ts 의 description 은 서비스 상세 페이지도 같이 쓰므로 건드리지 않는다. */
+const SVC_LINES: Record<string, string[]> = {
+  "tax-bookkeeping": [
+    "월별 장부를 정리하고, 부가세·원천세 신고 일정을 운영합니다.",
+    "매달 같은 기준으로 숫자가 떨어집니다. 대표가 그 자리에서 보고 판단합니다.",
+  ],
+  "tax-adjustment": [
+    "법인세·소득세 신고 전에 조정 항목을 정리하고,",
+    "공제·감면 적용 여부를 검토합니다.",
+    "근거는 문서로 남깁니다. 신고 후 소명 요청이 와도 그 자리에서 꺼낼 수 있도록.",
+  ],
+  "tax-advisory": [
+    "지분 이동, 승계, 자산 이전, 특수관계자 거래처럼 실행 전에",
+    "세금을 먼저 따져야 하는 이슈를 다룹니다.",
+    "방안별 세부담을 표로 두고 비교합니다. 대표는 그 표를 보고 결정합니다.",
+  ],
+  "valuation": [
+    "비상장주식, 투자유치, 승계, 합병 비율 판단에 필요한 평가를 다룹니다.",
+    "세법 기준과 거래 기준은 다릅니다.",
+    "둘을 구분해, 누가 봐도 같은 결론이 나오는 보고서로 남깁니다.",
+  ],
+  "transaction-advisory": [
+    "매수·매도 실사에서 우발부채와 정상화 조정을 찾고,",
+    "거래 구조별 세무·회계 함의를 정리합니다.",
+    "딜 전에 짚어둘 항목과 협상에서 부딪힐 쟁점을 문서로 묶어둡니다.",
+  ],
+  "audit-advisory": [
+    "감사인이 확인할 회계처리, 결산 자료, 내부통제 이슈를 미리 점검합니다.",
+    "자료 준비 기준을 잡아 감사 과정의 반복 질의를 줄입니다.",
+  ],
+};
 import { siteConfig } from "@/lib/constants";
 import { getAllPosts } from "@/lib/posts";
 import PromoMotion from "@/components/home/promo-motion";
 import ServiceMerge from "@/components/home/service-merge";
-import SchedulePopup from "@/components/home/schedule-popup";
+import SchedulePopup, { ScheduleButton } from "@/components/home/schedule-popup";
 
-/* 히어로에서 팝업으로 뺀 이번 분기 일정. 한 곳에서만 고치면 되게 모아둔다. */
-const SCHEDULE = [
-  { what: "원천세 납부", dday: "D-31", when: "2026.09.10" },
-  { what: "원천세 납부", dday: "D-61", when: "2026.10.10" },
-  { what: "부가세 2기 예정신고", dday: "D-76", when: "2026.10.25" },
-  { what: "부가세 2기 확정신고", dday: "D-168", when: "2027.01.25" },
+/* 히어로에서 팝업으로 뺀 이번 분기 일정. 한 곳에서만 고치면 되게 모아둔다.
+   D-day 는 적지 않는다. 적어두면 하루만 지나도 틀린 숫자가 화면에 남는다.
+   날짜만 두고, 남은 날은 볼 때마다 계산한다. */
+const SCHEDULE_DATES = [
+  { what: "원천세 납부", when: "2026-09-10" },
+  { what: "원천세 납부", when: "2026-10-10" },
+  { what: "부가세 2기 예정신고", when: "2026-10-25" },
+  { what: "부가세 2기 확정신고", when: "2027-01-25" },
 ];
 import "./promo.css";
 
 export const metadata: Metadata = {
   title: "회계사가 정리한 자료를 한 화면에서 보는 세무 대시보드",
   description:
-    "기장을 맡기시면 회사 전용 세무 대시보드가 함께 제공됩니다. 홈택스·카드·통장 자료를 매일 자동으로 모으고, 지금 이 순간의 손익과 부가세를 봅니다.",
+    "기장을 맡기시면 회사 전용 세무 대시보드가 무료로 제공됩니다. 홈택스·카드·통장 자료를 매일 자동으로 모으고, 지금 이 순간의 손익과 부가세를 봅니다.",
 };
 
 export default function Home() {
@@ -28,7 +63,7 @@ export default function Home() {
   return (
     <div className="promo">
       <PromoMotion />
-      <SchedulePopup items={SCHEDULE} asOf="2026.08.10" trigger="schedOpen" />
+      <SchedulePopup items={SCHEDULE_DATES} trigger="schedOpen" />
 
       {/* 우측 앵커. 선과 빈 원. 원하는 데만 보고 갈 수 있게. */}
       <nav className="anchor" id="anchor" aria-label="구역 바로가기">
@@ -52,10 +87,12 @@ export default function Home() {
         <div className="hero-hold">
         <div className="wrap">
           <div className="hero-grid">
-            <div>
+            {/* 왼쪽 글. 카드가 다 모이면 물러난다 — 그 뒤는 대시보드 차례다.
+                투명도는 service-merge 가 스크롤에 맞춰 넣는다. */}
+            <div className="hero-copy">
           <p className="tick">Meridian만의 특별한 서비스</p>
           <h1><span className="c">회계사가 정리한 자료를,</span><span className="c">한 화면에서<span className="dot-b">.</span></span></h1>
-          <p className="hero-sub"><span className="c">기장을 맡기시면</span><span className="c"><b>회사 전용 세무 대시보드</b>가 함께 제공됩니다.</span></p>
+          <p className="hero-sub"><span className="c">기장을 맡기시면</span><span className="c"><b>회사 전용 세무 대시보드</b>가 무료로 제공됩니다.</span></p>
           <div className="hero-cta">
             <a className="btn btn-fill" href="#end">기장 이관 상담하기</a>
             {/* 헤더의 '대시보드 시작하기'와 같은 곳으로 간다. 이름도 같게 —
@@ -71,10 +108,7 @@ export default function Home() {
           </div>
           <p className="cta-note"><span className="s">상담은 무료입니다.</span><span className="s">쓰던 사무소에서 넘어오는 절차는 저희가 처리합니다.</span></p>
           {/* 팝업을 닫아도 여기서 다시 연다 */}
-          <button type="button" id="schedOpen" className="sched-open">
-            <span className="lb">이번 분기 주요 일정</span>
-            <span className="dd">원천세 D-31</span>
-          </button>
+          <ScheduleButton items={SCHEDULE_DATES} />
             </div>
 
             {/* 일정표가 있던 자리. 흩어진 서비스가 한 장으로 모인다.
@@ -296,7 +330,7 @@ export default function Home() {
               </article>
               <article className="fc">
                 <p className="no">03</p><h3>올해와 작년을 겹쳐서</h3>
-                <p>계절을 타는 업종이라면 이 막대 하나로 흐름이 보입니다.</p>
+                <p><span className="s">계절을 타는 업종이라면</span><span className="s">이 막대 하나로 흐름이 보입니다.</span></p>
               </article>
               <article className="fc">
                 <p className="no">04</p><h3>어디까지 반영됐는지</h3>
@@ -308,7 +342,7 @@ export default function Home() {
               </article>
               <article className="fc">
                 <p className="no">06</p><h3>놓칠 뻔한 것</h3>
-                <p>불공제 후보, 갑자기 늘어난 매입처, 고액 1회성 지출을 먼저 짚어줍니다.</p>
+                <p><span className="s">불공제 후보, 갑자기 늘어난 매입처,</span><span className="s">고액 1회성 지출을 먼저 짚어줍니다.</span></p>
               </article>
               </div>
               <div className="fdots" id="fdots"><i className="on"></i><i></i><i></i><i></i><i></i><i></i></div>
@@ -452,17 +486,6 @@ export default function Home() {
         </div>
       </section>
 
-      {/* 배너 CTA. 본문을 한 번 끊고 지나간다. */}
-      <div className="wrap">
-        <div className="band-cta rise">
-          <div>
-            <h3>지금 기장 상황부터 점검해 드립니다<span className="dot-b">.</span></h3>
-            <p>어디가 새는지, 무엇이 늦는지 먼저 봅니다.</p>
-          </div>
-          <a className="btn btn-fill" href="#end">기장 이관 상담하기</a>
-        </div>
-      </div>
-
       {/* 선언문. 메리디안의 본업이 무엇인지. */}
       <section className="creed invert" id="creed">
         <div className="wrap">
@@ -472,6 +495,10 @@ export default function Home() {
           <p className="creed-a rise">
             <span className="s">매일의 기장이 검토가 되고, 검토가 자문이 되고,</span><span className="s">자문이 다음 결정의 근거가 됩니다.</span><span className="s">그 흐름을 끊지 않는 일이 메리디안의 본업입니다.</span>
           </p>
+          {/* 배너 CTA 를 없애고 그 버튼을 여기로 옮겼다. 글은 왼쪽, 버튼만 가운데. */}
+          <div className="creed-cta rise">
+            <a className="btn btn-fill" href="#end">기장 이관 상담하기</a>
+          </div>
         </div>
       </section>
 
@@ -485,7 +512,9 @@ export default function Home() {
               <Link key={service.slug} href={`/services/${service.slug}`}>
                 <p className="no">{String(i + 1).padStart(2, "0")}</p>
                 <h3>{service.title}</h3>
-                <p>{service.description}</p>
+                <p>{(SVC_LINES[service.slug] ?? [service.description]).map((line, k) => (
+                  <span className="s" key={k}>{line}</span>
+                ))}</p>
                 <span className="go">자세히 →</span>
               </Link>
             ))}
@@ -502,7 +531,7 @@ export default function Home() {
             <div className="step"><h3>상담</h3><p><span className="s">지금 상황과 필요한 것을 듣습니다.</span><span className="s">비용도 이때 확정합니다.</span></p></div>
             <div className="step"><h3>이관 동의</h3><p><span className="s">서류 한 장이면 됩니다.</span><span className="s">나머지 절차는 저희가 처리합니다.</span></p></div>
             <div className="step"><h3>자료 연결</h3><p><span className="s">홈택스와 카드, 통장을 연결합니다.</span><span className="s">과거 자료도 가져옵니다.</span></p></div>
-            <div className="step"><h3>화면 열림</h3><p>다음 날부터 대시보드에서 우리 회사 숫자를 봅니다.</p></div>
+            <div className="step"><h3>대시보드 사용</h3><p><span className="s">다음 날부터 대시보드에서</span><span className="s">우리 회사 숫자를 봅니다.</span></p></div>
           </div>
         </div>
       </section>
@@ -572,7 +601,7 @@ export default function Home() {
               </Link>
             ))}
           </div>
-          <p style={{'marginTop': 'var(--s4)'}}><a href="/blog" style={{'fontSize': 'var(--t-0)', 'fontWeight': '600', 'color': 'var(--blue)', 'textDecoration': 'none'}}>모든 글 보기 →</a></p>
+          <p style={{'marginTop': 'var(--s4)', 'textAlign': 'right'}}><a href="/blog" style={{'fontSize': 'var(--t-0)', 'fontWeight': '600', 'color': 'var(--blue)', 'textDecoration': 'none'}}>모든 글 보기 →</a></p>
         </div>
       </section>
 
@@ -581,7 +610,7 @@ export default function Home() {
         <div className="wrap">
           <p className="tick rise">기장 이관</p>
           <h2 className="rise">우리 회사 자료로 먼저 보시고 정하셔도 됩니다<span className="dot-b">.</span></h2>
-          <p className="lede rise"><span className="s">상담에서 실제 화면을 보여드립니다.</span><span className="s">그다음에 정하셔도 늦지 않습니다.</span></p>
+          <p className="lede rise"><span className="s">상담에서 실제 대시보드를 보여드립니다.</span><span className="s">그다음에 정하셔도 늦지 않습니다.</span></p>
           <div className="hero-cta rise" style={{'justifyContent': 'center', 'marginTop': 'var(--s5)'}}>
             <a className="btn btn-fill" href="/contact">기장 이관 상담하기</a>
             <a className="btn btn-line" href="/contact">전화로 문의</a>

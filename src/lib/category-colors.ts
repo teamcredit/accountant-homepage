@@ -9,7 +9,9 @@ export interface CategoryStyle {
 }
 
 const LIGHT_STYLES: Record<string, CategoryStyle> = {
-  법인세: { backgroundColor: "#eff6ff", color: "#1d4ed8" },
+  /* 파랑만 브랜드 사다리(accent-50 / accent-700)를 쓴다.
+     나머지 6색은 카테고리 구분용이라 그대로 둔다. */
+  법인세: { backgroundColor: "#f1f5ff", color: "#1b40cc" },
   소득세: { backgroundColor: "#ecfdf5", color: "#047857" },
   부가가치세: { backgroundColor: "#fffbeb", color: "#b45309" },
   "상속·증여세": { backgroundColor: "#faf5ff", color: "#7e22ce" },
@@ -19,7 +21,7 @@ const LIGHT_STYLES: Record<string, CategoryStyle> = {
 };
 
 const DARK_STYLES: Record<string, CategoryStyle> = {
-  법인세: { backgroundColor: "rgba(59,130,246,0.2)", color: "#93c5fd" },
+  법인세: { backgroundColor: "rgba(43,91,255,0.2)", color: "#b9c8ff" },
   소득세: { backgroundColor: "rgba(16,185,129,0.2)", color: "#6ee7b7" },
   부가가치세: { backgroundColor: "rgba(245,158,11,0.2)", color: "#fcd34d" },
   "상속·증여세": { backgroundColor: "rgba(168,85,247,0.2)", color: "#c4b5fd" },

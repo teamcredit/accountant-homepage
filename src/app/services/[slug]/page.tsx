@@ -115,7 +115,7 @@ export default async function ServiceDetailPage({ params }: Props) {
             {num}
           </div>
         </div>
-        <div className="max-w-7xl mx-auto px-6 relative z-10">
+        <div className="max-w-[1600px] mx-auto px-6 relative z-10">
           {/* Breadcrumb */}
           <AnimateOnScroll variant="fadeIn">
             <nav className="flex items-center gap-2 text-sm text-neutral-500 mb-10">
@@ -154,13 +154,13 @@ export default async function ServiceDetailPage({ params }: Props) {
 
       {/* Content + Side Nav */}
       <section className="py-24 md:py-32">
-        <div className="max-w-7xl mx-auto px-6">
+        <div className="max-w-[1600px] mx-auto px-6">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16">
             {/* Side Navigation */}
             <aside className="lg:col-span-3">
               <AnimateOnScroll variant="fadeUp">
                 <div className="lg:sticky lg:top-32">
-                  <p className="text-xs tracking-[0.2em] text-muted mb-4 uppercase font-medium">
+                  <p className="t-eyebrow mb-4">
                     Services
                   </p>
                   <nav className="space-y-0 border-l border-border">
@@ -193,10 +193,10 @@ export default async function ServiceDetailPage({ params }: Props) {
               {/* I. Service Details */}
               <AnimateOnScroll variant="fadeUp">
                 <div className="flex items-baseline gap-4 mb-10">
-                  <span className="text-xs tracking-[0.2em] text-subtle uppercase font-medium">
+                  <span className="t-label">
                     I.
                   </span>
-                  <h2 className="text-2xl font-bold tracking-tight">
+                  <h2 className="t-h3">
                     서비스 상세
                   </h2>
                 </div>
@@ -218,10 +218,10 @@ export default async function ServiceDetailPage({ params }: Props) {
               {service.deliverables && service.deliverables.length > 0 && (
                 <AnimateOnScroll variant="fadeUp">
                   <div className="flex items-baseline gap-4 mb-10">
-                    <span className="text-xs tracking-[0.2em] text-subtle uppercase font-medium">
+                    <span className="t-label">
                       II.
                     </span>
-                    <h2 className="text-2xl font-bold tracking-tight">
+                    <h2 className="t-h3">
                       산출물
                     </h2>
                     <span className="text-xs text-subtle ml-2">
@@ -247,10 +247,10 @@ export default async function ServiceDetailPage({ params }: Props) {
               {sampleArtifacts && (
                 <AnimateOnScroll variant="fadeUp">
                   <div className="flex items-baseline gap-4 mb-10">
-                    <span className="text-xs tracking-[0.2em] text-subtle uppercase font-medium">
+                    <span className="t-label">
                       III.
                     </span>
-                    <h2 className="text-2xl font-bold tracking-tight">
+                    <h2 className="t-h3">
                       {sampleArtifacts.title}
                     </h2>
                   </div>
@@ -260,10 +260,10 @@ export default async function ServiceDetailPage({ params }: Props) {
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     {sampleArtifacts.samples.map((sample, index) => (
                       <div key={sample.title} className="border border-border bg-card p-6 md:p-7">
-                        <p className="text-xs tracking-[0.24em] text-subtle uppercase font-medium">
+                        <p className="t-label">
                           {String(index + 1).padStart(2, "0")}
                         </p>
-                        <h3 className="mt-4 text-lg font-bold tracking-tight">
+                        <h3 className="t-h4 mt-4">
                           {sample.title}
                         </h3>
                         <p className="mt-3 text-sm text-muted leading-relaxed">
@@ -280,10 +280,10 @@ export default async function ServiceDetailPage({ params }: Props) {
                 service.applicableScenarios.length > 0 && (
                   <AnimateOnScroll variant="fadeUp">
                     <div className="flex items-baseline gap-4 mb-10">
-                      <span className="text-xs tracking-[0.2em] text-subtle uppercase font-medium">
+                      <span className="t-label">
                         {sampleArtifacts ? "IV." : "III."}
                       </span>
-                      <h2 className="text-2xl font-bold tracking-tight">
+                      <h2 className="t-h3">
                         적용 케이스
                       </h2>
                       <span className="text-xs text-subtle ml-2">
@@ -311,7 +311,7 @@ export default async function ServiceDetailPage({ params }: Props) {
                 <div className="p-10 md:p-12 bg-foreground text-white">
                   <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
                     <div>
-                      <h3 className="text-xl font-bold tracking-tight">
+                      <h3 className="t-h4">
                         {service.title} 케이스를 상담하시려면
                       </h3>
                       <p className="mt-2 text-neutral-400 text-sm leading-relaxed">
@@ -322,7 +322,7 @@ export default async function ServiceDetailPage({ params }: Props) {
                       href={`/contact?type=${encodeURIComponent(service.title)}&output=${encodeURIComponent(
                         service.deliverables[0] ?? "적용 범위 검토"
                       )}`}
-                      className="group inline-flex items-center justify-center px-8 py-4 bg-white text-foreground text-sm font-medium tracking-wider transition-all duration-300 hover:bg-neutral-200 flex-shrink-0"
+                      className="group inline-flex items-center justify-center btn-blue rounded-[10px] px-8 py-4 text-sm font-medium tracking-wider transition-all duration-300 flex-shrink-0"
                     >
                       문의하기
                       <span className="ml-2 transition-transform duration-300 group-hover:translate-x-1">
@@ -336,7 +336,7 @@ export default async function ServiceDetailPage({ params }: Props) {
               {/* Related Services */}
               <div>
                 <AnimateOnScroll variant="fadeUp">
-                  <h3 className="text-lg font-bold tracking-tight mb-8">
+                  <h3 className="t-h4 mb-8">
                     다른 전문 영역
                   </h3>
                 </AnimateOnScroll>
@@ -347,7 +347,7 @@ export default async function ServiceDetailPage({ params }: Props) {
                         href={`/services/${s.slug}`}
                         className="group block p-6 border border-border hover:border-foreground transition-colors duration-300"
                       >
-                        <span className="text-xs font-medium tracking-[0.2em] text-subtle">
+                        <span className="t-label">
                           {String(
                             services.findIndex((sv) => sv.slug === s.slug) + 1
                           ).padStart(2, "0")}

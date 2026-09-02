@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { useState, useEffect } from "react";
 import { motion, useScroll, useSpring } from "motion/react";
 import { navLinks, siteConfig } from "@/lib/constants";
+import SiteSearch from "./site-search";
 
 export default function Header() {
   const pathname = usePathname();
@@ -81,8 +82,12 @@ export default function Header() {
                     key={link.href}
                     href={link.href}
                     prefetch={false}
+                    /* 지금 어디에 있는지가 첫눈에 보여야 한다.
+                       글씨를 브랜드 파랑으로 바꾸고 밑줄을 켜 둔 채로 고정한다. */
                     className={`relative text-[0.8125rem] font-medium tracking-[0.08em] transition-colors duration-300 hover-underline ${
-                      isActive ? "text-foreground" : "text-muted hover:text-foreground"
+                      isActive
+                        ? "text-accent font-semibold nav-on"
+                        : "text-muted hover:text-foreground"
                     }`}
                   >
                     {link.label}
@@ -90,7 +95,9 @@ export default function Header() {
                 );
               })}
             </nav>
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-6">
+              {/* CONTACT 옆 물음표. 누르면 알약 검색창으로 늘어난다. */}
+              <SiteSearch />
               {/* 홈(promo)의 .btn .btn-fill 과 같은 생김새.
                   모서리 10px, 코발트, 색만 바뀐다. */}
               <a
@@ -167,7 +174,7 @@ export default function Header() {
                   mobileOpen
                     ? "opacity-100 translate-y-0"
                     : "opacity-0 translate-y-4"
-                } ${isActive ? "text-foreground" : "text-muted hover:text-foreground"}`}
+                } ${isActive ? "text-accent font-normal" : "text-muted hover:text-foreground"}`}
                 style={{
                   transitionDelay: mobileOpen ? `${index * 15 + 20}ms` : "0ms",
                 }}

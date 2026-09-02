@@ -23,7 +23,7 @@ export default function ServicesPage() {
             SERVICE
           </div>
         </div>
-        <div className="max-w-7xl mx-auto px-6 relative z-10">
+        <div className="max-w-[1600px] mx-auto px-6 relative z-10">
           <AnimateOnScroll variant="fadeIn">
             <p className="text-xs tracking-[0.4em] text-neutral-500 mb-6 uppercase">
               Practice
@@ -48,32 +48,32 @@ export default function ServicesPage() {
 
       {/* Services - Sticky Scroll Layout */}
       <section className="py-24 md:py-32">
-        <div className="max-w-7xl mx-auto px-6">
+        <div className="max-w-[1600px] mx-auto px-6">
           <StickyScrollServices services={services} />
         </div>
       </section>
 
       {/* ─── 1년의 흐름 ─── */}
-      <section className="py-24 md:py-32 bg-card border-y border-border">
-        <div className="max-w-7xl mx-auto px-6">
+      <section className="py-24 md:py-32 bg-card border-y border-border overflow-x-clip">
+        <div className="max-w-[1600px] mx-auto px-6">
           <AnimateOnScroll variant="fadeUp">
-            <p className="text-xs tracking-[0.35em] text-muted mb-8 font-medium uppercase">
+            <p className="t-eyebrow mb-8">
               Annual Flow
             </p>
             <h2
-              className="text-3xl md:text-5xl lg:text-6xl font-bold tracking-tight leading-[1.1] max-w-3xl"
+              className="t-h2 max-w-3xl"
               style={{ wordBreak: "keep-all" }}
             >
               1년의 흐름.
             </h2>
             <div className="mt-8 h-px w-12 bg-accent" />
-            <p className="mt-8 max-w-2xl text-base md:text-lg text-strong leading-[1.85]">
+            <p className="t-desc mt-8 max-w-2xl">
               매월 어느 일정이 돌아가고, 그 사이에 무엇을 하는지.
               기장은 매일, 신고는 분기, 자문은 결정이 닥칠 때.
             </p>
           </AnimateOnScroll>
 
-          <div className="mt-16 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-px bg-border border border-border">
+          <div className="aflow mt-16">
             {[
               {
                 q: "Q1",
@@ -116,33 +116,26 @@ export default function ServicesPage() {
                 role: "연말 결산을 미리 다듬어두고, 다음 해 그림을 그립니다. 큰 의사결정이 몰리는 분기.",
               },
             ].map((item) => (
-              <div key={item.q} className="bg-background p-8 md:p-10">
-                <div className="flex items-baseline gap-3 mb-2">
-                  <p className="text-3xl md:text-4xl font-black text-foreground tracking-tight">
-                    {item.q}
-                  </p>
-                  <p className="text-xs tracking-[0.2em] uppercase text-muted font-medium">
-                    {item.months}
-                  </p>
+              <div key={item.q} className="aflow-card">
+                <div className="aflow-head">
+                  <p className="aflow-q">{item.q}</p>
+                  <p className="t-label">{item.months}</p>
                 </div>
-                <div className="mt-6 h-px w-10 bg-accent" />
-                <p className="mt-5 text-xs tracking-[0.18em] uppercase text-muted font-medium mb-3">
-                  주요 일정
-                </p>
-                <ul className="space-y-2 text-sm text-strong">
+                <p className="t-label aflow-sub">주요 일정</p>
+                <ul className="t-body-sm aflow-list">
                   {item.deadlines.map((d) => (
-                    <li key={d} className="leading-relaxed">{d}</li>
+                    <li key={d}>{d}</li>
                   ))}
                 </ul>
-                <p className="mt-6 pt-6 border-t border-border text-xs tracking-[0.18em] uppercase text-muted font-medium mb-3">
-                  이 분기의 일
-                </p>
-                <p
-                  className="text-sm md:text-sm text-strong leading-[1.7]"
-                  style={{ wordBreak: "keep-all" }}
-                >
-                  {item.role}
-                </p>
+                <div className="aflow-body">
+                  {/* 카드 안 구분선이 곧 흐르는 줄이다. 첫 칸에서만 그리고
+                      폭을 네 칸 전체로 늘려, 카드를 관통해 한 줄로 이어진다. */}
+                  <span className="aflow-line" aria-hidden />
+                  <p className="t-label aflow-sub">이 분기의 일</p>
+                  <p className="t-body-sm" style={{ wordBreak: "keep-all" }}>
+                    {item.role}
+                  </p>
+                </div>
               </div>
             ))}
           </div>
@@ -156,22 +149,22 @@ export default function ServicesPage() {
       {/* CTA */}
       <AnimateOnScroll variant="fadeIn">
         <section className="py-24 md:py-32 bg-foreground text-white">
-          <div className="max-w-7xl mx-auto px-6 text-center">
+          <div className="max-w-[1600px] mx-auto px-6 text-center">
             <AnimateOnScroll variant="fadeUp">
-              <p className="text-xs tracking-[0.4em] text-neutral-500 mb-6 uppercase">
+              <p className="t-eyebrow t-eyebrow-d t-eyebrow-c mb-6">
                 Contact
               </p>
-              <h2 className="text-3xl md:text-4xl font-bold tracking-tight">
+              <h2 className="t-h2">
                 어디서부터 시작할지
                 <br className="hidden md:block" />
                 같이 짚어 보겠습니다
               </h2>
-              <p className="mt-6 text-neutral-400 max-w-2xl mx-auto leading-relaxed">
+              <p className="t-desc t-desc-d mt-6 max-w-2xl mx-auto">
                 지금 가장 급한 이슈 한 줄이면 충분합니다. 들어맞는 범위부터 추려 회신드립니다.
               </p>
               <Link
                 href="/contact"
-                className="group mt-10 inline-flex items-center px-10 py-4 bg-white text-foreground text-sm font-medium tracking-wider transition-all duration-300 hover:bg-neutral-200 hover:tracking-widest"
+                className="group mt-10 inline-flex items-center btn-blue rounded-[10px] px-10 py-4 text-sm font-medium tracking-wider transition-all duration-300 hover:tracking-widest"
               >
                 문의하기
                 <span className="ml-3 transition-transform duration-300 group-hover:translate-x-1">

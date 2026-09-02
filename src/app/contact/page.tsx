@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { siteConfig } from "@/lib/constants";
 import ContactForm from "@/components/contact/contact-form";
 import { AnimateOnScroll, LineReveal } from "@/components/motion";
+import { contactFaq } from "@/lib/faq";
 
 export const metadata: Metadata = {
   title: "CONTACT",
@@ -28,6 +29,26 @@ function getSingleValue(value?: string | string[]) {
   return Array.isArray(value) ? value[0] : value;
 }
 
+/* 검색엔진이 FAQ를 그대로 읽어가도록 같은 내용을 구조화해서 한 벌 더 넣는다. */
+const faqJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  mainEntity: contactFaq.map((item) => ({
+    "@type": "Question",
+    name: item.q,
+    acceptedAnswer: { "@type": "Answer", text: item.a },
+  })),
+};
+
+function toSafeJsonLd(value: unknown) {
+  return JSON.stringify(value)
+    .replaceAll("<", "\\u003c")
+    .replaceAll(">", "\\u003e")
+    .replaceAll("&", "\\u0026")
+    .replaceAll("\u2028", "\\u2028")
+    .replaceAll("\u2029", "\\u2029");
+}
+
 export default async function ContactPage({ searchParams }: ContactPageProps) {
   const query = await searchParams;
   const message = getSingleValue(query.message);
@@ -42,7 +63,7 @@ export default async function ContactPage({ searchParams }: ContactPageProps) {
             CONTACT
           </div>
         </div>
-        <div className="max-w-7xl mx-auto px-6 relative z-10">
+        <div className="max-w-[1600px] mx-auto px-6 relative z-10">
           <AnimateOnScroll variant="fadeIn">
             <p className="text-xs tracking-[0.4em] text-neutral-500 mb-6 uppercase">
               Contact
@@ -67,10 +88,10 @@ export default async function ContactPage({ searchParams }: ContactPageProps) {
       </section>
 
       <section className="py-24 md:py-32">
-        <div className="max-w-7xl mx-auto px-6">
+        <div className="max-w-[1600px] mx-auto px-6">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-16 lg:gap-20">
             <AnimateOnScroll variant="fadeUp" className="lg:col-span-7">
-              <h2 className="text-2xl md:text-3xl font-bold tracking-tight mb-10">
+              <h2 className="t-h3 mb-10">
                 문의 내용
               </h2>
               <ContactForm initialValues={initialValues} />
@@ -78,10 +99,10 @@ export default async function ContactPage({ searchParams }: ContactPageProps) {
 
             <AnimateOnScroll variant="fadeUp" delay={0.2} className="lg:col-span-5">
               <div className="lg:sticky lg:top-32">
-                <p className="text-xs tracking-[0.2em] text-muted mb-3 uppercase font-medium">
+                <p className="t-eyebrow mb-3">
                   Contact Details
                 </p>
-                <h2 className="text-2xl font-bold tracking-tight mb-10">
+                <h2 className="t-h3 mb-10">
                   직접 연락처로 보내기
                 </h2>
                 <div className="space-y-0">
@@ -90,7 +111,7 @@ export default async function ContactPage({ searchParams }: ContactPageProps) {
                       key={i}
                       className="py-6 border-b border-border first:border-t"
                     >
-                      <p className="text-[10px] tracking-[0.25em] text-subtle uppercase font-medium mb-2">
+                      <p className="t-label mb-2">
                         {info.label}
                       </p>
                       {"href" in info && info.href ? (
@@ -112,11 +133,13 @@ export default async function ContactPage({ searchParams }: ContactPageProps) {
                   ))}
                 </div>
 
-                <div className="mt-10 p-6 bg-card border border-border">
-                  <p className="text-[10px] tracking-[0.25em] text-subtle uppercase font-medium mb-3">
+                {/* 소속 고지. 박스에 가두면 각주처럼 보여서 그냥 꺼내 두고,
+                    법정 업무 주체가 어디인지 눈에 걸리도록 파란색으로 둔다. */}
+                <div className="mt-10">
+                  <p className="t-label mb-3 text-accent">
                     Affiliation Notice
                   </p>
-                  <p className="text-xs text-muted leading-relaxed">
+                  <p className="text-xs text-accent leading-relaxed">
                     {siteConfig.affiliation}
                   </p>
                 </div>
@@ -125,6 +148,48 @@ export default async function ContactPage({ searchParams }: ContactPageProps) {
           </div>
         </div>
       </section>
+
+      {/* 폼을 보내기 전에 걸리는 것들. 눌러서 펴 보는 방식이라 화면이 길어지지 않는다. */}
+      <section className="py-24 md:py-32 bg-card border-t border-border">
+        <div className="max-w-[1600px] mx-auto px-6">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-20">
+            <AnimateOnScroll variant="fadeUp" className="lg:col-span-4">
+              <p className="t-eyebrow mb-3">FAQ</p>
+              <h2 className="t-h2">자주 묻는 질문</h2>
+              <p className="t-desc mt-5" style={{ wordBreak: "keep-all" }}>
+                여기에 없는 것은 문의에 적어 주세요. 같이 답을 드립니다.
+              </p>
+            </AnimateOnScroll>
+
+            <AnimateOnScroll variant="fadeUp" delay={0.15} className="lg:col-span-8">
+              <div className="border-t border-border">
+                {contactFaq.map((item) => (
+                  <details
+                    key={item.q}
+                    name="contact-faq"
+                    className="faq-item border-b border-border"
+                  >
+                    <summary className="faq-q">
+                      <span className="t-h4" style={{ wordBreak: "keep-all" }}>
+                        {item.q}
+                      </span>
+                      <span className="faq-mark" aria-hidden />
+                    </summary>
+                    <p className="t-body text-muted faq-a" style={{ wordBreak: "keep-all" }}>
+                      {item.a}
+                    </p>
+                  </details>
+                ))}
+              </div>
+            </AnimateOnScroll>
+          </div>
+        </div>
+      </section>
+
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: toSafeJsonLd(faqJsonLd) }}
+      />
     </>
   );
 }
