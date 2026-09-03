@@ -2,16 +2,67 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { motion, useScroll, useSpring } from "motion/react";
-import { navLinks, siteConfig } from "@/lib/constants";
+import { navLinks } from "@/lib/constants";
 import SiteSearch from "./site-search";
+import Wordmark from "@/components/brand/wordmark";
 
 export default function Header() {
   const pathname = usePathname();
   const [mobileOpen, setMobileOpen] = useState(false);
   const { scrollYProgress } = useScroll();
   const scaleX = useSpring(scrollYProgress, { stiffness: 200, damping: 50, restDelta: 0.001 });
+
+  /* 헤더 뒤가 흰 본문일 때와 검은 히어로일 때가 다르다.
+     흰 유리를 검정 위에 얹으면 회색 판이 되고 글자가 사라진다.
+     그래서 헤더 바로 밑에 뭐가 깔려 있는지 매 스크롤마다 집어서
+     검정이면 어두운 유리로 통째로 뒤집는다. */
+  const headerRef = useRef<HTMLElement>(null);
+  /* 첫 값은 「어두움」이다. 모든 페이지의 맨 위는 검은 히어로라
+     밝은 유리로 시작하면 새로고침할 때마다 흰 띠가 한 프레임 번쩍인다. */
+  const [tone, setTone] = useState<"light" | "dark">("dark");
+
+  useEffect(() => {
+    const read = () => {
+      const el = headerRef.current;
+      if (!el) return;
+      const h = el.getBoundingClientRect().height || 80;
+      /* 헤더를 잠깐 통과시켜 그 아래 진짜 바닥을 집는다. */
+      el.style.pointerEvents = "none";
+      const hit = document.elementFromPoint(window.innerWidth / 2, h + 4);
+      el.style.pointerEvents = "";
+      if (!hit) return;
+
+      /* 위로 올라가며 배경색이 칠해진 첫 조상을 찾는다.
+         투명한 요소는 색을 안 가지므로 건너뛴다. */
+      let node: Element | null = hit;
+      let bg = "";
+      while (node && node !== document.documentElement) {
+        const c = getComputedStyle(node).backgroundColor;
+        const m = c.match(/[\d.]+/g);
+        if (m && (m.length < 4 || Number(m[3]) > 0.5)) {
+          bg = c;
+          break;
+        }
+        node = node.parentElement;
+      }
+      const m = bg.match(/[\d.]+/g);
+      if (!m) return setTone("light");
+      /* 밝기(luma). 절반보다 어두우면 어두운 유리로 간다. */
+      const luma =
+        (0.2126 * Number(m[0]) + 0.7152 * Number(m[1]) + 0.0722 * Number(m[2])) / 255;
+      setTone(luma < 0.5 ? "dark" : "light");
+    };
+
+    read();
+    window.addEventListener("scroll", read, { passive: true });
+    window.addEventListener("resize", read);
+    return () => {
+      window.removeEventListener("scroll", read);
+      window.removeEventListener("resize", read);
+    };
+  }, [pathname]);
 
   useEffect(() => {
     const main = document.querySelector("main");
@@ -49,7 +100,9 @@ export default function Header() {
   return (
     <>
       <header
-        className="fixed top-0 left-0 right-0 z-50 bg-background/90 backdrop-blur-xl shadow-[0_1px_0_0_rgba(0,0,0,0.06)]"
+        ref={headerRef}
+        data-tone={tone}
+        className="site-header glass-bar z-50"
       >
         {/* 본문(1600px)과 같은 폭을 쓴다. 1280 으로 가두면 넓은 화면에서
             헤더만 좁아 보인다. 높이도 한 단계 키워 답답함을 던다. */}
@@ -61,12 +114,9 @@ export default function Header() {
           {/* Logo */}
           <Link
             href="/"
-            className="transition-opacity duration-300 hover:opacity-60 flex-shrink-0 flex items-center gap-2"
+            className="transition-opacity duration-300 hover:opacity-60 flex-shrink-0 flex items-center"
           >
-            <img src="/meridian-logo.png" alt="" className="h-7 w-7 md:h-8 md:w-8" />
-            <span className="text-[1.35rem] md:text-[1.6rem] font-bold tracking-tight leading-none text-foreground">
-              Meridian<span className="green-dot">.</span>
-            </span>
+            <Wordmark className="text-[1.35rem] md:text-[1.6rem] text-foreground" />
           </Link>
 
           {/* Desktop Nav + Pricing + Client Login */}
@@ -81,7 +131,8 @@ export default function Header() {
                   <Link
                     key={link.href}
                     href={link.href}
-                    prefetch={false}
+                    /* prefetch 를 끄면 누른 다음에야 그 페이지를 받으러 간다.
+                       메뉴 이동이 한 박자 늦는 원인이었다. 기본값(자동)으로 되돌린다. */
                     /* 지금 어디에 있는지가 첫눈에 보여야 한다.
                        글씨를 브랜드 파랑으로 바꾸고 밑줄을 켜 둔 채로 고정한다. */
                     className={`relative text-[0.8125rem] font-medium tracking-[0.08em] transition-colors duration-300 hover-underline ${
@@ -100,13 +151,8 @@ export default function Header() {
               <SiteSearch />
               {/* 홈(promo)의 .btn .btn-fill 과 같은 생김새.
                   모서리 10px, 코발트, 색만 바뀐다. */}
-              <a
-                href={siteConfig.clientPortalUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="hdr-cta"
-              >
-                대시보드 시작하기
+              <a href="/contact" className="hdr-cta">
+                기장 문의하기
               </a>
             </div>
           </div>
@@ -168,7 +214,6 @@ export default function Header() {
               <Link
                 key={link.href}
                 href={link.href}
-                prefetch={false}
                 onClick={() => setMobileOpen(false)}
                 className={`text-2xl font-light tracking-[0.12em] transition-all duration-200 ${
                   mobileOpen
@@ -196,13 +241,11 @@ export default function Header() {
             }}
           >
             <a
-              href={siteConfig.clientPortalUrl}
-              target="_blank"
-              rel="noopener noreferrer"
+              href="/contact"
               onClick={() => setMobileOpen(false)}
               className="hdr-cta"
             >
-              대시보드 시작하기
+              기장 문의하기
             </a>
           </div>
         </nav>

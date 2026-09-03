@@ -21,19 +21,35 @@ gsap.registerPlugin(ScrollTrigger);
 export default function PromoMotion() {
   useEffect(() => {
     // 원본 스크립트는 즉시실행 함수다. 그 안에서 이벤트를 붙이고 끝난다.
-    (() => {
+    const stop = (() => {
       const rm = matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-      /* 부드러운 스크롤. 메리디안 본가와 같은 Lenis, 같은 설정(lerp .12 / duration .9).
+      /* 이 화면을 떠날 때 전부 끊는다.
+         안 끊으면 Lenis 와 raf 루프가 살아남아, 홈에 다시 들어올 때마다
+         한 벌씩 더 쌓인다. 메뉴 이동이 점점 느려지는 원인이 이것이다.
+         listener 는 signal 하나로 한꺼번에 뗀다. */
+      const ac = new AbortController();
+      const sig = ac.signal;
+      const obs = [];
+      const timers = new Set();
+      const later = (fn, ms) => {
+        const id = setTimeout(() => { timers.delete(id); if (!sig.aborted) fn(); }, ms);
+        timers.add(id);
+        return id;
+      };
+      let rafId = 0;
+
+      /* 부드러운 스크롤. 메리디안 본가와 같은 Lenis, 같은 설정(lerp .2 / duration .65).
+         관성을 낮춘 값이다 — .12 로는 손가락 한 번에 한 섹션이 통째로 넘어갔다.
          Lenis 가 스크롤을 직접 돌리므로 그 프레임에 맞춰 화면 계산을 해야 안 끊긴다. */
       let lenis = null;
       if (!rm && Lenis) {
-        lenis = new Lenis({ lerp: 0.12, duration: 0.9, smoothWheel: true });
+        lenis = new Lenis({ lerp: 0.2, duration: 0.65, wheelMultiplier: 0.85, smoothWheel: true });
         // 스크롤을 프로그램으로 옮겨야 할 때(자동 캡처·테스트) 붙잡을 손잡이.
         // Lenis 를 거치지 않고 window.scrollTo 를 쓰면 곧바로 되돌려진다.
         window.__lenis = lenis;
-        const raf = (t) => { lenis.raf(t); requestAnimationFrame(raf); };
-        requestAnimationFrame(raf);
+        const raf = (t) => { lenis.raf(t); rafId = requestAnimationFrame(raf); };
+        rafId = requestAnimationFrame(raf);
         lenis.on('scroll', () => frame());
       }
 
@@ -41,17 +57,37 @@ export default function PromoMotion() {
       const io = new IntersectionObserver((es) => {
         es.forEach(e => e.isIntersecting && (e.target.classList.add('on'), io.unobserve(e.target)));
       }, { threshold: .12, rootMargin: '0px 0px -6%' });
+      obs.push(io);
       document.querySelectorAll('.rise, .rise-slow').forEach(el => io.observe(el));
+
+      /* 「세금은 내는 것이 아니라 설계하는 것입니다」 — 이 한 문장은 읽히고 넘어가야 한다.
+         화면 가운데에 처음 걸리는 순간 스크롤을 잠깐 붙잡는다. 한 번만 한다.
+         두 번째부터도 잡으면 되돌아 올라갈 때 못 지나가는 화면이 된다. */
+      const creed = document.getElementById('creed');
+      if (!rm && lenis && creed) {
+        let heldCreed = false;
+        const creedIo = new IntersectionObserver((es) => {
+          if (!es[0].isIntersecting || heldCreed) return;
+          heldCreed = true;
+          creedIo.disconnect();
+          lenis.stop();
+          later(() => lenis.start(), 900);
+        }, { threshold: .55 });
+        obs.push(creedIo);
+        creedIo.observe(creed);
+      }
 
       /* 문제 구간. 고정한 채 인용문이 넘어간다.
          스크롤 핸들러를 따로 두지 않고 onFrame 한 곳에서만 처리한다
          (여러 핸들러가 각자 돌면 서로 어긋난다). */
+      /* 홈에만 있다. /portal 에는 없으니 없어도 그냥 넘어간다. */
       const pin = document.getElementById('why');
-      const slabs = [...pin.querySelectorAll('.slab')];
-      const bars = [...document.getElementById('prog').children];
+      const slabs = pin ? [...pin.querySelectorAll('.slab')] : [];
+      const bars = [...(document.getElementById('prog')?.children || [])];
       let lastStep = -1;
 
       function onFrame() {
+        if (!pin) return;
         const r = pin.getBoundingClientRect();
         const span = r.height - innerHeight;
         if (span <= 0) return;
@@ -88,8 +124,8 @@ export default function PromoMotion() {
         statsScroll();
       }
       function schedule() { if (!queued) { queued = true; requestAnimationFrame(frame); } }
-      addEventListener('scroll', schedule, { passive: true });
-      addEventListener('resize', schedule, { passive: true });
+      addEventListener('scroll', schedule, { passive: true, signal: sig });
+      addEventListener('resize', schedule, { passive: true, signal: sig });
       // 첫 그리기는 스크립트 맨 끝에서 한 번만 부른다 (아래 함수들이 다 선언된 뒤).
 
       /* 히어로 대시보드 화면.
@@ -210,9 +246,9 @@ export default function PromoMotion() {
         const mid = top + (cells.at(-1).offsetTop + cells.at(-1).offsetHeight - top) / 2;
         cells.forEach(c => c.style.setProperty('--oy', (mid - c.offsetTop) + 'px'));
       }
-      addEventListener('resize', vsOrigin);
+      addEventListener('resize', vsOrigin, { signal: sig });
       document.fonts?.ready.then(vsOrigin);
-      setTimeout(vsOrigin, 300);
+      later(vsOrigin, 300);
 
       function vsScroll() {
         if (rm || !vsRail || !vsTable) return;
@@ -385,6 +421,7 @@ export default function PromoMotion() {
       const rowNote = document.getElementById('f-rownote');
       let kpiIdx = 0;
       const paint = (i) => {
+        if (!form || !rows) return;   // 근거 구간이 없는 페이지
         kpiIdx = i;
         const d = EV[period][i];
         form.innerHTML = d.f;
@@ -395,7 +432,7 @@ export default function PromoMotion() {
       kpis.forEach((k, i) => k.addEventListener('click', () => {
         kpis.forEach(o => o.setAttribute('aria-expanded', String(o === k)));
         paint(i);
-      }));
+      }, { signal: sig }));
       paint(0);
 
       document.querySelectorAll('.tab').forEach(tab => tab.addEventListener('click', () => {
@@ -410,9 +447,9 @@ export default function PromoMotion() {
         document.querySelectorAll('.kpi .cmp').forEach(el => {
           el.style.transition = 'opacity .25s';
           el.style.opacity = 0;
-          setTimeout(() => { el.textContent = el.dataset[p]; el.style.opacity = 1; }, 130);
+          later(() => { el.textContent = el.dataset[p]; el.style.opacity = 1; }, 130);
         });
-      }));
+      }, { signal: sig }));
 
 
       /* 카드가 흩어져 있다가 한 격자로 모인다.
@@ -471,7 +508,7 @@ export default function PromoMotion() {
         }
 
         // 이미지·폰트가 늦게 오면 위치가 어긋난다. 다 온 뒤 다시 잰다.
-        addEventListener('load', () => ScrollTrigger.refresh(), { once: true });
+        addEventListener('load', () => ScrollTrigger.refresh(), { once: true, signal: sig });
       }
 
 
@@ -499,7 +536,7 @@ export default function PromoMotion() {
         let timer = null;
         addEventListener('scroll', () => {
           clearTimeout(timer);
-          timer = setTimeout(() => {
+          timer = later(() => {
             const span = el.offsetHeight - innerHeight;
             if (span <= 0) return;
             const t = -el.getBoundingClientRect().top / span;
@@ -511,7 +548,7 @@ export default function PromoMotion() {
             if (lenis) lenis.scrollTo(target, { duration: .5, easing: (x) => 1 - Math.pow(1 - x, 3) });
             else scrollTo({ top: target, behavior: 'smooth' });
           }, 150);
-        }, { passive: true });
+        }, { passive: true, signal: sig });
       }
       makeSnap(document.getElementById('why'), slabs.length * 2);
       makeSnap(document.querySelector('.feat-rail'), panes.length);
@@ -548,6 +585,7 @@ export default function PromoMotion() {
             document.querySelectorAll('.kpi .val').forEach(v => countUp(v, v.textContent));
           });
         }, { threshold: .3 });
+        obs.push(once);
         once.observe(evidSec);
       }
 
@@ -563,7 +601,7 @@ export default function PromoMotion() {
           const down = scrollY > lastY;
           lastY = scrollY;
           clearTimeout(t);
-          t = setTimeout(() => {
+          t = later(() => {
             // 화면 위쪽에 걸친 섹션 경계를 찾는다
             for (const el of plainSecs) {
               const top = el.getBoundingClientRect().top;
@@ -576,16 +614,31 @@ export default function PromoMotion() {
               }
             }
           }, 170);
-        }, { passive: true });
+        }, { passive: true, signal: sig });
       }
 
       // 모든 선언이 끝난 뒤 첫 그리기
       frame();
-      addEventListener('load', frame, { once: true });
+      addEventListener('load', frame, { once: true, signal: sig });
+
+      /* 뒷정리. 이 순서를 지킨다 — listener 를 먼저 떼고, 그 다음 예약을 지우고,
+         마지막에 Lenis 를 없앤다. 반대로 하면 이미 없앤 Lenis 를 부르다 터진다. */
+      return () => {
+        ac.abort();
+        timers.forEach(clearTimeout);
+        timers.clear();
+        obs.forEach(o => o.disconnect());
+        if (rafId) cancelAnimationFrame(rafId);
+        if (lenis) {
+          lenis.destroy();
+          if (window.__lenis === lenis) delete window.__lenis;
+        }
+      };
     })();
 
 
     return () => {
+      stop();
       ScrollTrigger.getAll().forEach((t) => t.kill());
     };
   }, []);

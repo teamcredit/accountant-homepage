@@ -53,7 +53,9 @@ export function ScheduleButton({ items }) {
   );
 }
 
-export default function SchedulePopup({ items, trigger }) {
+/* auto — 들어오자마자 스스로 뜰지. 포탈은 홈이 아니라서 스스로 뜨지 않는다.
+   거기서는 화면 안 버튼을 눌렀을 때만 열린다. */
+export default function SchedulePopup({ items, trigger, auto = true }) {
   const [open, setOpen] = useState(false);
   /* 기준일도 고정하지 않는다. 붙박아 두면 "as of" 가 D-day 와 어긋난다. */
   const [today, setToday] = useState("");
@@ -75,10 +77,10 @@ export default function SchedulePopup({ items, trigger }) {
     } catch {
       // 로컬 저장이 막힌 브라우저(시크릿 모드 등). 그냥 띄운다.
     }
-    if (hidden) return;
+    if (hidden || !auto) return;
     const t = setTimeout(() => setOpen(true), 700);
     return () => clearTimeout(t);
-  }, []);
+  }, [auto]);
 
   // 히어로의 "일정 보기" 버튼으로도 열린다
   useEffect(() => {
@@ -96,6 +98,8 @@ export default function SchedulePopup({ items, trigger }) {
     lastFocus.current = document.activeElement;
     const prev = document.body.style.overflow;
     document.body.style.overflow = "hidden";
+    /* 가림막이 헤더 뒤를 덮는다. 헤더가 그걸 알아야 색을 다시 잡는다. */
+    document.documentElement.dataset.schpOpen = "1";
 
     const onKey = (e) => {
       if (e.key === "Escape") { close(); return; }
@@ -113,6 +117,7 @@ export default function SchedulePopup({ items, trigger }) {
 
     return () => {
       document.body.style.overflow = prev;
+      delete document.documentElement.dataset.schpOpen;
       document.removeEventListener("keydown", onKey);
     };
   }, [open]);
@@ -132,7 +137,7 @@ export default function SchedulePopup({ items, trigger }) {
   return (
     <div className="schp" onMouseDown={(e) => e.target === e.currentTarget && close()}>
       <div
-        className="schp-panel"
+        className="schp-panel glass-modal"
         role="dialog"
         aria-modal="true"
         aria-labelledby="schp-title"

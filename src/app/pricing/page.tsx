@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import PricingCalculator from "@/components/pricing/calculator";
 import { AnimateOnScroll, LineReveal } from "@/components/motion";
+import HeroVideo from "@/components/layout/hero-video";
 
 export const metadata: Metadata = {
   title: "PRICING",
@@ -15,7 +16,9 @@ export default function PricingPage() {
   return (
     <>
       {/* Hero */}
-      <section className="py-32 md:py-44 bg-foreground text-white relative overflow-hidden">
+      <section className="page-hero bg-foreground text-white relative overflow-hidden">
+        {/* 히어로 배경 영상. 사이트 전체가 같은 소재를 쓴다. */}
+        <HeroVideo opacity={0.38} />
         <div className="absolute inset-0 opacity-[0.03]">
           <div className="absolute -right-10 top-1/2 -translate-y-1/2 text-[16rem] font-bold leading-none tracking-tighter select-none">
             PRICING

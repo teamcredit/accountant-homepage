@@ -13,6 +13,8 @@ import {
 import { getCategoryStyle } from "@/lib/category-colors";
 import { siteConfig } from "@/lib/constants";
 import { getAllPosts, getPostBySlug, getRelatedPosts } from "@/lib/posts";
+import HeroVideo from "@/components/layout/hero-video";
+import { AnimateOnScroll, LineReveal } from "@/components/motion";
 
 interface Props {
   params: Promise<{ slug: string }>;
@@ -219,9 +221,13 @@ export default async function BlogPostPage({ params }: Props) {
         dangerouslySetInnerHTML={{ __html: toSafeJsonLd(breadcrumbJsonLd) }}
       />
 
-      <section className="bg-foreground py-32 text-white md:py-40">
-        <div className="mx-auto max-w-3xl px-6">
-          <nav className="mb-10 flex items-center gap-2 text-sm text-neutral-200 animate-fade-in">
+      <section className="page-hero relative overflow-hidden bg-foreground text-white">
+        {/* 히어로 배경 영상. 사이트 전체가 같은 소재를 쓴다. */}
+        <HeroVideo opacity={0.3} />
+        <div className="relative z-10 mx-auto max-w-3xl px-6">
+          {/* 등장 순서는 다른 페이지 히어로와 같다. 0 → 0.1 → 0.3 → 0.4 */}
+          <AnimateOnScroll variant="fadeIn">
+          <nav className="mb-10 flex items-center gap-2 text-sm text-neutral-200">
             <Link href="/" className="transition-colors hover:text-white">
               HOME
             </Link>
@@ -235,8 +241,9 @@ export default async function BlogPostPage({ params }: Props) {
             <span>/</span>
             <span className="line-clamp-1 text-white">{post.meta.title}</span>
           </nav>
+          </AnimateOnScroll>
 
-          <div className="animate-fade-in">
+          <AnimateOnScroll variant="fadeUp" delay={0.1}>
             <div className="mb-5 flex flex-wrap items-center gap-3">
               <span
                 className="inline-block rounded-sm px-3 py-1 text-[10px] font-medium tracking-wider"
@@ -249,9 +256,13 @@ export default async function BlogPostPage({ params }: Props) {
             <h1 className="text-3xl font-bold leading-tight tracking-tight text-white md:text-4xl lg:text-5xl">
               {post.meta.title}
             </h1>
+          </AnimateOnScroll>
 
-            <div className="mt-6 h-0.5 w-16 bg-accent-bright animate-line-reveal" />
+          <div className="mt-6">
+            <LineReveal className="h-0.5 w-20 bg-accent-bright" delay={0.3} />
+          </div>
 
+          <AnimateOnScroll variant="fadeUp" delay={0.4}>
             <div className="mt-6 flex flex-wrap items-center gap-4 text-sm text-neutral-200">
               <span>{formatContentDate(post.meta.date) ?? post.meta.date}</span>
               <span className="h-1 w-1 rounded-full bg-neutral-400" />
@@ -282,7 +293,7 @@ export default async function BlogPostPage({ params }: Props) {
                 </div>
               ))}
             </dl>
-          </div>
+          </AnimateOnScroll>
         </div>
       </section>
 

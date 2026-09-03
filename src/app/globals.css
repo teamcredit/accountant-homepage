@@ -1,4 +1,7 @@
 @import "tailwindcss";
+/* 유리 헤더 재료. 원본을 그대로 가져다 둔다 — 손대지 않는다.
+   여기서 정하는 건 바탕색·포인트색·글자색 셋뿐이고, 그건 아래에서 준다. */
+@import "./glass.css";
 
 @theme inline {
   /* ─── Deloitte 톤: 순백 + 순흑 + 시그니처 그린 ─── */
@@ -975,3 +978,1289 @@ body {
   .faq-item::details-content { transition: none; }
   .faq-item[open] .faq-a { animation: none; }
 }
+
+/* ───────── 본초자오선 지구본 (About § The Meridian 배경) ─────────
+   위도 격자는 안 그린다. 경도선만 두르는 게 로고와 같은 문법이다.
+   원 하나를 rotateY 로 눕히면 그게 곧 경도선이라 도형이 따로 필요 없다. */
+.mglobe {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  translate: -50% -50%;
+  width: min(76vw, 640px);
+  aspect-ratio: 1;
+  pointer-events: none;
+  z-index: 0;
+  /* 아래로 갈수록 옅어진다. 원형 마스크로 조이면 바깥 경도선이
+     통째로 지워져서 구가 아니라 실뭉치로 보인다. */
+  -webkit-mask-image: linear-gradient(to bottom, #000 0%, #000 58%, rgba(0,0,0,.35) 100%);
+          mask-image: linear-gradient(to bottom, #000 0%, #000 58%, rgba(0,0,0,.35) 100%);
+}
+
+/* 지구 자전축만큼 기울여 둔다. 23.4°.
+   원근(perspective)은 안 준다. 주면 뒤쪽 경도선이 윤곽 밖으로 삐져나간다. */
+.mglobe-tilt {
+  position: absolute;
+  inset: 0;
+  rotate: -23.4deg;
+}
+
+.mglobe-spin {
+  position: absolute;
+  inset: 0;
+  transform-style: preserve-3d;
+  animation: mglobe-spin 48s linear infinite;
+}
+
+.mglobe-ring,
+.mglobe-limb,
+.mglobe-edge {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+.mglobe-ring { transform-style: preserve-3d; }
+.mglobe-ring svg { width: 100%; height: 100%; overflow: visible; }
+
+.mglobe-ring circle,
+.mglobe-limb circle {
+  fill: none;
+  /* 선 색은 한 군데서만 정한다. 검은 바탕에서는 이 두 값만 뒤집으면 된다. */
+  stroke: var(--mglobe-line, rgba(0, 0, 0, 0.13));
+  stroke-width: 0.8;
+  vector-effect: non-scaling-stroke;
+}
+
+.mglobe-limb circle { stroke: var(--mglobe-limb, rgba(0, 0, 0, 0.16)); }
+
+/* 검은 바탕용. 경도선은 흰 선, 0°선 한 줄만 파랑 그대로다. */
+.mglobe--dark {
+  --mglobe-line: rgba(255, 255, 255, 0.22);
+  --mglobe-limb: rgba(255, 255, 255, 0.3);
+}
+
+/* About 한 페이지짜리에서는 지구본이 주인공이라 화면을 거의 다 쓴다. */
+.mglobe--xl {
+  width: min(96vw, 78svh);
+}
+
+/* 경도 0°선. 같이 도는 18줄 중 한 줄이다.
+   CSS 의 stroke 는 SVG 의 stroke 속성보다 세다. 위 규칙이 이 줄까지
+   회색으로 덮으니 여기서 다시 파랗게 눌러 준다. */
+.mglobe-ring.is-prime circle {
+  stroke: url(#mglobe-grad);
+  stroke-width: 2;
+  animation: mglobe-breathe 4.2s ease-in-out infinite;
+}
+
+/* 번짐은 filter 로 못 준다. 옆을 볼 때 이 원이 폭 0 인 세로선으로 눌리는데,
+   그러면 필터 영역까지 0 이 돼서 선이 통째로 사라진다. 굵고 옅은 선을
+   한 겹 깔아서 대신한다. */
+.mglobe-ring.is-prime circle.mglobe-halo {
+  stroke-width: 8;
+  opacity: 0.12;
+  animation: none;
+}
+
+/* 레이저 한 줄기가 극에서 극으로 훑고 지나간다. 뭉텅이가 흐르는 게 아니라
+   길고 가는 줄기가 1.2초에 끝까지 갔다가, 다음 번쩍까지 쉰다.
+   둘레가 622 라 그보다 긴 여백을 줘야 줄기가 하나만 지나간다. */
+.mglobe-ring.is-prime circle.mglobe-glint {
+  stroke-width: 3;
+  stroke-dasharray: 150 620;
+  stroke-linecap: round;
+  animation: mglobe-glint 6.5s linear infinite;
+}
+
+/* 회전 48초, 옆을 보는 순간은 25% 와 75%. 그때만 잠깐 켠다. */
+.mglobe-edge line {
+  stroke: url(#mglobe-grad);
+  stroke-width: 2.4;
+  stroke-linecap: round;
+  vector-effect: non-scaling-stroke;
+  opacity: 0;
+  animation: mglobe-edge 48s linear infinite;
+}
+
+@keyframes mglobe-edge {
+  0%, 21.5%   { opacity: 0; }
+  25%         { opacity: 1; }
+  28.5%, 71.5%{ opacity: 0; }
+  75%         { opacity: 1; }
+  78.5%, 100% { opacity: 0; }
+}
+
+@keyframes mglobe-spin {
+  from { transform: rotateY(0deg); }
+  to   { transform: rotateY(360deg); }
+}
+
+@keyframes mglobe-breathe {
+  0%, 100% { opacity: 0.75; }
+  50%      { opacity: 1; }
+}
+
+@keyframes mglobe-glint {
+  0%        { stroke-dashoffset: 770; opacity: 0; }
+  2%        { opacity: 1; }
+  16%       { opacity: 1; }
+  19%       { stroke-dashoffset: -150; opacity: 0; }
+  100%      { stroke-dashoffset: -150; opacity: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  /* 멈춰 세울 때는 0°선이 정면으로 오도록 돌려 둔다. */
+  .mglobe-spin { animation: none; transform: rotateY(-90deg); }
+  .mglobe-ring.is-prime circle { animation: none; opacity: 1; }
+  .mglobe-edge line { animation: none; opacity: 1; }
+  .mglobe-ring.is-prime circle.mglobe-glint { display: none; }
+}
+
+
+/* ───────── 검정 히어로 배경 영상 ───────── */
+.hero-video {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.hero-video video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+/* 위아래로 검정을 먹여서 헤더와 다음 섹션에 자연스럽게 이어 붙인다. */
+.hero-video-veil {
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(to bottom, rgba(0,0,0,.55) 0%, rgba(0,0,0,.12) 38%, rgba(0,0,0,.82) 100%);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-video video { display: none; }
+  .hero-video { background: #000 center/cover url("/meridian-hero-poster.jpg"); }
+}
+
+/* ───────── 로고 (헤더 · 어바웃 히어로 공용) ─────────
+   글자와 표식은 항상 같은 비율로 붙어 다닌다. em 으로 묶어서
+   글자 크기만 바꾸면 표식이 알아서 따라온다. */
+.brand-lockup {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.26em;
+  line-height: 1;
+}
+
+/* 세리프는 대문자 높이가 산세리프보다 낮다. 표식을 0.92em 그대로 두면
+   글자보다 커 보여서 따로 논다. 대문자 M 높이에 맞춘 값이다. */
+.brand-mark {
+  width: 0.74em;
+  height: 0.74em;
+  flex: none;
+  color: currentColor;
+  opacity: 0.85;
+}
+
+/* 로고는 원래 About 히어로에 쓰던 세리프 그대로다.
+   굵기 600, 자간 -0.025em — 값을 바꾸면 원래 인상이 깨진다. */
+.brand-word {
+  font-family: var(--font-serif), "Cormorant Garamond", Georgia, serif;
+  font-weight: 600;
+  letter-spacing: -0.025em;
+  line-height: 1;
+}
+
+.brand-word .green-dot {
+  font-weight: 600;
+}
+
+.brand-hero .brand-mark {
+  opacity: 1;
+  filter: drop-shadow(0 0 24px rgba(68, 112, 255, 0.45));
+}
+
+/* ───────── 검정 히어로 (모든 페이지 공용) ─────────
+   글 길이가 페이지마다 달라서 padding 만으로는 높이가 제각각이 된다.
+   높이를 못 박고 안에서 세로 가운데 정렬한다. 그래야 페이지를 넘겨도
+   히어로가 같은 자리에서 끝난다. */
+.page-hero {
+  /* 헤더가 유리다. 그 뒤가 본문의 흰 여백이면 유리가 굴절할 게 없어
+     회색 판이 되고 글자도 죽는다. 히어로 배경(검정·영상)이 헤더 뒤까지
+     올라와야 비친다.
+
+     그래서 통째로 헤더 높이(5rem)만큼 끌어올리고, 같은 값을 높이와
+     위 여백에 되돌려 준다. 배경만 올라가고 글자는 한 픽셀도 안 움직인다. */
+  margin-top: -5rem;
+  min-height: calc(64svh + 5rem);
+  display: flex;
+  align-items: center;
+  padding-block: clamp(6rem, 11vh, 9rem);
+  padding-top: calc(clamp(6rem, 11vh, 9rem) + 5rem);
+}
+
+/* flex 안에서는 자식이 내용만큼만 넓어진다. 격자(1600px)가 먹으려면
+   자식이 먼저 폭을 다 차지해야 한다. */
+.page-hero > div {
+  width: 100%;
+}
+
+/* About 히어로. 높이는 다른 페이지와 같고, 글만 화면 폭 기준 가운데다. */
+.about-hero {
+  justify-content: center;
+  padding-block: clamp(6rem, 11vh, 9rem);
+}
+
+/* 화면 폭을 그대로 먹는다. 좁아지면 글자가 알아서 줄어든다. */
+.about-hero-logo {
+  font-size: clamp(3.4rem, 12.2vw, 12rem);
+  line-height: 1;
+  margin: 0;
+}
+
+/* 파란 점은 로고의 일부다. 크게 뽑을 때는 조금 띄워서 숨통을 준다. */
+.about-hero-logo .green-dot { margin-left: 0.02em; }
+
+
+
+
+/* =========================================================================
+   유리 헤더
+   glass.css 가 재료고, 여기서는 이 사이트 색만 물려준다.
+   사이트는 흰 바탕 하나뿐이라 밝은 쪽 값을 못 박아 쓴다.
+   ====================================================================== */
+:root[data-theme="light"] {
+  --glass-bg-page: #ffffff;
+  --glass-accent: #2b5bff;
+  --glass-ink: #000000;
+}
+
+/* .glass-bar 는 sticky 로 온다. 이 헤더는 fixed 라서 자리만 바꿔 준다.
+   두 겹 구조(::before 가 유리, 글자는 그 위)는 그대로 쓴다. */
+.site-header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  /* glass.css 는 sticky 를 전제로 isolation 을 걸어 둔다. 그런데 그게
+     backdrop root 를 헤더에서 끊어서, 유리가 자기 뒤를 못 보고 뿌연
+     회색 판이 된다(glass-README 함정 ①). 헤더는 fixed + z-index 로
+     이미 쌓임 맥락을 만드니 isolation 은 없어도 ::before 가 안 흘러나간다. */
+  isolation: auto;
+
+  /* 굴절 유리. blur 로 뭉개면 뒤가 사라져 불투명한 판이 된다 —
+     그게 「유리가 너무 불투명하다」의 정체였다. 흐리기를 1px 로 내리고
+     feDisplacementMap 으로 가장자리만 민다. 뒤가 보이면서 휜다.
+     필터 정의는 layout 의 GlassFilterDefs 가 body 에 한 번 깔아 둔다. */
+  --glass-bar-bg: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.34),
+    rgba(255, 255, 255, 0.14)
+  );
+  --glass-bar-blur: url(#glass-refract) blur(0.8px);
+  /* 위 테두리는 끈다. glass.css 는 판 사방에 선을 두르지만
+     헤더는 아랫입술 한 줄만 빛나야 유리로 읽힌다. */
+  --glass-bar-edge-outer: transparent;
+  --glass-bar-edge-inner: transparent;
+}
+
+/* 히어로가 검정인 페이지에서는 흰 유리가 회색 판이 된다. 글자도 안 보인다.
+   그 구간에서만 통째로 반전한다 — 어두운 유리 + 흰 글자. */
+.site-header[data-tone="dark"] {
+  /* 검정 위에서도 같은 굴절을 쓴다. 한 화면에 흐리기 세기가 둘이면
+     재질이 둘로 보인다. 색만 어둡게 바꿔 흰 글자를 받친다. */
+  --glass-bar-bg: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.1),
+    rgba(255, 255, 255, 0.03)
+  );
+  --glass-bar-blur: url(#glass-refract) blur(0.8px);
+  --glass-bar-edge-outer: transparent;
+  --glass-bar-edge-inner: transparent;
+  --glass-bar-lift: 0 -8px 28px -12px rgba(0, 0, 0, 0.3);
+  color: #fff;
+}
+
+/* 유리의 반사. 굴절만 있으면 뒤가 휘기만 하고 「유리」로 안 읽힌다.
+   진짜 유리는 가장자리에서 빛을 되쏜다.
+   좌우까지 두르면 반사가 아니라 흰 테두리로 읽혀서 아랫입술 한 줄만 남긴다.
+   폭은 3px — 절반으로 줄인 대신 더 밝게 올려 같은 세기로 보이게 한다.
+   글자 위에 얹히면 안 되므로 z-index 0(글자는 1)에 두고 클릭도 안 받는다. */
+.site-header::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  /* 아랫입술 — 굴절이 제일 센 자리라 반사도 여기가 제일 밝다 */
+  background: linear-gradient(0deg, rgba(255,255,255,.52), rgba(255,255,255,0) 3px);
+}
+/* 흰 바탕 위에서는 흰 반사가 안 보인다. 어두운 쪽으로 되쏜다. */
+.site-header:not([data-tone="dark"])::after {
+  background: linear-gradient(0deg, rgba(15,20,27,.26), rgba(15,20,27,0) 3px);
+}
+/* 헤더 안쪽 내용은 반사 위에 선다. */
+.site-header > div { position: relative; z-index: 1; }
+
+.site-header[data-tone="dark"] .brand-word,
+.site-header[data-tone="dark"] .text-foreground {
+  color: #fff;
+}
+.site-header[data-tone="dark"] .text-muted {
+  color: rgba(255, 255, 255, 0.66);
+}
+.site-header[data-tone="dark"] .text-muted:hover {
+  color: #fff;
+}
+/* 햄버거 세 줄. bg-foreground 가 검정이라 검은 유리 위에서 사라진다. */
+.site-header[data-tone="dark"] .bg-foreground {
+  background: #fff;
+}
+/* 지금 보고 있는 메뉴. 검정 위에서는 #2B5BFF 가 가라앉아 밝은 쪽을 쓴다. */
+.site-header[data-tone="dark"] .text-accent {
+  color: var(--color-accent-bright);
+}
+
+/* 파이어폭스는 backdrop-filter: url() 을 안 받고 사파리는 판마다 다르다.
+   그때는 예전 blur 유리로 떨어진다. 깨지지 않는다. 왜곡만 없다. */
+@supports not (backdrop-filter: url(#glass-refract)) {
+  .site-header {
+    --glass-bar-bg: rgba(255, 255, 255, 0.5);
+    --glass-bar-blur: blur(20px) brightness(1.02);
+  }
+  .site-header[data-tone="dark"] {
+    --glass-bar-bg: rgba(22, 27, 36, 0.14);
+    --glass-bar-blur: blur(18px) brightness(1.06);
+  }
+}
+
+/* 색이 바뀌는 순간이 툭 끊기면 스크롤이 튄 것처럼 보인다. */
+.site-header,
+.site-header .brand-word,
+.site-header a,
+.site-header span {
+  transition: color 0.28s ease, background-color 0.28s ease;
+}
+
+/* =========================================================================
+   스크롤 유도 — 화면 아래를 살짝 흐린다
+   맥OS 가 하는 방식이다. 색을 덮는 게 아니라 흐리기를 여러 겹 쌓고
+   각 겹에 다른 마스크를 씌워 아래로 갈수록 진하게 만든다.
+   색을 안 쓰기 때문에 흰 구간에서도 검은 구간에서도 같이 먹는다.
+   ====================================================================== */
+.scroll-cue {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 96px;
+  z-index: 30;
+  pointer-events: none;
+  opacity: 1;
+  transition: opacity 0.4s ease;
+}
+
+/* 바닥에 닿으면 더 내릴 게 없다. 끈다. */
+.scroll-cue[data-end="1"] {
+  opacity: 0;
+}
+
+.scroll-cue span {
+  position: absolute;
+  inset: 0;
+  display: block;
+}
+
+/* 흐리기 상한은 22px. 네 겹으로 나눠 밟는다. */
+.scroll-cue span:nth-child(1) {
+  -webkit-backdrop-filter: blur(1px);
+  backdrop-filter: blur(1px);
+  -webkit-mask-image: linear-gradient(to bottom, transparent 0%, #000 28%);
+  mask-image: linear-gradient(to bottom, transparent 0%, #000 28%);
+}
+.scroll-cue span:nth-child(2) {
+  -webkit-backdrop-filter: blur(3px);
+  backdrop-filter: blur(3px);
+  -webkit-mask-image: linear-gradient(to bottom, transparent 24%, #000 54%);
+  mask-image: linear-gradient(to bottom, transparent 24%, #000 54%);
+}
+.scroll-cue span:nth-child(3) {
+  -webkit-backdrop-filter: blur(7px);
+  backdrop-filter: blur(7px);
+  -webkit-mask-image: linear-gradient(to bottom, transparent 50%, #000 78%);
+  mask-image: linear-gradient(to bottom, transparent 50%, #000 78%);
+}
+.scroll-cue span:nth-child(4) {
+  -webkit-backdrop-filter: blur(14px);
+  backdrop-filter: blur(14px);
+  -webkit-mask-image: linear-gradient(to bottom, transparent 74%, #000 100%);
+  mask-image: linear-gradient(to bottom, transparent 74%, #000 100%);
+}
+
+@media (max-width: 768px) {
+  .scroll-cue { height: 64px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .scroll-cue { display: none; }
+}
+
+
+/* =========================================================================
+   About 첫 화면 — 스크롤 세 장면
+   화면이 붙어 있고 스크롤 양이 시간이 된다. 값은 about-opening.tsx 가 준다.
+   여기서는 자리와 생김새만 잡는다.
+   ====================================================================== */
+.about-stage {
+  /* 세 장면은 이 길이의 4분의 3쯤에서 끝난다. 남는 뒤쪽은 여백이다 —
+     마지막 문장을 읽는 동안 화면이 붙어 있고, 다음 섹션이 훅 올라오지 않는다. */
+  /* 지구본을 지우는 광선이 너무 빨리 지나가서 길이를 1.12배로 늘렸다. */
+  height: calc(470svh + 5rem);
+  background: #000;
+  position: relative;
+  /* main 이 헤더 높이(5rem)만큼 비워 두는데, 이 화면은 검정이 헤더 뒤까지
+     올라가야 한다. 그만큼 되끌어 올리고 높이에 다시 더해 준다. */
+  margin-top: -5rem;
+  /* 지구본이 화면보다 넓다. 모바일에서 그만큼 가로 스크롤이 생겼다(390 화면에서 8px).
+     clip 은 스크롤 컨테이너를 만들지 않아 안쪽 sticky 가 그대로 산다. */
+  overflow-x: clip;
+}
+
+.about-stage-pin {
+  position: sticky;
+  top: 0;
+  height: 100svh;
+  overflow: hidden;
+  display: grid;
+  place-items: center;
+  background: #000;
+  color: #fff;
+}
+
+/* 지구본 껍데기 두 겹.
+   바깥은 광선이 지우고 가는 마스크만 쓴다 — 안 움직여야 마스크가 화면
+   좌표를 그대로 쓴다. 안쪽이 켜지고 왼쪽으로 밀리는 일을 맡는다. */
+.about-globe {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.about-globe-move {
+  position: absolute;
+  inset: 0;
+}
+
+/* ① 로고. 헤더와 같은 조립인데 표식만 뺐다.
+   껍데기(shell)는 안 움직인다 — 광선 마스크가 여기 걸리므로 움직이면
+   마스크까지 같이 밀려가서 아무것도 안 지워진다. 미는 건 안쪽(move)이다.
+   지구본과 같은 크기의 칸이라야 같은 -26% 로 나란히 간다. */
+.about-logo-shell,
+.about-logo-move {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  display: grid;
+  place-items: center;
+  pointer-events: none;
+}
+.about-logo {
+  margin: 0;
+  font-size: clamp(3.2rem, 13vw, 13rem);
+  line-height: 1;
+  text-align: center;
+}
+.about-logo .green-dot { margin-left: 0.02em; }
+
+/* ② 지구본이 왼쪽으로 빠지면서 비는 오른쪽. 좁은 화면에서는 가운데로 온다. */
+.about-meaning {
+  position: absolute;
+  z-index: 2;
+  right: max(6vw, 2rem);
+  width: min(30rem, 78vw);
+  text-align: left;
+}
+
+.about-eyebrow {
+  font-size: 0.68rem;
+  letter-spacing: 0.5em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.42);
+  margin: 0 0 1.2rem;
+}
+
+.about-term {
+  font-size: clamp(2.2rem, 5vw, 3.4rem);
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  line-height: 1.15;
+  margin: 0;
+  word-break: keep-all;
+}
+
+.about-rule {
+  width: 3rem;
+  height: 1px;
+  background: var(--color-accent-bright);
+  margin: 1.75rem 0;
+}
+
+/* 본문이지만 이 화면에서는 이게 유일한 설명이다. 1rem / .66 으로 두니
+   검정 바탕에서 그냥 회색 덩어리로 읽혔다. 한 단계 올린다. */
+.about-body {
+  font-size: clamp(1.12rem, 1.5vw, 1.3rem);
+  line-height: 1.85;
+  color: rgba(255, 255, 255, 0.82);
+  margin: 0;
+  word-break: keep-all;
+}
+.about-body strong { color: #fff; font-weight: 600; }
+.about-body-2 { margin-top: 1.6rem; }
+
+/* ③ 광선. 오른쪽 끝에서 왼쪽 끝으로 한 번 지나간다.
+   덩어리가 아니라 가는 줄기다 — 폭이 좁고 양옆으로만 번진다.
+   기울이지 않는다. 이 선이 지구본을 자르는 경계와 같은 자리여야 해서,
+   비스듬하면 지워진 단면과 빛줄기가 어긋난다. */
+.about-laser {
+  position: absolute;
+  z-index: 3;
+  top: -20%;
+  bottom: -20%;
+  left: 0;
+  width: 2px;
+  background: var(--color-accent-bright);
+  box-shadow:
+    0 0 12px 2px rgba(68, 112, 255, 0.9),
+    0 0 60px 12px rgba(43, 91, 255, 0.45);
+  pointer-events: none;
+}
+
+/* ③ 마지막 문장. 지구본이 꺼진 빈 검정 위에 이것만 남는다.
+   ④ 그 밑에 이게 뭐 하는 회사인지 한 줄. 둘은 한 덩어리로 가운데에 선다. */
+.about-close {
+  position: absolute;
+  z-index: 2;
+  width: min(46rem, 86vw);
+  text-align: center;
+}
+.about-last {
+  margin: 0;
+  text-align: center;
+  font-size: clamp(1.5rem, 3.6vw, 2.6rem);
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  line-height: 1.55;
+  word-break: keep-all;
+}
+
+/* ④ 회사 설명. 이 화면의 결론이다 — 위 문장이 작아지면서 자리를 넘긴다.
+   0° 선 한 조각이 둘을 잇는다. */
+.about-what { margin-top: 2rem; }
+.about-what-rule {
+  width: 1px;
+  height: 2.2rem;
+  margin: 0 auto 1.6rem;
+  background: linear-gradient(180deg, transparent, var(--color-accent-bright));
+}
+/* 이름 자리에는 로고가 선다. 세리프는 같은 크기에서 산세리프보다 작아 보이므로
+   한 단계 키워야 앞의 「기준선」 문장에 눌리지 않는다. */
+.about-what-name {
+  margin: 0;
+  display: flex;
+  justify-content: center;
+  font-size: clamp(2.5rem, 6vw, 4.2rem);
+  line-height: 1.2;
+  color: #fff;
+}
+.about-what-name .brand-mark { opacity: 1; }
+.about-what-body {
+  margin: 1.4rem 0 0;
+  font-size: clamp(1.28rem, 2.5vw, 1.92rem);
+  line-height: 1.6;
+  color: rgba(255, 255, 255, 0.8);
+  word-break: keep-all;
+}
+/* 대시보드 한 줄. 위 문장과 같은 크기면 목록이 된다. 한 단계 낮춰 딸린 말로 둔다. */
+.about-what-more {
+  margin: 0.8rem 0 0;
+  font-size: clamp(1.1rem, 1.95vw, 1.48rem);
+  line-height: 1.65;
+  color: rgba(255, 255, 255, 0.58);
+  word-break: keep-all;
+}
+.about-what-more strong { font-weight: 600; color: rgba(255, 255, 255, 0.9); }
+/* 「세무 대시보드」만 파랑. 이 줄에서 사장님이 눌러야 할 곳이 여기다.
+   클래스 이름은 hl 이다 — promo.css 의 .b 는 막대그래프라 display:block 이 걸려
+   여기에 쓰면 한 줄이 세 줄로 쪼개진다. 다시 .b 로 되돌리지 말 것. */
+.about-what-more strong.hl { color: var(--color-accent-bright); font-weight: 700; }
+.about-what-body .s,
+.about-what-more .s { display: inline-block; }
+.about-what-body .s:not(:last-child),
+.about-what-more .s:not(:last-child) { padding-right: 0.3em; }
+
+/* 첫 화면의 마지막 자리. 여기서 갈 데가 없으면 스크롤만 남는다. */
+.about-what-cta {
+  margin-top: 2.2rem;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.75rem;
+}
+.about-btn {
+  display: inline-flex;
+  align-items: center;
+  height: 3rem;
+  padding: 0 1.6rem;
+  border-radius: 999px;
+  font-size: 0.98rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+}
+.about-btn--fill {
+  background: var(--color-accent);
+  color: #fff;
+}
+.about-btn--fill:hover { background: var(--color-accent-bright); }
+.about-btn--line {
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  color: rgba(255, 255, 255, 0.88);
+}
+.about-btn--line:hover { border-color: #fff; color: #fff; }
+.about-btn:focus-visible {
+  outline: 2px solid var(--color-accent-bright);
+  outline-offset: 3px;
+}
+
+@media (max-width: 640px) {
+  .about-what { margin-top: 1.6rem; }
+  .about-what-cta { margin-top: 1.8rem; }
+  .about-btn { height: 2.75rem; padding: 0 1.3rem; font-size: 0.92rem; }
+}
+
+@media (max-width: 900px) {
+  /* 지구본을 옆으로 밀 폭이 안 나온다. 지구본은 위로 올리고(값은 tsx),
+     글은 아래쪽에 깐다. 지구본도 글을 덮지 않게 한 단계 줄인다. */
+  .mglobe--xl { width: min(84vw, 44svh); }
+
+  .about-meaning {
+    right: auto;
+    bottom: 6svh;
+    width: min(34rem, 86vw);
+    text-align: center;
+  }
+  .about-rule { margin-inline: auto; }
+}
+
+/* 움직임을 꺼 둔 사람에게는 세 장면을 그냥 쌓아서 한 번에 보여준다. */
+.about-stage-static {
+  position: relative;
+  margin-top: -5rem;
+  background: #000;
+  color: #fff;
+  padding: 8rem 6vw;
+  display: grid;
+  gap: 4rem;
+  justify-items: center;
+  text-align: center;
+  overflow: hidden;
+}
+.about-stage-static .about-meaning,
+.about-stage-static .about-close,
+.about-stage-static .about-logo {
+  position: static;
+  right: auto;
+  text-align: center;
+}
+.about-stage-static .about-logo-shell,
+.about-stage-static .about-logo-move { position: static; display: block; }
+.about-stage-static .about-rule { margin-inline: auto; }
+
+
+
+
+
+
+
+
+/* =========================================================================
+   About § 4 — 사업주가 하는 말. 아이메시지 그대로
+   불만은 문장으로 늘어놓으면 남 얘기가 된다. 실제 대화창처럼 한 마디씩
+   올라오게 두면 내 얘기가 된다. 받은 말풍선은 회색, 우리 답은 파랑.
+   말꼬리(tail)는 ::before / ::after 두 겹으로 만든다 — 애플이 쓰는 방식이다.
+   ====================================================================== */
+.imsg {
+  position: relative;
+  /* 반짝이는 빛줄기가 대화창 밖으로 새어 나가 가로 스크롤을 만들지 않게 가둔다. */
+  overflow: clip;
+  /* 본문 좌우 여백만 지키고 폭은 다 쓴다. 말풍선이 커야 한 마디씩
+     읽힌다 — 작으면 세 줄짜리 목록으로 돌아간다. */
+  max-width: none;
+  text-align: left;
+}
+
+/* 누가 한 말인지 밝히는 줄. 손님 말 세 마디 아래에 붙는 주석이라
+   가운데가 아니라 말풍선과 같은 왼쪽 기준선에 맞춘다. */
+.imsg-stamp {
+  text-align: left;
+  font-size: 0.8125rem;
+  color: #8e8e93;
+  letter-spacing: -0.01em;
+  margin-top: 1rem;
+  margin-bottom: 0;
+}
+.imsg-stamp b {
+  color: #6b6b70;
+  font-weight: 600;
+}
+
+.imsg-row {
+  display: grid;
+  grid-template-columns: 3.25rem 1fr;
+  gap: 0 0.875rem;
+  align-items: end;
+  margin-top: 1rem;
+}
+/* 보낸 말은 아바타 자리가 없다. 오른쪽으로 붙인다. */
+.imsg-row--out {
+  grid-template-columns: 1fr;
+  justify-items: end;
+  margin-top: 0.625rem;
+}
+/* 방향이 바뀌는 첫 마디에만 간격을 준다. */
+.imsg-row:not(.imsg-row--out) + .imsg-row--out { margin-top: 3rem; }
+.imsg-stamp + .imsg-row--out { margin-top: 3rem; }
+/* 「입력 중」 점과 그 자리에 들어설 말은 같은 말풍선이다(.imsg-b--typing).
+   예전에는 줄을 둘로 나눠 하나를 접었는데, 둘이 같이 보여서 없앴다. */
+
+.imsg-face {
+  position: relative;
+  /* 말꼬리를 깎는 사각형(::after)이 아바타 위를 덮지 않게 위로 올린다. */
+  z-index: 2;
+  width: 3.25rem;
+  height: 3.25rem;
+  border-radius: 50%;
+  overflow: hidden;
+  background: #e9e9eb;
+}
+/* 반신 그림이라 그대로 담으면 얼굴이 점만 해진다. 크게 키운 다음
+   머리 높이(그림 위에서 4분의 1쯤)가 원 한가운데로 오도록 내린다. */
+.imsg-face img {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 300%;
+  height: auto;
+  transform: translate(-50%, -50%) translateY(36%);
+}
+
+.imsg-b {
+  position: relative;
+  z-index: 1;
+  /* 말풍선은 글자 길이만큼만 부푼다. 칸을 꽉 채우면 대화창이 아니다. */
+  width: fit-content;
+  justify-self: start;
+  max-width: 76%;
+  padding: 0.9rem 1.5rem 1rem;
+  border-radius: 1.9rem;
+  font-size: clamp(1.15rem, 1.85vw, 1.65rem);
+  font-weight: 500;
+  line-height: 1.5;
+  letter-spacing: -0.025em;
+  word-break: keep-all;
+}
+
+/* 우리 답은 한 단계 더 크다. 듣기만 한 게 아니라 답을 한다는 표시다. */
+.imsg-b--out {
+  max-width: 82%;
+  padding: 1.1rem 1.8rem 1.2rem;
+  font-size: clamp(1.35rem, 2.4vw, 2.15rem);
+  font-weight: 600;
+  line-height: 1.45;
+}
+
+/* 받은 말. 아이메시지 기본 회색. */
+.imsg-b--in {
+  background: #e9e9eb;
+  color: #000;
+}
+/* 보낸 말. 애플은 #007AFF 지만 여기서는 사이트의 파랑을 쓴다. */
+.imsg-b--out {
+  justify-self: end;
+  background: var(--color-accent);
+  color: #fff;
+}
+
+/* 말꼬리. ::before 가 꼬리, ::after 가 배경색으로 그 안쪽을 깎아낸다. */
+.imsg-b::before,
+.imsg-b::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  height: 2.4rem;
+}
+.imsg-b--in::before {
+  left: -0.7rem;
+  width: 2rem;
+  background: #e9e9eb;
+  border-bottom-right-radius: 1.6rem 1.4rem;
+}
+.imsg-b--in::after {
+  left: -2.6rem;
+  width: 2.6rem;
+  background: var(--imsg-ground, var(--color-background));
+  border-bottom-right-radius: 1rem;
+}
+.imsg-b--out::before {
+  right: -0.7rem;
+  width: 2rem;
+  background: var(--color-accent);
+  border-bottom-left-radius: 1.6rem 1.4rem;
+}
+.imsg-b--out::after {
+  right: -2.6rem;
+  width: 2.6rem;
+  background: var(--imsg-ground, var(--color-background));
+  border-bottom-left-radius: 1rem;
+}
+
+/* 같은 사람이 이어 말할 때는 꼬리를 지운다. 아이메시지가 그렇게 한다. */
+.imsg-b--tailless::before,
+.imsg-b--tailless::after {
+  display: none;
+}
+
+/* 마지막 보낸 말 밑의 「전달됨」. */
+/* 입력 중 — 아이메시지의 점 세 개. 말풍선을 따로 만들지 않는다.
+   점이 뜬 그 풍선이 그대로 부풀면서 말이 들어찬다. 그래서 여기서 하는 일은
+   말풍선의 안쪽 여백을 점 크기에 맞게 줄이는 것뿐이다. */
+.imsg-b--typing {
+  /* 점 풍선은 작고 조용해야 한다. 여기가 크면 뒤에 말이 들어차도
+     「커졌다」가 안 읽힌다. 커지는 건 이 다음 한 번뿐이다. */
+  padding: 0.62rem 0.8rem;
+  line-height: 0;
+  opacity: 0.72;
+}
+.imsg-dots {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.26rem;
+}
+.imsg-dots span {
+  width: 0.38rem;
+  height: 0.38rem;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.75);
+  animation: imsg-typing 1.25s ease-in-out infinite;
+}
+/* 회색 말풍선 안에서는 흰 점이 안 보인다. 어두운 점으로 바꾼다. */
+.imsg-b--in .imsg-dots span { background: rgba(0, 0, 0, 0.4); }
+.imsg-dots span:nth-child(2) { animation-delay: 0.18s; }
+.imsg-dots span:nth-child(3) { animation-delay: 0.36s; }
+/* 부푸는 동안 글자가 넘쳐 삐져나오지 않게. */
+.imsg-ink { display: block; }
+@keyframes imsg-typing {
+  0%, 60%, 100% { opacity: 0.35; transform: translateY(0); }
+  30% { opacity: 1; transform: translateY(-0.18rem); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .imsg-dots span { animation: none; opacity: 0.7; }
+}
+
+/* 대화와 약속이 같은 자리를 쓴다. 위아래로 쌓으면 약속이 「그 자리에」
+   나오지 않고 아래에 하나 더 붙은 게 된다. 한 칸에 겹쳐 두고 높이는
+   둘 중 큰 쪽을 따라가게 한다. */
+.promise-stage { display: grid; }
+.promise-stage-layer { grid-area: 1 / 1; }
+
+/* 장면을 넘기는 건 시간이 아니라 스크롤이다. 통을 길게 잡아 두고 안쪽
+   한 판만 화면에 붙인다. 그 길이만큼 대화가 차오르고 약속이 올라온다.
+   붙는 자리는 화면 세로 가운데다 — 헤더가 위를 덮어도 글이 가리지 않는다. */
+/* 흰 바탕(어바웃)에서는 선을 옅게 깐다. 제목이 가운데 정렬이라 선이
+   글자를 그대로 관통하는데, 진한 파랑이면 오식처럼 읽힌다. */
+/* 레이저가 지나간 자국은 무대(pin) 안에서 잘린다. 그런데 그 선은
+   다음 문장까지 이어져야 한다 — 「세금은 '내는 것'이 아니라」 바로 위에서 멈춘다.
+   무대가 풀리면서 약속 두 개가 위로 올라가면, 그 밑으로 이 선이 따라 나온다. */
+#promise { position: relative; }
+#promise::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  margin-left: -0.5px;
+  bottom: 0;
+  height: 62svh;
+  width: 1px;
+  background: linear-gradient(
+    180deg,
+    transparent 0%,
+    rgba(43, 91, 255, 0.5) 18%,
+    rgba(43, 91, 255, 0.5) 88%,
+    rgba(43, 91, 255, 0.15) 100%
+  );
+  z-index: 0;
+  pointer-events: none;
+}
+
+.promise-sec:not(.promise-dark) .promise-meridian-trail,
+section:not(.promise-dark) .promise-meridian-trail {
+  opacity: 0.55;
+}
+
+/* 제목이 무대 안에 같이 붙는다. 바깥에 두면 무대가 화면에 붙어 있는 동안
+   제목만 위로 흘러 나가서, 지금 보는 게 무엇에 대한 이야기인지 사라진다. */
+.promise-head { position: relative; z-index: 1; margin-bottom: clamp(2rem, 5vh, 3.5rem); }
+.promise-head > * + * { margin-top: 0; }
+
+.promise-scroll { height: 340svh; }
+.promise-pin {
+  position: sticky;
+  top: 0;
+  height: 100svh;
+  display: grid;
+  align-content: center;
+  /* 말풍선이 날아 나갈 때 가로 스크롤이 생기지 않게 가둔다.
+     clip 은 스크롤 통을 만들지 않아 바깥 sticky 를 죽이지 않는다. */
+  overflow: clip;
+}
+@media (max-width: 640px) {
+  /* 좁은 화면은 말풍선이 세로로 길다. 스크롤 길이를 조금 더 준다. */
+  .promise-scroll { height: 380svh; }
+}
+
+/* 다 나오고 나서 한 번 반짝. 대화가 끝났다는 신호다.
+   빛 한 줄이 왼쪽에서 오른쪽으로 지나간다 — 위 히어로의 그 레이저와 같은 몸짓. */
+.imsg-flash {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  pointer-events: none;
+  background: linear-gradient(
+    105deg,
+    transparent 42%,
+    rgba(43, 91, 255, 0.1) 48%,
+    rgba(255, 255, 255, 0.85) 50%,
+    rgba(43, 91, 255, 0.1) 52%,
+    transparent 58%
+  );
+}
+
+/* 오른쪽에 고정된 이정표(.anchor)와 파란 말풍선이 서로 겹쳤다.
+   이정표가 보이는 폭에서만 대화창 오른쪽을 그만큼 비운다.
+   이정표는 1120px 아래에서 사라지므로 그 위에서만 건다. */
+@media (min-width: 1121px) {
+  #promise .imsg { padding-right: 8.75rem; }
+  /* 홈에 새로 들어온 두 구역도 오른쪽 끝까지 꽉 차 있어서 같은 자리에서 겹쳤다.
+     사진 오른쪽 끝과 비교표 파란 칸이 이정표 글자 밑으로 들어간다. */
+  #keep .keep-list,
+  #vs .vs-fix { padding-right: 8.75rem; }
+  /* 대표 회계사도 오른쪽 목록이 페이지 끝까지 간다.
+     「가치평가 모델링 (DCF · …」 줄이 이정표 글자와 겹쳤다. */
+  #who .pu-head { padding-right: 8.75rem; }
+}
+
+@media (max-width: 640px) {
+  .imsg-row { grid-template-columns: 2.25rem 1fr; gap: 0 0.5rem; }
+  /* 보낸 말은 좁은 화면에서도 아바타 칸이 없다. 위 규칙에 덮이지 않게 다시 적는다. */
+  .imsg-row--out { grid-template-columns: 1fr; }
+  .imsg-face { width: 2.25rem; height: 2.25rem; }
+  .imsg-b { max-width: 84%; padding: 0.7rem 1.1rem 0.8rem; border-radius: 1.4rem; }
+  .imsg-b--out { max-width: 88%; padding: 0.8rem 1.2rem 0.9rem; }
+  .imsg-b::before, .imsg-b::after { height: 1.7rem; }
+  .imsg-b--in::before { left: -0.5rem; width: 1.4rem; }
+  .imsg-b--in::after { left: -1.9rem; width: 1.9rem; }
+  .imsg-b--out::before { right: -0.5rem; width: 1.4rem; }
+  .imsg-b--out::after { right: -1.9rem; width: 1.9rem; }
+}
+
+/* =========================================================================
+   About § 4 — 약속 두 개. 원 두 개가 나란히 물리고 0° 선이 가로지른다
+   네모 칸 두 개를 겹친 원 두 개로 바꿨다. 겹친 자리가 곧 두 약속이
+   같은 이야기라는 표시고, 그 한가운데를 파란 세로선이 지나간다.
+   위 히어로에서 지구본을 지나던 그 선이 여기까지 내려온 셈이다.
+   ====================================================================== */
+.promise-orbs {
+  position: relative;
+  /* 원 두 개가 좌우로 물린다. 겹친 자리가 화면 한가운데에 온다. */
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+  padding-block: 1rem;
+}
+
+.promise-orb {
+  position: relative;
+  z-index: 1;
+  flex: 0 0 auto;
+  width: min(28rem, 42vw);
+  aspect-ratio: 1;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  /* 테두리만 있는 빈 원. 채우면 두 원이 겹칠 때 뒤가 가려진다. */
+  border: 1px solid var(--color-border);
+  /* 겹치는 자리가 보이도록 아주 옅게만 깐다. */
+  background: rgba(43, 91, 255, 0.02);
+  transition: background 0.35s ease, border-color 0.35s ease;
+}
+/* 마우스를 올리면 그 원만 켜진다. 둘 중 어느 쪽을 읽고 있는지 표시다. */
+.promise-orb:hover { z-index: 2; }
+
+/* 두 번째 원을 왼쪽으로 끌어당겨 물린다. */
+.promise-orb--b {
+  margin-left: -2.75rem;
+  border-color: rgba(43, 91, 255, 0.35);
+  background: rgba(43, 91, 255, 0.04);
+}
+
+/* 글은 원 한가운데. 밀지 않는다 — 원이 살짝만 물리므로 겹치는 자리를
+   피할 이유가 없고, 밀면 원 안에서 글이 삐뚤어 보인다. */
+.promise-orb-in {
+  width: 66%;
+  text-align: center;
+}
+
+/* 약속 번호. 「약속」과 숫자를 줄로 나눈다. 한 줄에 붙여 두면 둘이 같은
+   무게로 읽혀서 번호가 눈에 안 들어온다. 작은 말 위에 큰 숫자.
+   01 은 흰색/검정, 02 는 파랑. 원 테두리 색과 같은 짝이다. */
+.promise-orb-num {
+  display: grid;
+  justify-items: center;
+  gap: 0.3rem;
+  line-height: 1;
+  margin-bottom: 1.4rem;
+  font-variant-numeric: tabular-nums;
+}
+.promise-orb-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.26em;
+  text-indent: 0.26em;
+  opacity: 0.55;
+}
+.promise-orb-no {
+  font-size: clamp(2rem, 3.4vw, 3rem);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+.promise-orb--a .promise-orb-num { color: var(--color-foreground); }
+.promise-orb--b .promise-orb-num { color: var(--color-accent); }
+.promise-orb--a:hover {
+  border-color: var(--color-foreground);
+  background: rgba(0, 0, 0, 0.03);
+}
+.promise-orb--b:hover {
+  border-color: var(--color-accent);
+  background: rgba(43, 91, 255, 0.09);
+}
+
+.promise-orb-title {
+  font-size: clamp(1.05rem, 1.5vw, 1.35rem);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.35;
+  color: var(--color-foreground);
+}
+
+.promise-orb-body {
+  margin-top: 1rem;
+  font-size: 0.9375rem;
+  line-height: 1.75;
+  color: var(--color-muted);
+}
+
+/* 검은 바탕 위에서. 약속 구간은 히어로의 검정이 그대로 이어진다.
+   흰 테두리를 그대로 쓰면 원이 형광등처럼 뜬다 — 알파로 낮춘다. */
+.promise-dark {
+  /* 말꼬리를 깎아내는 조각도 같은 검정이어야 한다. 안 그러면 흰 부스러기가 남는다. */
+  --imsg-ground: #000;
+}
+.promise-dark .imsg-stamp { color: #8e8e93; }
+.promise-dark .imsg-stamp b { color: #b8b8bd; }
+.promise-dark .imsg-face { background: #1c1c1e; }
+.promise-dark .promise-orb {
+  border-color: rgba(255, 255, 255, 0.22);
+  background: rgba(255, 255, 255, 0.03);
+}
+.promise-dark .promise-orb--b {
+  border-color: rgba(68, 112, 255, 0.55);
+  background: rgba(43, 91, 255, 0.07);
+}
+.promise-dark .promise-orb--a .promise-orb-num { color: #fff; }
+.promise-dark .promise-orb--b .promise-orb-num { color: var(--color-accent-bright); }
+.promise-dark .promise-orb-title { color: #fff; }
+.promise-dark .promise-orb-body { color: rgba(255, 255, 255, 0.62); }
+.promise-dark .promise-orb--a:hover {
+  border-color: rgba(255, 255, 255, 0.5);
+  background: rgba(255, 255, 255, 0.07);
+}
+.promise-dark .promise-orb--b:hover {
+  border-color: var(--color-accent-bright);
+  background: rgba(43, 91, 255, 0.16);
+}
+
+/* 두 원이 물린 자리를 관통하는 0° 선. 원 언저리에서 끊지 않고 화면
+   맨 위에서 맨 아래까지 지난다 — 경도선은 원 두 개보다 긴 선이다.
+   위아래로 화면 하나씩 더 뻗어 두고, 무대(.promise-pin)가 잘라 낸다. */
+.promise-meridian {
+  position: absolute;
+  top: -100svh;
+  bottom: -100svh;
+  left: 50%;
+  width: 1px;
+  margin-left: -0.5px;
+  z-index: 0;
+  /* 선 자체는 통이다. 안에서 빛이 지나가고, 지나간 자리에 잔상만 남는다. */
+  background: none;
+  overflow: hidden;
+}
+/* 지나간 자리에 남는 잔상. 아주 옅게만 남긴다 — 선이 계속 서 있으면
+   「지나갔다」는 느낌이 사라진다. */
+.promise-meridian-trail {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    180deg,
+    transparent 0%,
+    rgba(43, 91, 255, 0.5) 30%,
+    rgba(43, 91, 255, 0.5) 70%,
+    transparent 100%
+  );
+}
+/* 레이저 한 줄기. 머리는 밝고 꼬리는 길게 끌린다. */
+.promise-meridian-beam {
+  position: absolute;
+  left: -1px;
+  width: 3px;
+  height: 46%;
+  border-radius: 2px;
+  background: linear-gradient(
+    180deg,
+    rgba(43, 91, 255, 0) 0%,
+    rgba(43, 91, 255, 0.35) 55%,
+    var(--color-accent-bright) 92%,
+    #fff 100%
+  );
+  box-shadow: 0 0 18px 2px rgba(68, 112, 255, 0.55);
+}
+
+@media (max-width: 768px) {
+  /* 좁은 화면에서 나란히 두면 원이 너무 작아 글이 안 들어간다.
+     위아래로 물리게 돌리고, 선은 그대로 세로로 관통한다. */
+  .promise-orbs { flex-direction: column; }
+  .promise-orb { width: min(24rem, 100%); }
+  .promise-orb--b { margin-left: 0; margin-top: -2.5rem; }
+  .promise-orb-in { width: 74%; }
+  .promise-orb--a .promise-orb-in { transform: translateY(-8%); }
+  .promise-orb--b .promise-orb-in { transform: translateY(8%); }
+}
+
+/* =========================================================================
+   About § 4 — 지켜가는 방식 셋
+   박스를 없앴다. 번호와 글만 남기고, 오른쪽에서 차례로 밀려 들어온다.
+   ====================================================================== */
+.keep-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  border-top: 1px solid var(--color-border);
+  /* 줄이 오른쪽 바깥에서 들어온다. 들어오기 전 그 자리가 화면 밖이라
+     모바일에서 가로 스크롤이 생겼다(390 화면에서 38px). 여기서 가둔다. */
+  overflow-x: clip;
+}
+
+.keep-row {
+  display: grid;
+  grid-template-columns: minmax(0, 27rem) minmax(0, 1fr);
+  align-items: center;
+  gap: clamp(1.75rem, 4vw, 3.25rem);
+  text-align: left;
+  justify-items: stretch;
+  padding-block: 3rem;
+  border-bottom: 1px solid var(--color-border);
+}
+/* 짝수 줄은 사진이 오른쪽. 좌우로 하나씩 번갈아 들어온다. */
+.keep-row--r { grid-template-columns: minmax(0, 1fr) minmax(0, 27rem); }
+.keep-row--r .keep-shot { order: 2; }
+.keep-row--r .keep-text { order: 1; }
+
+/* 사진 상자. 아웃라인 없이 사진만 이 영역 안에 갇힌다. */
+.keep-shot {
+  position: relative;
+  aspect-ratio: 4 / 3;
+  border-radius: 12px;
+  overflow: hidden;
+  background: var(--color-card);
+}
+.keep-shot img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  /* 흑백에 가깝게 눌러 둔다. 사진이 세 장 나란히 서면 색이 먼저 튄다. */
+  filter: grayscale(0.85) contrast(1.03);
+}
+
+/* 번호는 사이트가 이미 쓰던 표기 그대로. 홈의 .no 와 같은 규칙이다. */
+.keep-num {
+  display: block;
+  margin-bottom: 0.7rem;
+  font-size: 0.875rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+  color: var(--color-accent);
+}
+
+.keep-title {
+  font-size: clamp(1.15rem, 1.7vw, 1.5rem);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.4;
+  color: var(--color-foreground);
+}
+
+.keep-body {
+  margin-top: 0.875rem;
+  font-size: 0.9375rem;
+  line-height: 1.8;
+  color: var(--color-muted);
+  max-width: 62ch;
+}
+.keep-num, .keep-title, .keep-body { text-align: left; }
+
+@media (max-width: 860px) {
+  /* 좁으면 사진을 위로 올리고 글을 아래에 깐다. */
+  .keep-row,
+  .keep-row--r { grid-template-columns: minmax(0, 1fr); gap: 1.25rem; }
+  .keep-row--r .keep-shot { order: 0; }
+  .keep-row--r .keep-text { order: 1; }
+}
+
+@media (max-width: 640px) {
+  .keep-row { padding-block: 2rem; }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

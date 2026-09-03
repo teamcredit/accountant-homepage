@@ -45,10 +45,14 @@ export const imageCredits: Array<{
 
 export const navLinks = [
   { href: "/", label: "HOME" },
-  { href: "/about", label: "ABOUT" },
+  /* ABOUT 도 메뉴에서 뺐다. 어바웃의 히어로·약속·지켜가는 방식이
+     전부 홈 위쪽으로 올라와서 메뉴로 또 들어갈 이유가 없다.
+     /about 페이지 자체는 남아 있다 — 링크만 없앤 것이다. */
   { href: "/services", label: "PRACTICE" },
-  { href: "/members", label: "PEOPLE" },
+  /* PEOPLE 은 메뉴에서 뺐다. 대표 회계사 한 사람이라 ABOUT 과 겹친다.
+     /members 페이지 자체는 남아 있다 — 링크만 없앤 것이다. */
   { href: "/clients", label: "WHO" },
+  { href: "/portal", label: "PORTAL" },
   { href: "/blog", label: "INSIGHTS" },
   { href: "/contact", label: "CONTACT" },
 ];

@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { getAllPosts } from "@/lib/posts";
 import { AnimateOnScroll, LineReveal } from "@/components/motion";
 import BlogContent from "./blog-content";
+import HeroVideo from "@/components/layout/hero-video";
 
 export const metadata: Metadata = {
   title: "실무 메모",
@@ -24,7 +25,9 @@ export default function BlogPage() {
 
   return (
     <>
-      <section className="relative overflow-hidden bg-foreground py-32 text-white md:py-44">
+      <section className="page-hero relative overflow-hidden bg-foreground text-white">
+        {/* 히어로 배경 영상. 사이트 전체가 같은 소재를 쓴다. */}
+        <HeroVideo opacity={0.38} />
         <div className="absolute inset-0 opacity-[0.03]">
           <div className="absolute right-[-2.5rem] top-1/2 -translate-y-1/2 select-none text-[16rem] font-bold leading-none tracking-tighter">
             BLOG

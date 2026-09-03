@@ -151,11 +151,9 @@ h2.sec { font-size: clamp(1.9rem, 4.4vw, var(--t-3)); margin-top: var(--s3); max
      파랑이 황토색이 됐다. 여기서 되돌린다. */
   filter: none;
 }
-.invert::before {
-  content: ""; position: absolute; inset: -30% -10% auto; height: 90%;
-  background: radial-gradient(58% 66% at 50% 0%, rgba(68,112,255,.20), transparent 72%);
-  pointer-events: none; z-index: 0;
-}
+/* 예전에는 여기에 파란 빛무리를 깔았다. 어두운 구간이 여러 개 이어 붙는데
+   구간마다 위쪽만 밝아져서, 같은 검정인데도 경계마다 색이 달라 보였다.
+   빛무리를 빼고 전부 같은 검정 하나로 둔다. */
 /* 내용이 빛 위로 오게 한다. position 은 건드리지 않는다 —
    sticky 를 relative 로 덮어쓰면 고정 스크롤이 죽는다. */
 .invert > * { z-index: 1; }
@@ -570,24 +568,87 @@ h2.sec { font-size: clamp(1.9rem, 4.4vw, var(--t-3)); margin-top: var(--s3); max
    먼저 보여주되, "24시간 보지 않기"로 매번 막지 않는다. */
 .schp {
   position: fixed; inset: 0; z-index: 200;
-  display: flex; align-items: center; justify-content: center;
+  /* 정중앙이 아니라 오른쪽. 뒤 히어로가 왼쪽으로 그대로 보인다. */
+  display: flex; align-items: center; justify-content: flex-end;
   padding: var(--pad);
+  /* 가림막에는 흐리기를 걸지 않는다. 패널 흐리기와 두 겹이 되면 회색 판이 된다. */
   background: rgba(0,0,0,.42);
   animation: schp-in .22s ease both;
 }
 @keyframes schp-in { from { opacity: 0 } to { opacity: 1 } }
 
+/* 유리 패널.
+   glass.css 의 밝은 쪽 기본값(0.88~0.97)은 이 자리에서 그냥 흰 판으로 보인다.
+   뒤로 검은 히어로가 지나가야 유리로 읽히므로 알파를 낮추고 흐리기를 올린다.
+   숫자(D-day·날짜)가 이 위에 그대로 얹히므로 대비를 쟀다 —
+   검은 글자 대 0.72 흰 유리(가림막 위) = 약 11:1. 4.5:1 기준을 넘는다.
+   흐리기 20px 는 헤더와 같은 세기다. 한 화면에 두 재질이 섞이지 않는다. */
 .schp-panel {
   width: min(460px, 100%);
   max-height: min(680px, calc(100vh - var(--pad) * 2));
   overflow-y: auto;
-  background: var(--w); color: var(--tx);
-  border-radius: var(--r);
+  /* 검정 틴트 유리. 흰 유리는 뒤가 밝든 어둡든 그냥 흰 판으로 읽혔다.
+     어두운 쪽으로 깔고 글자를 흰색으로 뒤집으면 뒤 히어로가 비쳐 보인다.
+     흰 글자 대 이 유리(가림막 .42 검정 위) = 계산상 12:1 언저리. */
+  color: #fff;
+  border-radius: 22px;
   padding: var(--s5);
-  box-shadow: 0 30px 70px -30px rgba(0,0,0,.45);
+  --glass-modal-bg: linear-gradient(
+    152deg,
+    rgba(12,16,22,.60),
+    rgba(12,16,22,.48) 46%,
+    rgba(12,16,22,.56)
+  );
+  /* 헤더와 같은 재질이다. blur 로 뭉개는 대신 가장자리만 미는 굴절 유리.
+     한 화면에 재질이 둘이면 유리가 아니라 서로 다른 판 둘로 보인다. */
+  --glass-modal-blur: url(#glass-refract) blur(2.5px);
+  --glass-modal-edge: rgba(255,255,255,.22);
+  --glass-modal-shadow:
+    inset 0 1px 0 rgba(255,255,255,.28),
+    inset 0 0 0 1px rgba(255,255,255,.08),
+    0 40px 90px -34px rgba(0,0,0,.75);
   animation: schp-rise .28s cubic-bezier(.2,.7,.3,1) both;
 }
+
+/* 검정 유리 위의 글자들. 밝은 쪽 토큰(--tx, --tx-2)은 여기서 안 보인다. */
+.schp-panel .schp-hd { border-bottom-color: rgba(255,255,255,.5); }
+.schp-panel .schp-hd h2 { color: #fff; }
+.schp-panel .schp-hd time,
+.schp-panel .schp-note,
+.schp-panel .schp-chk,
+.schp-panel .schp-list .when { color: rgba(255,255,255,.62); }
+.schp-panel .schp-list li { border-bottom-color: rgba(255,255,255,.14); }
+.schp-panel .schp-list .what { color: #fff; }
+.schp-panel .schp-list .dday { color: rgba(255,255,255,.72); }
+/* 제일 가까운 마감만 파랗다. 검정 위에서는 밝은 쪽 파랑을 쓴다. */
+.schp-panel .schp-list li.near .dday { color: var(--blue-b); }
+.schp-panel .schp-x { border-color: rgba(255,255,255,.24); color: rgba(255,255,255,.7); }
+.schp-panel .schp-x:hover { border-color: var(--blue-b); color: var(--blue-b); }
+.schp-panel .schp-chk input { accent-color: var(--blue-b); }
+
+/* 넓은 화면에서는 본문(.wrap) 오른쪽 끝에 맞춰 세운다. 화면 구석에 붙지 않게. */
+@media (min-width: 1024px) {
+  .schp { padding-inline: max(var(--pad), calc((100vw - var(--wrap)) / 2 + var(--pad))); }
+}
+/* 좁은 화면에서는 오른쪽 정렬이 의미가 없다. 폭을 다 쓴다. */
+@media (max-width: 560px) {
+  .schp { justify-content: center; }
+}
 @keyframes schp-rise { from { opacity: 0; translate: 0 12px } to { opacity: 1; translate: 0 } }
+
+/* 굴절을 못 쓰는 브라우저(파이어폭스 등)에서는 예전 흐리기 유리로 떨어진다.
+   그때는 알파를 다시 올려야 글자가 뒤와 겹치지 않는다. */
+@supports not (backdrop-filter: url(#glass-refract)) {
+  .schp-panel {
+    --glass-modal-bg: linear-gradient(
+      152deg,
+      rgba(12,16,22,.86),
+      rgba(12,16,22,.78) 46%,
+      rgba(12,16,22,.84)
+    );
+    --glass-modal-blur: blur(20px) brightness(.9);
+  }
+}
 
 .schp-hd {
   display: flex; align-items: flex-start; justify-content: space-between;
@@ -601,8 +662,9 @@ h2.sec { font-size: clamp(1.9rem, 4.4vw, var(--t-3)); margin-top: var(--s3); max
 }
 .schp-x {
   flex: none; width: 34px; height: 34px;
-  border: 1px solid var(--w-3); border-radius: 8px;
-  background: var(--w); cursor: pointer;
+  border: 1px solid rgba(15,20,27,.14); border-radius: 10px;
+  /* 유리 위의 유리는 재질이 두 겹이 된다. 여기는 그냥 비워 둔다. */
+  background: transparent; cursor: pointer;
   font-size: 20px; line-height: 1; color: var(--tx-2);
   transition: border-color .2s, color .2s;
 }
@@ -613,7 +675,7 @@ h2.sec { font-size: clamp(1.9rem, 4.4vw, var(--t-3)); margin-top: var(--s3); max
   display: grid; grid-template-columns: 1fr auto;
   gap: 2px var(--s3);
   padding: var(--s3) 0;
-  border-bottom: 1px solid var(--w-3);
+  border-bottom: 1px solid rgba(15,20,27,.10);
 }
 .schp-list .what { grid-column: 1; grid-row: 1; font-size: var(--t-0); font-weight: 600; }
 .schp-list .when {
@@ -1524,6 +1586,33 @@ h2.sec { font-size: clamp(1.9rem, 4.4vw, var(--t-3)); margin-top: var(--s3); max
 }
 .vs tbody tr:last-child .ours { border-radius: 0 0 14px 14px; }
 .vs .ours strong { color: var(--blue-d); font-weight: 800; }
+/* 어바웃에 있던 그 비교표. 검정 바탕 · 가운데 제목 · 머리카락 굵기 가로줄.
+   파란 면을 깔고 우리 칸만 키우던 판은 여기서 안 쓴다. */
+.vs-dark { background: var(--tx); color: #fff; text-align: center; }
+.vs-dark .tick { color: #8B97A8; justify-content: center; }
+.vs-dark .sec { color: #fff; text-align: center; margin-inline: auto; }
+/* 제목 앞에 붙는 짧은 선까지 가운데로 온다. 왼쪽 기준선이 없는 장이다. */
+.vs-dark .tick::before { margin-inline: 0 var(--s2); }
+/* 제목 아래 짧은 파란 선. 어바웃과 같은 자리다. */
+.vs-line { width: 64px; height: 1px; background: var(--blue-b); margin: var(--s5) auto 0; }
+.vs-dark .vs { max-width: 1000px; margin-inline: auto; text-align: left; margin-top: var(--s6); font-size: var(--t-0); }
+.vs-dark .vs th, .vs-dark .vs td { padding: var(--s4) var(--s4); border-bottom: 1px solid rgba(255,255,255,.1); }
+.vs-dark .vs thead th { color: #8B97A8; font-size: var(--t--1); letter-spacing: .1em; text-transform: uppercase; font-weight: 700; width: 33.33%; }
+/* 머리칸의 「Meridian」은 글자로 적지 않는다. 사이트에 하나뿐인 로고를 넣는다.
+   대문자로 늘려 쓰던 라벨 서식은 로고를 망가뜨리므로 여기서 전부 끈다. */
+.vs-dark .vs thead th.ours { color: #fff; background: none; border-radius: 0; letter-spacing: normal; text-transform: none; text-align: left; padding-block: calc(var(--s4) - 4px); }
+.vs-logo { font-size: var(--t-2); color: #fff; }
+.vs-logo .brand-mark { opacity: 1; }
+.vs-dark .vs tbody th { color: #8B97A8; font-weight: 600; width: 33.33%; }
+.vs-dark .vs .theirs { color: #8B97A8; width: 33.33%; }
+/* 우리 칸만 한 단 위로 올린다 — 저쪽보다 크고 굵고 밝다.
+   같은 크기로 나란히 두면 표가 아니라 목록 두 줄로 읽힌다.
+   저쪽이 .875rem 이므로 1.2배 = 1.05rem. 토큰(--t-1 = 1rem)으로는 1.14배라
+   나란히 놓았을 때 차이가 안 보였다. */
+.vs-dark .vs .ours { color: #fff; background: none; width: 33.33%; font-size: 1.05rem; font-weight: 700; letter-spacing: -.01em; text-align: left; border-radius: 0; }
+/* 붙어 있는 동안 우리 칸이 부푸는 움직임도 여기서는 끈다. */
+.vs-dark .vs.grown .ours { animation: none; }
+
 @media (max-width: 700px) { .vs, .vs tbody, .vs tr, .vs td, .vs th { display: block; } .vs thead { display: none; } .vs tr { border-bottom: 1px solid var(--w-3); padding: var(--s2) 0; } .vs td, .vs th { border: 0; padding: 5px var(--s3); } }
 
 
@@ -1634,4 +1723,203 @@ h2.sec { font-size: clamp(1.9rem, 4.4vw, var(--t-3)); margin-top: var(--s3); max
   .slabs { display: block; }
   .pin { height: auto !important; }
   .pin-inner { position: static; min-height: 0; }
+}
+
+
+/* =========================================================================
+   홈에 새로 들어온 세 구역
+   ① 약속  ② 대시보드 배너  ③ 대표 회계사(펼침)
+   ====================================================================== */
+
+/* ① 약속. 무대(대화 → 약속)는 globals.css 에 있는 것을 그대로 쓴다.
+   여기서는 자리와 위아래 여백만 잡는다. */
+.promise-sec { padding-block: clamp(112px, 15vh, 176px); overflow-x: clip; }
+.promise-hold { margin-top: var(--s6); }
+
+/* 기능 구간이 가로로 새어 문서 전체에 가로 스크롤이 생겼다(1440 화면에서 109px).
+   카드가 화면 밖에서 들어오는 구조라 안쪽 폭이 원래 화면보다 넓다.
+   clip 은 sticky 를 죽이지 않는다 — hidden 을 쓰면 붙어 있어야 할 화면이 그냥 지나간다. */
+#feat { overflow-x: clip; }
+
+/* ② 대시보드 배너.
+   원래 홈에 길게 있던 대시보드 구간은 /portal 로 옮겼다.
+   여기 남은 건 문장 하나와 버튼 둘. 그래서 배경을 깔아 한 판으로 세운다. */
+.pbanner {
+  position: relative; overflow-x: clip;
+  background: var(--w-2);
+  border-top: 1px solid var(--w-3); border-bottom: 1px solid var(--w-3);
+}
+/* 0° 선. 히어로에서 지구본을 지나던 그 선이 배너 왼쪽 끝에 서 있다.
+   장식이 아니라 이 사이트의 표시다. */
+.pbanner::before {
+  content: ""; position: absolute; left: var(--pad); top: 0; bottom: 0;
+  width: 2px; background: linear-gradient(180deg, transparent, var(--blue) 22%, var(--blue) 78%, transparent);
+  opacity: .5;
+}
+.pbanner .lede { max-width: 46ch; }
+.pbanner .hero-cta { margin-top: var(--s5); }
+
+/* 글 왼쪽, 화면 오른쪽. 화면이 글보다 넓다 — 여기서 보여줄 것은 화면이다. */
+/* 그림 쪽을 넓게 잡는다. 대시보드가 작으면 「이득이 없어」 보인다. */
+.pb-grid { display: grid; grid-template-columns: minmax(0, .92fr) minmax(0, 1.35fr); gap: var(--s6); align-items: center; }
+.pb-copy { min-width: 0; }
+
+/* 화면에서 뭘 보게 되는지. 카드로 감싸지 않는다 — 줄과 여백이면 충분하다. */
+/* 화면에서 보이는 것 넷. 설명을 붙여 세로로 쌓으면 왼쪽 글 기둥만 길어져
+   옆의 대시보드 그림과 높이가 어긋난다. 이름만 낮은 띠 하나로 둔다. */
+.pb-facts {
+  margin: var(--s5) 0 0; padding: var(--s3) 0;
+  list-style: none;
+  display: flex; flex-wrap: wrap; gap: var(--s2) var(--s3);
+  border-top: 1px solid var(--w-3); border-bottom: 1px solid var(--w-3);
+  max-width: 52ch;
+}
+.pb-facts li { font-size: var(--t-0); font-weight: 600; letter-spacing: -.02em; }
+/* 항목 사이 점. 줄이 바뀌는 자리에도 남으므로 앞 항목 뒤에 붙인다. */
+.pb-facts li + li::before { content: "·"; color: var(--w-3); margin-right: var(--s3); }
+
+.pb-shot { min-width: 0; }
+.pb-cap { margin-top: var(--s3); font-size: var(--t--1); color: var(--tx-2); text-align: right; }
+
+/* 축소판 화면. /portal 의 .db 를 그대로 쓰되 배너 크기에 맞춰 줄인다.
+   크기를 CSS 로 다시 짜지 않고 transform 으로 통째로 줄인다 — 그래야
+   원본 화면과 글자 균형이 같다. */
+.dpk { position: relative; }
+.dpk-win {
+  position: relative;
+  aspect-ratio: 1180 / 738;
+  border-radius: var(--r);
+  overflow: hidden;
+  border: 1px solid var(--w-3);
+  background: var(--w);
+  box-shadow: 0 34px 70px -36px rgba(0,0,0,.34);
+  /* 안쪽 화면이 이 칸의 너비를 알아야 그만큼 줄어든다. */
+  container-type: inline-size;
+}
+.dpk-win .db {
+  position: absolute; top: 0; left: 0;
+  width: 1180px; height: 738px;
+  transform-origin: top left;
+  /* 칸 너비 ÷ 원본 너비. 자바스크립트 없이 배너 폭을 따라간다.
+     나누는 쪽에 단위를 안 붙이면 계산이 통째로 무시된다 — 화면이 원본
+     크기 그대로 남아 오른쪽과 아래가 잘렸다. */
+  transform: scale(calc(100cqw / 1180px));
+}
+
+@media (max-width: 1180px) {
+  .pb-grid { grid-template-columns: 1fr; gap: var(--s6); }
+  .pb-shot { order: 2; }
+  .pb-facts { max-width: none; }
+  .pb-cap { text-align: left; }
+}
+
+/* ③ 하는 일 — 목록 전체로 보내는 버튼. 카드 아래 가운데. */
+.svc-cta { display: flex; justify-content: center; margin-top: var(--s6); }
+
+/* ── 대표 회계사(펼침) ─────────────────────────
+   ABOUT 에 같은 사람이 다시 나온다. 홈에서는 처음부터 다 펴 두지 않는다.
+   이름과 한 문장만 먼저 두고, 업무 영역은 스크롤이 닿을 때 한 줄씩 열린다. */
+.pu { margin-top: var(--s5); }
+/* 세 칸이다 — 사진 | 이름 | 업무 영역. 이름 칸은 사진 쪽으로 붙여
+   사진+이름이 한 덩어리로 읽히게 한다. 아래 한 줄은 사진 밑 왼쪽에 남는다. */
+.pu-head {
+  display: grid;
+  grid-template-columns: 300px minmax(0, max-content) minmax(0, 1fr);
+  column-gap: var(--s5); row-gap: var(--s5);
+  align-items: center;
+}
+.pu-id { text-align: right; }
+.pu-shot { overflow: hidden; border-radius: 2px; aspect-ratio: 4/5; }
+.pu-shot img { width: 100%; height: 100%; object-fit: cover; object-position: 50% 12%; }
+.pu-name { font-family: var(--disp); font-size: clamp(2rem, 4vw, 3rem); font-weight: 800; letter-spacing: -.05em; line-height: 1; }
+.pu-role { margin-top: var(--s3); font-size: var(--t-1); font-weight: 600; letter-spacing: .04em; color: var(--tx-2); }
+/* 말은 사진 옆이 아니라 아래에 있다. 이름표가 아니라 태도라서 폭을 다 쓴다. */
+.pu-say { margin-top: 0; font-size: 1.25rem; line-height: 1.8; color: var(--tx-2); max-width: 62ch; }
+
+/* 업무 영역. 왼쪽 세로선이 기준선이고, 줄은 거기서 밀려 나온다. */
+/* 줄이 오른쪽에서 밀려 들어온다. 들어오기 전 자리가 화면 밖이라
+   모바일에서 가로 스크롤이 생긴다. 여기서 가둔다. */
+.pu-areas { margin-top: var(--s6); padding-top: var(--s5); border-top: 1px solid var(--w-3); overflow-x: clip; }
+.pu-areas-lab { font-size: var(--t-0); font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: var(--tx-2); }
+.pu-areas-list {
+  margin-top: var(--s4); padding-left: var(--s4);
+  border-left: 2px solid var(--blue);
+}
+.pu-areas ul {
+  list-style: none; margin: 0; padding: 0;
+  display: grid; gap: var(--s3);
+}
+.pu-areas li { font-size: var(--t-1); line-height: 1.6; }
+/* 접혀 있던 나머지. 폭이나 높이를 0에서 늘리는 애니메이션이라 overflow 를 닫아 둔다. */
+.pu-areas-rest { overflow: hidden; }
+/* 좁은 화면에서는 아래로 열린다. 위 목록과 간격만 맞춘다. */
+.pu-areas-rest-in { padding-top: var(--s3); }
+
+/* 넓은 화면에서는 오른쪽으로 열린다.
+   앞 세 줄은 자리를 지키고, 나머지가 그 옆에 붙어 나온다.
+   안쪽 목록의 폭을 고정해 두어야 칸이 열리는 동안 글자가 다시 접히지 않는다. */
+@media (min-width: 981px) {
+  /* 오른쪽 칸. 위에 가로선을 긋지 않는다 — 사진 옆에 나란히 선 칸이라
+     선을 그으면 사진과 목록이 다른 층으로 갈라져 보인다. */
+  .pu-head > .pu-areas { grid-column: 3; grid-row: 1; margin-top: 0; padding-top: 0; border-top: none; }
+  /* 말은 사진 아래 왼쪽. 오른쪽 목록 밑으로 흐르지 않게 두 칸만 쓴다. */
+  .pu-head > .pu-say { grid-column: 1 / 3; grid-row: 2; align-self: start; }
+
+  .pu-areas-list { display: flex; align-items: flex-start; }
+  /* 두 칸 다 폭을 못 박는다. 왼쪽을 내용 폭에 맡기면 오른쪽이 열리는 동안
+     왼쪽까지 좁아지며 글자가 접힌다. */
+  /* 두 칸 다 폭을 못 박는다. 왼쪽을 내용 폭에 맡기면 오른쪽이 열리는 동안
+     왼쪽까지 좁아지며 글자가 접힌다. 오른쪽은 겹치면 잘리므로 조금 좁게 잡는다. */
+  .pu-areas-list > ul { flex: none; width: 200px; }
+  .pu-areas-rest-in { padding-top: 0; padding-left: var(--s4); width: 250px; }
+}
+/* 펼쳤을 때 따라 나오는 자격·경력. 업무 영역과 같은 무게로 읽히면
+   목록이 셋이 되어 무엇이 본론인지 흐려진다. 글자를 한 단 낮춘다. */
+.pu-cv { overflow: hidden; }
+.pu-cv-in { display: grid; grid-template-columns: 1fr 1fr; gap: var(--s6); margin-top: var(--s5); padding-top: var(--s5); border-top: 1px solid var(--w-3); }
+.pu-cv-grp ul { list-style: none; margin: var(--s3) 0 0; padding: 0; display: grid; gap: var(--s2); }
+.pu-cv-grp li { font-size: var(--t-0); line-height: 1.7; color: var(--tx-2); }
+@media (max-width: 700px) { .pu-cv-in { grid-template-columns: 1fr; gap: var(--s5); } }
+
+.pu-more {
+  display: inline-block; margin-top: var(--s5); font-size: var(--t-1); font-weight: 700;
+  border-bottom: 2px solid var(--tx); padding: 0 0 3px; text-decoration: none;
+  background: none; border-top: 0; border-left: 0; border-right: 0;
+  font-family: inherit; color: inherit; cursor: pointer;
+  transition: color .2s, border-color .2s;
+}
+.pu-more:hover { color: var(--blue); border-color: var(--blue); }
+
+@media (max-width: 980px) {
+  .pu-head { grid-template-columns: 1fr; gap: var(--s4); }
+  .pu-id { text-align: left; }
+  /* 한 줄로 쌓이면 말이 이름 바로 밑에 붙는 편이 읽기 좋다.
+     업무 영역은 그 다음이다. */
+  .pu-head > .pu-say { order: 1; margin-top: 0; }
+  .pu-head > .pu-areas { order: 2; margin-top: var(--s4); }
+  .pu-shot { max-width: 260px; aspect-ratio: 1/1; }
+  .pu-say { font-size: var(--t-1); }
+}
+
+/* 소속. 업무 영역과 같은 폭 안에 두되, 두 칸으로 나눠 연락처를 옆에 붙인다.
+   법인 관계를 밝히는 자리라 색을 쓰지 않는다. */
+.pu-aff {
+  margin-top: var(--s6); padding-top: var(--s5); border-top: 1px solid var(--w-3);
+  display: grid; grid-template-columns: 1fr 300px; gap: var(--s6) var(--s7); align-items: start;
+}
+.pu-aff .pu-areas-lab { grid-column: 1; }
+.pu-aff-body { grid-column: 1; display: grid; gap: var(--s3); max-width: 56ch; }
+.pu-aff-body p { font-size: var(--t-1); line-height: 1.8; color: var(--tx-2); }
+.pu-aff-body b { color: var(--tx); font-weight: 700; }
+.pu-aff-contact { grid-column: 2; grid-row: 1 / span 2; display: grid; gap: 6px; align-content: start; }
+.pu-aff-contact p { font-size: var(--t-1); line-height: 1.7; }
+.pu-aff-contact .pu-areas-lab { margin-bottom: var(--s2); }
+.pu-aff-contact a { text-decoration: none; border-bottom: 1px solid var(--w-3); transition: color .2s, border-color .2s; }
+.pu-aff-contact a:hover { color: var(--blue); border-color: var(--blue); }
+.pu-aff-loc { color: var(--tx-2); font-size: var(--t-0) !important; padding-top: 6px; }
+
+@media (max-width: 980px) {
+  .pu-aff { grid-template-columns: 1fr; gap: var(--s4); }
+  .pu-aff .pu-areas-lab, .pu-aff-body, .pu-aff-contact { grid-column: 1; }
+  .pu-aff-contact { grid-row: auto; margin-top: var(--s3); padding-top: var(--s4); border-top: 1px solid var(--w-3); }
 }
