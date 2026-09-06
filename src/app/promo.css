@@ -1744,13 +1744,21 @@ h2.sec { font-size: clamp(1.9rem, 4.4vw, var(--t-3)); margin-top: var(--s3); max
 .vs-dark .tick::before { margin-inline: 0 var(--s2); }
 /* 제목 아래 짧은 파란 선. 어바웃과 같은 자리다. */
 .vs-line { width: 64px; height: 1px; background: var(--blue); margin: var(--s5) 0 0; }
-.vs-dark .vs { max-width: 920px; margin-inline: 0; text-align: left; margin-top: var(--s4); font-size: var(--t-0); }
-.vs-dark .vs th, .vs-dark .vs td { padding: var(--s2) var(--s3); border-bottom: 1px solid var(--w-3); }
-.vs-dark .vs thead th { color: var(--tx-2); font-size: var(--t--1); letter-spacing: .1em; text-transform: uppercase; font-weight: 700; width: 33.33%; }
+/* 표는 본문 폭을 그대로 쓴다. 920px 로 묶어 두니 오른쪽이 크게 비고
+   제목과 표의 오른쪽 끝이 안 맞았다. */
+.vs-dark .vs { max-width: none; margin-inline: 0; text-align: left; margin-top: var(--s5); font-size: var(--t-0); }
+/* th 는 브라우저 기본이 가운데 정렬이다. 물려받은 왼쪽 정렬을 이기므로
+   여기서 못 박는다 — 이것 때문에 왼쪽 항목만 안쪽으로 밀려 있었다. */
+.vs-dark .vs th, .vs-dark .vs td {
+  padding: var(--s4) var(--s3) var(--s4) 0;
+  border-bottom: 1px solid var(--w-3);
+  text-align: left;
+}
+.vs-dark .vs thead th { color: var(--tx-2); font-size: var(--t--1); letter-spacing: .1em; text-transform: uppercase; font-weight: 700; width: 33.33%; text-align: left; }
 /* 머리칸의 「Meridian」은 글자로 적지 않는다. 사이트에 하나뿐인 로고를 넣는다.
    대문자로 늘려 쓰던 라벨 서식은 로고를 망가뜨리므로 여기서 전부 끈다. */
-.vs-dark .vs thead th.ours { color: var(--tx); background: none; border-radius: 0; letter-spacing: normal; text-transform: none; text-align: left; padding-block: calc(var(--s3) - 2px); }
-.vs-logo { font-size: var(--t-2); color: var(--tx); }
+.vs-dark .vs thead th.ours { color: var(--tx); background: none; border-radius: 0; letter-spacing: .1em; text-transform: uppercase; font-size: var(--t--1); font-weight: 700; text-align: left; }
+.vs-logo { font-size: var(--t-0); color: var(--tx); }
 .vs-logo .brand-mark { opacity: 1; }
 .vs-dark .vs tbody th { color: var(--tx-2); font-weight: 600; width: 33.33%; }
 .vs-dark .vs .theirs { color: #5C6880; width: 33.33%; }
