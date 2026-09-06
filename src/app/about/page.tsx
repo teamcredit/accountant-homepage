@@ -6,8 +6,8 @@ import { siteConfig } from "@/lib/constants";
 import { AnimateOnScroll, LineReveal } from "@/components/motion";
 import HeroVideo from "@/components/layout/hero-video";
 import KeepList from "@/components/about/keep-list";
-import MeridianGlobe from "@/components/about/meridian-globe";
 import Wordmark from "@/components/brand/wordmark";
+import MeridianGlobe from "@/components/about/meridian-globe";
 
 /* ─────────────────────────────────────────────────────────────
    회사 소개.
@@ -49,27 +49,25 @@ export default function AboutPage() {
               About
             </p>
           </AnimateOnScroll>
+
+          {/* main(라이브)의 첫 화면 문구를 그대로 쓴다 — 로고 · Prime Meridian ·
+              한 줄. 바탕과 짜임은 지금 것 그대로. */}
           <AnimateOnScroll variant="fadeUp" delay={0.1}>
-            {/* 히어로 연출의 마지막 문장을 그대로 제목으로 세운다. */}
-            <h1
-              className="text-4xl md:text-6xl font-bold tracking-tighter max-w-4xl leading-[1.15]"
-              style={{ wordBreak: "keep-all" }}
-            >
-              <span className="text-accent-bright">메리디안</span>이 그 기준선이
-              되어드리겠습니다.
+            <h1 className="abt-hero-logo">
+              <Wordmark mark={false} />
             </h1>
           </AnimateOnScroll>
+
+          <AnimateOnScroll variant="fadeIn" delay={0.3}>
+            <p className="abt-hero-sub">Prime Meridian</p>
+          </AnimateOnScroll>
+
           <div className="mt-6">
-            <LineReveal className="h-0.5 w-20 bg-accent-bright" delay={0.3} />
+            <LineReveal className="h-0.5 w-20 bg-accent-bright" delay={0.4} />
           </div>
-          <AnimateOnScroll variant="fadeUp" delay={0.4}>
-            <p
-              className="mt-8 text-lg text-neutral-400 max-w-xl leading-relaxed"
-              style={{ wordBreak: "keep-all" }}
-            >
-              매일의 기장부터 세무조정, 세무자문, 가치평가까지 회계사가 직접
-              맡습니다.
-            </p>
+
+          <AnimateOnScroll variant="fadeUp" delay={0.5}>
+            <p className="abt-hero-lede">메리디안은 기준점을 제시해드립니다.</p>
           </AnimateOnScroll>
         </div>
       </section>
@@ -196,57 +194,45 @@ export default function AboutPage() {
         </div>
       </section>
 
-      {/* ─── ④ 사무소 정보 ───
-          제목 왼쪽 · 내용 오른쪽. 예전 배치를 그대로 쓴다. */}
-      <section id="office" className="abt-sec scroll-mt-32">
+      {/* ─── ④ 소속 ───
+          main(라이브)의 Affiliation 구역을 그대로 쓴다. 이 글은 법정 업무를
+          누구 명의로 하는지 밝히는 고지라, 손대면 안 되는 문장이다. */}
+      <section id="office" className="abt-sec abt-affil-sec scroll-mt-32">
         <div className="abt-in abt-in--split">
           <AnimateOnScroll variant="fadeUp">
             <div className="abt-side">
-              <p className="abt-eyebrow">Office</p>
-              <h2 className="abt-h">
-                사무소 정보<span className="green-dot">.</span>
-              </h2>
+              <p className="abt-eyebrow">Affiliation</p>
+              <div className="abt-affil-rule" />
             </div>
           </AnimateOnScroll>
 
           <AnimateOnScroll variant="fadeUp" delay={0.12}>
-            <div className="abt-office">
-              {/* 네 마디로 끊어 읽는다. 한 문단으로 흘리면 어디까지가
-                  소속이고 어디부터가 안내인지 안 갈린다. */}
-              <p className="abt-affil">
-                <Wordmark className="text-[1.15rem] align-[-0.15em]" mark={false} />
-                <span className="s">— 박민상 공인회계사는 동성회계법인 소속이며,</span>
-                <span className="s">본 사이트는 자문 · 인사이트 활동을 소개하기 위한 개인 브랜드 공간입니다.</span>
-                <span className="s">회계감사 · 세무 기장 · 세무 조정 · 세무 신고 등 법정 업무는</span>
-                <span className="s">모두 동성회계법인 명의로 정식 수행됩니다.</span>
+            <div className="abt-affil">
+              <p>
+                <strong>메리디안 어드바이저리</strong>는 박민상 공인회계사가
+                운영하는 개인 자문 브랜드이며, 별도의 법인이 아닙니다.
+              </p>
+              <p>
+                박민상 공인회계사는 <strong>동성회계법인</strong> 소속이며,
+                메리디안 어드바이저리를 통해 수임하는 모든 업무는 동성회계법인과의
+                계약에 따라 수행됩니다.
               </p>
 
-              <dl className="abt-facts">
-                <div>
-                  <dt>Kakao</dt>
-                  <dd>
-                    <a
-                      href={siteConfig.kakaoChannelUrl}
-                      target="_blank"
-                      rel="noreferrer noopener"
-                    >
-                      카카오톡 채널
-                    </a>
-                  </dd>
-                </div>
-                <div>
-                  <dt>Email</dt>
-                  <dd>{siteConfig.email}</dd>
-                </div>
-                <div>
-                  <dt>Location</dt>
-                  <dd>{siteConfig.location}</dd>
-                </div>
-                <div>
-                  <dt>Founder</dt>
-                  <dd>{siteConfig.founder}</dd>
-                </div>
-              </dl>
+              <div className="abt-direct">
+                <p className="abt-eyebrow">Direct Contact</p>
+                <p>
+                  Kakao{" "}
+                  <a
+                    href={siteConfig.kakaoChannelUrl}
+                    target="_blank"
+                    rel="noreferrer noopener"
+                  >
+                    카카오톡 채널
+                  </a>
+                </p>
+                <p>Email {siteConfig.email}</p>
+                <p className="abt-direct-loc">{siteConfig.location}</p>
+              </div>
             </div>
           </AnimateOnScroll>
         </div>

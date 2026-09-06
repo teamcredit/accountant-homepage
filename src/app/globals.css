@@ -4670,9 +4670,7 @@ section:not(.promise-dark) .promise-meridian-trail {
   .abt-globe { width: min(72%, 18rem); margin-top: 2.5rem; }
 }
 
-/* 사무소 정보. 오른쪽 칸. */
-.abt-office { font-size: .95rem; line-height: 1.9; color: var(--color-muted); word-break: keep-all; }
-.abt-office .abt-facts { margin-inline: 0; max-width: none; }
+
 
 /* 맡는 사람. 글 왼쪽, 사진 오른쪽. 사진이 커야 「이 사람이 맡는다」가 선다. */
 .abt-in--who .abt-side { max-width: 40ch; }
@@ -4690,9 +4688,33 @@ section:not(.promise-dark) .promise-meridian-trail {
 }
 .abt-in--who .abt-more { margin-top: 1.8rem; }
 
-/* 소속 안내. 네 마디로 끊어 읽는다. */
-.abt-affil .s { display: block; }
-.abt-affil .s:first-of-type { margin-top: .5rem; }
+/* 소속 고지. main 과 같은 짜임 — 왼쪽에 눈썹과 짧은 선, 오른쪽에 글. */
+.abt-affil-sec { border-top: 1px solid var(--color-border); }
+/* 눈썹은 오른쪽 글 첫 줄에 맞춘다. 가운데로 두니 글은 위에서 시작하는데
+   왼쪽 라벨만 한참 아래에 떠 있었다. */
+.abt-affil-sec .abt-in--split { align-items: start; }
+.abt-affil-rule { width: 4rem; height: 1px; background: var(--color-accent); margin-top: 1.4rem; }
+.abt-affil {
+  display: grid;
+  gap: 1.5rem;
+  font-size: .98rem;
+  line-height: 1.85;
+  color: var(--color-strong);
+  word-break: keep-all;
+  max-width: 52ch;
+}
+.abt-affil strong { color: var(--color-foreground); font-weight: 700; }
+.abt-direct {
+  padding-top: 1.6rem;
+  border-top: 1px solid var(--color-border);
+  display: grid;
+  gap: .3rem;
+}
+.abt-direct p { color: var(--color-foreground); }
+.abt-direct .abt-eyebrow { margin-bottom: .5rem; letter-spacing: .2em; color: var(--color-subtle); }
+.abt-direct a { color: var(--color-accent); font-weight: 600; text-decoration: none; }
+.abt-direct a:hover { text-decoration: underline; text-underline-offset: 3px; }
+.abt-direct-loc { color: var(--color-muted) !important; font-size: .88rem; padding-top: .35rem; }
 
 /* 밖으로 나가는 링크는 파란색. 눌리는 곳인지 아닌지가 색으로 갈려야 한다. */
 .abt-facts a {
@@ -4869,3 +4891,26 @@ section:not(.promise-dark) .promise-meridian-trail {
 /* 가운데로 세우지 않는 절. */
 .abt-in--left { text-align: left; }
 .abt-in--left .abt-h { margin-inline: 0; }
+
+/* 어바웃 첫 화면. main 과 같은 세 줄 — 로고 · Prime Meridian · 한 줄. */
+.abt-hero-logo {
+  font-size: clamp(3.4rem, 11vw, 8rem);
+  line-height: .95;
+  letter-spacing: -.02em;
+  color: #fff;
+}
+.abt-hero-sub {
+  margin-top: 1.4rem;
+  font-size: clamp(.78rem, 1.1vw, .95rem);
+  letter-spacing: .35em;
+  text-transform: uppercase;
+  color: var(--color-on-deep-muted);
+}
+.abt-hero-lede {
+  margin-top: 2rem;
+  max-width: 34ch;
+  font-size: clamp(1.05rem, 1.6vw, 1.3rem);
+  line-height: 1.85;
+  color: #C7D3EE;
+  word-break: keep-all;
+}

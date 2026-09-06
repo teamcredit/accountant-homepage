@@ -2251,32 +2251,6 @@ h2.sec { font-size: clamp(1.9rem, 4.4vw, var(--t-3)); margin-top: var(--s3); max
    위아래 135px 씩이라 표 넷보다 빈 곳이 넓었다. 안쪽 것만 남긴다. */
 #vs { padding-block: 0; }
 
-/* 카드 왼쪽 정사각 사진. 카드 안쪽으로 꽉 채운다 — 여백을 두면
-   붙여 놓은 썸네일로 보이고, 꽉 채워야 카드의 한쪽 면이 된다. */
-.svm-shot {
-  position: absolute;
-  left: 0; top: 0; bottom: 0;
-  width: 158px;               /* 카드 높이와 같다 = 정사각 */
-  overflow: hidden;
-  background: var(--w-2);
-}
-.svm-shot img {
-  width: 100%; height: 100%;
-  object-fit: cover;
-  display: block;
-  /* 사진이 세면 카드 글씨가 묻힌다. 한 톤 죽여 배경으로 물린다. */
-  filter: saturate(.72) contrast(.96);
-}
-/* 사진 오른쪽 가장자리를 흰색으로 녹여 글씨판과 이어 붙인다. */
-.svm-shot::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(90deg, rgba(255,255,255,0) 62%, var(--w));
-}
-/* 글씨는 사진 옆에서 시작한다. */
-.svm-ink { padding-left: 182px; }
-
 /* 하는 일과 비교표 사이. 여섯 개를 다 읽고 나면 「그래서?」가 되는 자리다. */
 .mid-cta { padding-block: clamp(48px, 7vh, 76px); }
 .mid-cta-in {

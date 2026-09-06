@@ -772,13 +772,6 @@ export default function ServiceMerge({ items }) {
                 아래 대시보드(.db)를 그대로 베껴 넣는다 — 실행 중에 채운다. */}
             <div className="svm-peek" />
             <div className="svm-ink">
-              {/* 카드 왼쪽 정사각 사진. 글씨판(.svm-ink) 안에 두어야
-                  카드가 커질 때 글씨와 같은 배율로 따라간다 — 밖에 두면
-                  사진만 대시보드 크기로 늘어난다.
-                  히어로 영상에서 잘라 썼다. 같은 소재라 결이 맞는다. */}
-              <span className="svm-shot">
-                <img src={`/images/svc/${s.slug}.webp`} alt="" />
-              </span>
               <span className="svm-t">
                 <svg className="svm-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                      strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
