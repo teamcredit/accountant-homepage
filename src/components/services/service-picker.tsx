@@ -29,9 +29,9 @@ export default function ServicePicker({ services }: { services: Service[] }) {
       {/* 왼쪽 — 두 묶음 여섯 줄.
           번호는 묶음을 건너뛰지 않고 01 부터 06 까지 이어 붙인다.
           상세 히어로의 큰 번호와 같은 값이라, 끊으면 어긋난다. */}
-      <div className="spick-list" aria-label="서비스 고르기">
+      <ul className="spick-list" aria-label="서비스 고르기">
         {serviceGroups.map((g) => (
-          <div key={g.title} className="spick-grp">
+          <li key={g.title} className="spick-grp">
             <p className="spick-glab">{g.title}</p>
             <ul>
               {g.slugs.map((slug) => {
@@ -40,26 +40,27 @@ export default function ServicePicker({ services }: { services: Service[] }) {
                 if (!s) return null;
                 return (
                   <li key={slug}>
-                    <button
-                      type="button"
-                      aria-pressed={i === pick}
-                      aria-controls="spick-panel"
+                    {/* 올리면 오른쪽이 바뀌고, 누르면 그 페이지로 간다.
+                        단추로 두니 눌러도 판만 바뀌어서, 「자세히 보기」를
+                        한 번 더 찾아 눌러야 했다. */}
+                    <Link
+                      href={`/services/${slug}`}
                       className={`spick-item ${i === pick ? "is-on" : ""}`}
-                      onClick={() => setPick(i)}
+                      aria-current={i === pick ? "true" : undefined}
                       onMouseEnter={() => setPick(i)}
                       onFocus={() => setPick(i)}
                     >
                       <ServiceIcon name={s.icon} className="spick-icon" />
                       <span className="spick-no">{String(i + 1).padStart(2, "0")}</span>
                       <span className="spick-title">{s.title}</span>
-                    </button>
+                    </Link>
                   </li>
                 );
               })}
             </ul>
-          </div>
+          </li>
         ))}
-      </div>
+      </ul>
 
       {/* 오른쪽 — 고른 하나 */}
       <div className="spick-panel" id="spick-panel">

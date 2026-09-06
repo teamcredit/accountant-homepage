@@ -2186,10 +2186,10 @@ h2.sec { font-size: clamp(1.9rem, 4.4vw, var(--t-3)); margin-top: var(--s3); max
 }
 
 
-/* 비교표는 가운데로 세운다. 왼쪽 기준선이 없는 장이라
-   제목·선·표가 한 축에 서야 한 덩어리로 읽힌다. */
-.vs-dark .vs-brand { justify-content: center; }
-.vs-dark .vs th, .vs-dark .vs td { text-align: center; }
+/* 이 자리에 「가운데로 세운다」는 규칙이 있었다. 파일 뒤쪽이라 위에서
+   왼쪽으로 잡아 둔 걸 통째로 되돌렸다 — 그래서 정렬이 안 바뀌었다.
+   왼쪽 기준선은 제목·선·표가 이미 같이 쓴다. */
+.vs-dark .vs-brand { justify-content: flex-start; }
 
 /* ── 대표 회계사 (홈) ───────────────────────────
    이름과 하는 일까지. 나머지는 /members 로 보낸다. */
