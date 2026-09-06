@@ -52,6 +52,13 @@ export default function sitemap(): MetadataRoute.Sitemap {
       changeFrequency: "monthly",
       priority: 0.7,
     },
+    /* /pricing 은 넣지 않는다. robots.ts 가 막는 페이지다. */
+    {
+      url: `${siteConfig.url}/portal`,
+      lastModified: now,
+      changeFrequency: "monthly",
+      priority: 0.75,
+    },
     {
       url: `${siteConfig.url}/blog`,
       lastModified: now,

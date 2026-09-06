@@ -2,9 +2,11 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { services } from "@/lib/data";
-import { AnimateOnScroll, StaggerChildren, LineReveal } from "@/components/motion";
-import { StaggerItem } from "@/components/motion/stagger-item";
+import { AnimateOnScroll, LineReveal } from "@/components/motion";
 import HeroVideo from "@/components/layout/hero-video";
+import ServiceBar from "@/components/services/service-bar";
+import { getAllPosts } from "@/lib/posts";
+import DeliverableIcon from "@/components/services/deliverable-icon";
 
 interface Props {
   params: Promise<{ slug: string }>;
@@ -93,6 +95,14 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   };
 }
 
+/* 「DCF 모델 (Excel 워크북, 가정 변경 가능 구조)」처럼 괄호가 붙은 이름을
+   이름과 설명으로 가른다. 괄호가 없으면 이름 하나로 그대로 둔다. */
+function splitName(label: string) {
+  const at = label.indexOf(" (");
+  if (at < 0) return { name: label, note: "" };
+  return { name: label.slice(0, at), note: label.slice(at + 1) };
+}
+
 export default async function ServiceDetailPage({ params }: Props) {
   const { slug } = await params;
   const currentIndex = services.findIndex((s) => s.slug === slug);
@@ -100,17 +110,21 @@ export default async function ServiceDetailPage({ params }: Props) {
   if (!service) notFound();
   const sampleArtifacts = sampleArtifactsBySlug[slug];
 
+  /* 이 서비스와 맞물리는 글 셋. 갈래만 맞추고 최신순으로 자른다 —
+     글 목록을 서비스마다 손으로 붙이면 글이 늘 때마다 여기를 고쳐야 한다. */
+  const related = service.postTopics?.length
+    ? getAllPosts()
+        .filter((post) => service.postTopics!.includes(post.category))
+        .slice(0, 3)
+    : [];
+
   const num = String(currentIndex + 1).padStart(2, "0");
 
-  // Related services (exclude current, take up to 3)
-  const related = services
-    .filter((s) => s.slug !== slug)
-    .slice(0, 3);
 
   return (
     <>
       {/* Hero */}
-      <section className="page-hero bg-foreground text-white relative overflow-hidden">
+      <section className="page-hero page-hero--svc page-hero--tall bg-deep text-white relative overflow-hidden">
         {/* 히어로 배경 영상. 사이트 전체가 같은 소재를 쓴다. */}
         <HeroVideo opacity={0.38} />
         <div className="absolute inset-0 opacity-[0.04]">
@@ -119,20 +133,8 @@ export default async function ServiceDetailPage({ params }: Props) {
           </div>
         </div>
         <div className="max-w-[1600px] mx-auto px-6 relative z-10">
-          {/* Breadcrumb */}
-          <AnimateOnScroll variant="fadeIn">
-            <nav className="flex items-center gap-2 text-sm text-neutral-500 mb-10">
-              <Link href="/" className="hover:text-neutral-300 transition-colors">
-                HOME
-              </Link>
-              <span>/</span>
-              <Link href="/services" className="hover:text-neutral-300 transition-colors">
-                SERVICE
-              </Link>
-              <span>/</span>
-              <span className="text-neutral-300">{service.title}</span>
-            </nav>
-          </AnimateOnScroll>
+          {/* 「홈 / 서비스 / 세무 조정」 한 줄은 뺐다. 히어로 바로 밑에
+              형제 여섯이 다 서 있는 이동 띠가 같은 일을 한다. */}
 
           <AnimateOnScroll variant="fadeUp" delay={0.1}>
             <div className="flex items-baseline gap-5">
@@ -148,229 +150,209 @@ export default async function ServiceDetailPage({ params }: Props) {
             <LineReveal className="h-0.5 w-20 bg-accent-bright" delay={0.3} />
           </div>
           <AnimateOnScroll variant="fadeUp" delay={0.4}>
-            <p className="mt-8 text-lg text-neutral-400 max-w-xl leading-relaxed">
-              {service.description}
-            </p>
+            {/* 어절 중간에서 끊지 않는다. 「따져야 하 / 는 이슈를」로 갈라져 있었다. */}
+            <p className="svc-desc">{service.description}</p>
+          </AnimateOnScroll>
+
+          {/* 형제 여섯. 첫 화면 안에 같이 넣는다 — 밖에 띠로 깔았더니
+              제목 · 선 · 설명이 333px 안에 눌려 숨통이 없었다. */}
+          <AnimateOnScroll variant="fadeUp" delay={0.55}>
+            <ServiceBar services={services} slug={slug} />
           </AnimateOnScroll>
         </div>
       </section>
 
-      {/* Content + Side Nav */}
-      <section className="py-24 md:py-32">
-        <div className="max-w-[1600px] mx-auto px-6">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16">
-            {/* Side Navigation */}
-            <aside className="lg:col-span-3">
-              <AnimateOnScroll variant="fadeUp">
-                <div className="lg:sticky lg:top-32">
-                  <p className="t-eyebrow mb-4">
-                    Services
-                  </p>
-                  <nav className="space-y-0 border-l border-border">
-                    {services.map((s, i) => {
-                      const isActive = s.slug === slug;
-                      return (
-                        <Link
-                          key={s.slug}
-                          href={`/services/${s.slug}`}
-                          className={`block pl-5 py-3 text-sm transition-all duration-200 border-l-2 -ml-px ${
-                            isActive
-                              ? "border-l-foreground text-foreground font-medium"
-                              : "border-l-transparent text-muted hover:text-foreground hover:border-l-neutral-300"
-                          }`}
-                        >
-                          <span className="text-xs text-subtle mr-2">
-                            {String(i + 1).padStart(2, "0")}
-                          </span>
-                          {s.title}
-                        </Link>
-                      );
-                    })}
-                  </nav>
-                </div>
-              </AnimateOnScroll>
-            </aside>
 
-            {/* Main Content */}
-            <div className="lg:col-span-9 space-y-20">
-              {/* I. Service Details */}
-              <AnimateOnScroll variant="fadeUp">
-                <div className="flex items-baseline gap-4 mb-10">
-                  <span className="t-label">
-                    I.
-                  </span>
-                  <h2 className="t-h3">
-                    서비스 상세
-                  </h2>
-                </div>
-              </AnimateOnScroll>
-              <StaggerChildren className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {service.details.map((detail, i) => (
-                  <StaggerItem key={i}>
-                    <div className="flex items-start gap-5 p-6 md:p-8 border border-border hover:border-foreground transition-colors duration-300 group">
-                      <span className="text-sm font-bold text-subtle group-hover:text-foreground transition-colors flex-shrink-0 mt-0.5">
-                        {String(i + 1).padStart(2, "0")}
-                      </span>
-                      <p className="text-base leading-relaxed">{detail}</p>
-                    </div>
-                  </StaggerItem>
+      {/* ── 위계 ────────────────────────────────────
+          셋을 같은 제목·같은 카드로 세워 두니 무엇이 본체이고 무엇이
+          곁가지인지 안 보였다. 게다가 순서가 거꾸로였다 —
+          「내 상황인가」가 맨 뒤에 있었다.
+
+          읽는 순서대로, 무게를 셋으로 나눈다.
+            들머리  이런 때  → 띠 하나. 번호 없음. 훑고 지나가는 곳
+            본체    하는 일  → 번호 붙은 큰 제목 + 카드
+            결론    드리는 것 → 짙은 판 전체 폭. 이 페이지에서 제일 무겁다
+            각주    근거 법령 → 제일 작게
+
+          번호는 본체와 결론에만 붙인다. 번호가 붙었다는 것 자체가
+          「이 둘이 핵심」이라는 표시가 된다. */}
+
+      {/* 들머리 — 이런 때 */}
+      {service.applicableScenarios?.length > 0 && (
+        <section className="svc-when">
+          <div className="max-w-[1600px] mx-auto px-6">
+            <AnimateOnScroll variant="fadeUp">
+              <p className="svc-when-lab">이런 때 필요합니다</p>
+              <ul className="svc-when-list">
+                {service.applicableScenarios.map((item) => (
+                  <li key={item}>{item}</li>
                 ))}
-              </StaggerChildren>
+              </ul>
+            </AnimateOnScroll>
+          </div>
+        </section>
+      )}
 
-              {/* II. Deliverables */}
-              {service.deliverables && service.deliverables.length > 0 && (
-                <AnimateOnScroll variant="fadeUp">
-                  <div className="flex items-baseline gap-4 mb-10">
-                    <span className="t-label">
-                      II.
-                    </span>
-                    <h2 className="t-h3">
-                      산출물
-                    </h2>
-                    <span className="text-xs text-subtle ml-2">
-                      Deliverables
-                    </span>
-                  </div>
-                  <div className="border border-border">
-                    {service.deliverables.map((item, i) => (
-                      <div
-                        key={i}
-                        className="flex items-start gap-5 p-5 md:p-6 border-b border-border last:border-b-0"
-                      >
-                        <span className="font-mono text-xs text-subtle mt-1 flex-shrink-0 tabular-nums">
-                          {String(i + 1).padStart(2, "0")}
-                        </span>
-                        <p className="text-base leading-relaxed">{item}</p>
-                      </div>
-                    ))}
-                  </div>
-                </AnimateOnScroll>
-              )}
-
-              {sampleArtifacts && (
-                <AnimateOnScroll variant="fadeUp">
-                  <div className="flex items-baseline gap-4 mb-10">
-                    <span className="t-label">
-                      III.
-                    </span>
-                    <h2 className="t-h3">
-                      {sampleArtifacts.title}
-                    </h2>
-                  </div>
-                  <p className="text-base text-muted leading-relaxed mb-8">
-                    {sampleArtifacts.subtitle}
-                  </p>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    {sampleArtifacts.samples.map((sample, index) => (
-                      <div key={sample.title} className="border border-border bg-card p-6 md:p-7">
-                        <p className="t-label">
-                          {String(index + 1).padStart(2, "0")}
-                        </p>
-                        <h3 className="t-h4 mt-4">
-                          {sample.title}
-                        </h3>
-                        <p className="mt-3 text-sm text-muted leading-relaxed">
-                          {sample.description}
-                        </p>
-                      </div>
-                    ))}
-                  </div>
-                </AnimateOnScroll>
-              )}
-
-              {/* III/IV. Applicable Scenarios */}
-              {service.applicableScenarios &&
-                service.applicableScenarios.length > 0 && (
-                  <AnimateOnScroll variant="fadeUp">
-                    <div className="flex items-baseline gap-4 mb-10">
-                      <span className="t-label">
-                        {sampleArtifacts ? "IV." : "III."}
-                      </span>
-                      <h2 className="t-h3">
-                        적용 케이스
-                      </h2>
-                      <span className="text-xs text-subtle ml-2">
-                        Typical Scenarios
-                      </span>
-                    </div>
-                    <ul className="space-y-3">
-                      {service.applicableScenarios.map((item, i) => (
-                        <li
-                          key={i}
-                          className="flex items-start gap-4 py-2"
-                        >
-                          <span className="w-1.5 h-1.5 rounded-full bg-accent mt-2.5 flex-shrink-0" />
-                          <p className="text-base text-muted leading-relaxed">
-                            {item}
-                          </p>
-                        </li>
-                      ))}
-                    </ul>
-                  </AnimateOnScroll>
-                )}
-
-              {/* CTA Box */}
-              <AnimateOnScroll variant="fadeUp">
-                <div className="p-10 md:p-12 bg-foreground text-white">
-                  <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
-                    <div>
-                      <h3 className="t-h4">
-                        {service.title} 케이스를 상담하시려면
-                      </h3>
-                      <p className="mt-2 text-neutral-400 text-sm leading-relaxed">
-                        지금 상황과 필요한 산출물을 짧게 보내주시면, 이 케이스에 들어맞는지부터 회신드립니다.
-                      </p>
-                    </div>
-                    <Link
-                      href={`/contact?type=${encodeURIComponent(service.title)}&output=${encodeURIComponent(
-                        service.deliverables[0] ?? "적용 범위 검토"
-                      )}`}
-                      className="group inline-flex items-center justify-center btn-blue rounded-[10px] px-8 py-4 text-sm font-medium tracking-wider transition-all duration-300 flex-shrink-0"
-                    >
-                      문의하기
-                      <span className="ml-2 transition-transform duration-300 group-hover:translate-x-1">
-                        &rarr;
-                      </span>
-                    </Link>
-                  </div>
-                </div>
-              </AnimateOnScroll>
-
-              {/* Related Services */}
-              <div>
-                <AnimateOnScroll variant="fadeUp">
-                  <h3 className="t-h4 mb-8">
-                    다른 전문 영역
-                  </h3>
-                </AnimateOnScroll>
-                <StaggerChildren className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  {related.map((s) => (
-                    <StaggerItem key={s.slug}>
-                      <Link
-                        href={`/services/${s.slug}`}
-                        className="group block p-6 border border-border hover:border-foreground transition-colors duration-300"
-                      >
-                        <span className="t-label">
-                          {String(
-                            services.findIndex((sv) => sv.slug === s.slug) + 1
-                          ).padStart(2, "0")}
-                        </span>
-                        <h4 className="mt-3 font-bold">{s.title}</h4>
-                        <p className="mt-2 text-xs text-muted line-clamp-2 leading-relaxed">
-                          {s.description}
-                        </p>
-                        <span className="mt-4 inline-flex items-center text-xs text-muted group-hover:text-foreground transition-colors">
-                          보기 &rarr;
-                        </span>
-                      </Link>
-                    </StaggerItem>
-                  ))}
-                </StaggerChildren>
-              </div>
+      {/* 본체 — 하는 일 */}
+      <section className="svc-body">
+        <div className="max-w-[1600px] mx-auto px-6">
+          <AnimateOnScroll variant="fadeUp">
+            <div className="svc-head svc-head--lead">
+              <h2 className="svc-h">하는 일</h2>
+              <span className="svc-en">What we do</span>
             </div>
+            <ul className="svc-cards">
+              {service.details.map((detail, i) => (
+                <li key={i} className="svc-card">
+                  <span className="svc-chip">{String(i + 1).padStart(2, "0")}</span>
+                  <p>{detail}</p>
+                </li>
+              ))}
+            </ul>
+          </AnimateOnScroll>
+        </div>
+      </section>
+
+      {/* 결론 — 드리는 것.
+          손에 남는 물건이라 페이지에서 제일 무거워야 한다. 짙은 판을
+          페이지 폭으로 깔아 「하는 일」과 격을 벌린다. */}
+      {service.deliverables?.length > 0 && (
+        <section className="svc-give">
+          <div className="max-w-[1600px] mx-auto px-6">
+            <AnimateOnScroll variant="fadeUp">
+              <div className="svc-head svc-head--lead svc-head--on">
+                <h2 className="svc-h">드리는 것</h2>
+                <span className="svc-en">Deliverables</span>
+              </div>
+              {/* 손에 남는 물건이라 하나씩 세워 둔다. 두 기둥에 눕히면
+                  「하는 일」과 같은 목록으로 읽혀서, 받는 것인지 하는
+                  것인지 구분이 안 됐다. 다섯에서 여섯이 한 줄에 선다. */}
+              <ul className="svc-give-cards">
+                {service.deliverables.map((item, i) => (
+                  <li key={i}>
+                    <DeliverableIcon label={item} />
+                    {/* 괄호 안은 이름이 아니라 설명이다. 한 줄에 이어 붙이면
+                        「가정 변경 가능 / 구조)」처럼 닫는 괄호만 떨어진다. */}
+                    <p>
+                      <span className="svc-give-name">{splitName(item).name}</span>
+                      {splitName(item).note && (
+                        <span className="svc-give-note">{splitName(item).note}</span>
+                      )}
+                    </p>
+                  </li>
+                ))}
+              </ul>
+            </AnimateOnScroll>
+          </div>
+        </section>
+      )}
+
+      <section className="svc-body svc-body--tail">
+        <div className="max-w-[1600px] mx-auto px-6">
+
+          {/* 산출물 활용 예시 — 자료가 있는 서비스만 */}
+          {sampleArtifacts && (
+            <AnimateOnScroll variant="fadeUp">
+              <div className="svc-head svc-head--lead">
+                <h2 className="svc-h">{sampleArtifacts.title}</h2>
+              </div>
+              <p className="svc-lede">{sampleArtifacts.subtitle}</p>
+              <div className="svc-samples">
+                {sampleArtifacts.samples.map((sample, index) => (
+                  <div key={sample.title} className="svc-sample">
+                    <span className="svc-i">{String(index + 1).padStart(2, "0")}</span>
+                    <h3>{sample.title}</h3>
+                    <p>{sample.description}</p>
+                  </div>
+                ))}
+              </div>
+            </AnimateOnScroll>
+          )}
+          {/* 각주 — 근거 법령.
+              data.ts 에 서비스마다 서너 줄씩 들어 있는데 지금까지 화면에
+              한 번도 안 나왔다. 세무에서 근거 조문은 신뢰의 핵심이지만,
+              읽으러 오는 글은 아니라 제일 작게 둔다. */}
+          {service.regulations && service.regulations.length > 0 && (
+            <AnimateOnScroll variant="fadeUp">
+              <div className="svc-head svc-head--sub">
+                <h2 className="svc-h">근거 법령</h2>
+                <span className="svc-en">Statutes</span>
+              </div>
+              <ul className="svc-laws">
+                {service.regulations.map((item) => (
+                  <li key={item}>
+                    <svg viewBox="0 0 16 16" aria-hidden fill="none" stroke="currentColor"
+                         strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M8 2v12M3.5 5h9" />
+                      <path d="M3.5 5 1.8 9h3.4zM12.5 5 10.8 9h3.4z" />
+                      <path d="M5 14h6" />
+                    </svg>
+                    {item}
+                  </li>
+                ))}
+              </ul>
+            </AnimateOnScroll>
+          )}
+
+        {/* 관련 인사이트. 서비스 설명은 「무엇을 하는가」까지고, 실제 사안이
+            어떻게 굴러가는지는 글이 보여 준다. 없으면 이 칸은 안 선다. */}
+        {related.length > 0 && (
+          <div className="svc-read">
+              <AnimateOnScroll variant="fadeUp">
+                <div className="svc-head">
+                  <h2 className="svc-h">관련 인사이트</h2>
+                  <span className="svc-en">Insights</span>
+                </div>
+                <ul className="svc-read-list">
+                  {related.map((post) => (
+                    <li key={post.slug}>
+                      <Link href={`/blog/${post.slug}`}>
+                        <span className="svc-read-cat">{post.category}</span>
+                        <span className="svc-read-title">{post.title}</span>
+                        <span className="svc-read-date">{post.date}</span>
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+                <Link href="/blog" className="svc-read-all">
+                  인사이트 전체 보기 <span aria-hidden>&rarr;</span>
+                </Link>
+              </AnimateOnScroll>
+          </div>
+        )}
+
+        </div>
+      </section>
+
+      <section className="svc-ask">
+        <div className="max-w-[1600px] mx-auto px-6">
+          <div className="svc-ask-in">
+            <p className="svc-ask-lab">Contact</p>
+            <h3>{service.title} 케이스를 상담하시려면</h3>
+            <p className="svc-ask-p">
+              지금 상황과 필요한 산출물을 짧게 보내주시면, 이 케이스에 들어맞는지부터 회신드립니다.
+            </p>
+            <div className="svc-ask-cta">
+              <Link
+                href={`/contact?type=${encodeURIComponent(service.title)}&output=${encodeURIComponent(
+                  service.deliverables[0] ?? "적용 범위 검토"
+                )}`}
+                className="svc-ask-btn"
+              >
+                문의하기 <span aria-hidden>&rarr;</span>
+              </Link>
+              <Link href="/contact" className="svc-ask-btn svc-ask-btn--line">
+                전화로 문의
+              </Link>
+            </div>
+            <p className="svc-ask-note">상담은 무료입니다.</p>
           </div>
         </div>
       </section>
+
+      {/* 맨 아래 있던 「다른 서비스」 여섯 줄은 뺐다. 위 띠가 같은 목록을
+          내내 들고 다녀서, 남겨 두면 한 페이지에 여섯 이름이 두 번 선다. */}
+
     </>
   );
 }

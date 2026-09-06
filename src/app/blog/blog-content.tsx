@@ -2,14 +2,18 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useMemo, useState } from "react";
 import { AnimateOnScroll } from "@/components/motion";
+import { insightCategories } from "@/lib/constants";
 import { getCategoryStyle } from "@/lib/category-colors";
 import { splitHeadline } from "@/lib/headline";
 import type { PostMeta } from "@/lib/posts";
+import type { FaqItem } from "@/lib/faq";
 
 interface BlogContentProps {
   posts: PostMeta[];
+  faq: FaqItem[];
 }
 
 /* 제목 마지막 글자만 브랜드색으로.
@@ -64,123 +68,312 @@ function CardNews({ post }: { post: PostMeta }) {
   );
 }
 
-export default function BlogContent({ posts }: BlogContentProps) {
-  const allCategories = Array.from(new Set(posts.map((p) => p.category)));
-  const categories = ["전체", ...allCategories];
-  const [activeCategory, setActiveCategory] = useState("전체");
 
-  const filtered =
-    activeCategory === "전체"
-      ? posts
-      : posts.filter((p) => p.category === activeCategory);
+/* 한 판에 몇 장. 12 는 3열 × 4줄 · 4열 × 3줄에 다 맞아떨어진다. */
+const PER_PAGE = 12;
+/* 맨 위에서 돌려 보는 글 수. */
+const LEAD_N = 5;
+
+export default function BlogContent({ posts, faq }: BlogContentProps) {
+  /* 고른 갈래를 화면 안에만 담아 두면 상단 메뉴의 「인사이트 → 법인세」가
+     아무 일도 못 한다. 주소에 적어 두면 메뉴도 링크도 되고, 그 화면을
+     그대로 남에게 보낼 수도 있다. */
+  const router = useRouter();
+  const params = useSearchParams();
+  const active =
+    insightCategories.find((c) => c.slug === params.get("cat")) ??
+    insightCategories[0];
+
+  /* 찾는 말 · 몇 번째 판 · 어느 탭인지는 주소에 안 적는다 — 갈래와 달리
+     남에게 보낼 일이 없고, 적으면 뒤로 가기가 글자 하나마다 쌓인다. */
+  const [q, setQ] = useState("");
+  const [page, setPage] = useState(1);
+  const [tab, setTab] = useState<"posts" | "faq">("posts");
+  const [lead, setLead] = useState(0);
+  const [open, setOpen] = useState<number | null>(0);
+
+  const countOf = (match: string[]) =>
+    match.length === 0
+      ? posts.length
+      : posts.filter((p) => match.includes(p.category)).length;
+
+  const filtered = useMemo(() => {
+    const byCat =
+      active.match.length === 0
+        ? posts
+        : posts.filter((p) => active.match.includes(p.category));
+    const needle = q.trim().toLowerCase();
+    if (!needle) return byCat;
+    /* 제목 · 요약 · 열쇳말까지 본다. 제목만 보면 「가지급금」처럼 본문에만
+       나오는 말로는 아무것도 안 걸린다. */
+    return byCat.filter((p) =>
+      [p.title, p.description, p.category, ...(p.keywords ?? [])]
+        .join(" ")
+        .toLowerCase()
+        .includes(needle)
+    );
+  }, [posts, active, q]);
+
+  const pages = Math.max(1, Math.ceil(filtered.length / PER_PAGE));
+  const cur = Math.min(page, pages);
+  const shown = filtered.slice((cur - 1) * PER_PAGE, cur * PER_PAGE);
+
+  /* 맨 위 다섯 장은 늘 최신순이다 — 갈래를 골라도 안 바뀐다. 여기는
+     「무엇이 새로 올라왔나」를 보는 자리고, 아래가 고르는 자리다. */
+  const leads = posts.slice(0, LEAD_N);
+  const heroPost = leads[lead];
+
+  const pick = (slug: string) => {
+    setPage(1);
+    router.replace(slug === "all" ? "/blog" : `/blog?cat=${slug}`, { scroll: false });
+  };
 
   return (
-    <section className="py-24 md:py-32">
-      <div className="mx-auto max-w-[1600px] px-6">
-        <AnimateOnScroll variant="fadeUp">
-          <div className="mb-14 flex flex-wrap gap-3">
-            {categories.map((category) => (
+    <section className="ins">
+      <div className="ins-in">
+        {/* ── 맨 위 한 장. 글이 왼쪽, 표지가 오른쪽. ── */}
+        {heroPost && (
+          <AnimateOnScroll variant="fadeUp">
+            <div className="ins-lead">
+              <div className="ins-lead-text">
+                {/* 위 묶음은 사진 윗변에, 아래 묶음은 사진 아랫변에 맞춘다.
+                    가운데 정렬로 두면 제목이 사진 한복판에 떠서 두 칸이
+                    따로 놀았다. */}
+                <div className="ins-lead-top">
+                <p className="ins-lead-tag">
+                  <span>인사이트</span>
+                  <i aria-hidden>|</i>
+                  <b style={{ color: getCategoryStyle(heroPost.category, false).color }}>
+                    {heroPost.category}
+                  </b>
+                </p>
+                <h2 className="ins-lead-title">
+                  <Link href={`/blog/${heroPost.slug}`}>
+                    <TitleWithTail title={heroPost.title} />
+                  </Link>
+                </h2>
+                </div>
+
+                <div className="ins-lead-bot">
+                <p className="ins-lead-excerpt">{heroPost.description}</p>
+
+                {/* 다섯 장을 돌려 본다. 자동으로 넘어가지 않는다 —
+                    읽는 중에 바뀌면 방금 본 글을 다시 찾아야 한다. */}
+                <div className="ins-step">
+                  <button
+                    type="button"
+                    onClick={() => setLead((v) => (v - 1 + LEAD_N) % LEAD_N)}
+                    aria-label="이전 글"
+                  >
+                    <Chevron dir="left" />
+                  </button>
+                  <span>
+                    <b>{lead + 1}</b> / {LEAD_N}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => setLead((v) => (v + 1) % LEAD_N)}
+                    aria-label="다음 글"
+                  >
+                    <Chevron dir="right" />
+                  </button>
+                </div>
+                </div>
+              </div>
+
+              <Link href={`/blog/${heroPost.slug}`} className="ins-lead-thumb">
+                {heroPost.coverImage ? (
+                  <Image
+                    src={heroPost.coverImage}
+                    alt=""
+                    fill
+                    sizes="(max-width: 900px) 100vw, 55vw"
+                    className="object-cover object-top"
+                  />
+                ) : (
+                  <CardNews post={heroPost} />
+                )}
+              </Link>
+            </div>
+          </AnimateOnScroll>
+        )}
+
+        {/* ── 탭 + 찾기 ── */}
+        <div className="ins-bar">
+          <div className="ins-tabs" role="tablist" aria-label="인사이트 갈래">
+            {([
+              ["posts", "인사이트"],
+              ["faq", "자주 묻는 질문"],
+            ] as const).map(([key, label]) => (
               <button
-                key={category}
-                onClick={() => setActiveCategory(category)}
-                /* 이건 버튼이 아니라 구분표다. 전역 10px 규칙에서 빼고 pill 로 둔다. */
-                className={`rounded-full px-5 py-2.5 text-xs font-medium tracking-wider transition-all duration-200 ${
-                  activeCategory === category
-                    ? "btn-blue border border-transparent"
-                    : "border border-border bg-card text-muted hover:bg-neutral-200"
-                }`}
+                key={key}
+                type="button"
+                role="tab"
+                aria-selected={tab === key}
+                className={tab === key ? "is-on" : undefined}
+                onClick={() => setTab(key)}
               >
-                {category}
+                {label}
               </button>
             ))}
           </div>
-        </AnimateOnScroll>
 
-        {filtered.length > 0 && (
-          <div className="grid grid-cols-2 gap-3 sm:gap-5 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
-            {filtered.map((post) => {
-              /* 사진이 있으면 어두운 카드, 없으면 흰 카드.
-                 한 그리드에 두 톤이 섞이므로 위/아래 잔글씨 색도 같이 뒤집는다. */
-              const light = !post.coverImage;
-              const dim = light ? "text-black/45" : "text-white/45";
-              const mid = light ? "text-black/60" : "text-white/70";
-              const line = light ? "border-black/10" : "border-white/15";
-              return (
-              <Link
-                key={post.slug}
-                href={`/blog/${post.slug}`}
-                className={`group relative block aspect-square overflow-hidden rounded-[16px] border ${
-                  light ? "border-border bg-white" : "border-transparent bg-[#101216]"
-                }`}
-              >
-                {post.coverImage ? (
-                  <>
-                    <Image
-                      src={post.coverImage}
-                      alt={post.title}
-                      fill
-                      sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 20vw"
-                      className="object-cover object-top transition-transform duration-500 group-hover:scale-[1.04]"
-                    />
-                    {/* 사진 위에 글씨를 올리니 아래쪽을 눌러 읽히게 한다. */}
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/35 to-black/60" />
-                    <div className="absolute inset-x-0 bottom-0 px-4 pb-16">
-                      <h2 className="line-clamp-3 text-[13px] font-bold leading-snug tracking-tight text-white sm:text-[15px]">
-                        <TitleWithTail title={post.title} />
-                      </h2>
-                    </div>
-                  </>
-                ) : (
-                  <CardNews post={post} />
-                )}
+          {tab === "posts" && (
+            <div className="ins-search">
+              <input
+                type="search"
+                value={q}
+                onChange={(e) => {
+                  setQ(e.target.value);
+                  setPage(1);
+                }}
+                placeholder="검색어를 입력하세요"
+                aria-label="인사이트 검색"
+              />
+              <span className="ins-search-go" aria-hidden>
+                <svg viewBox="0 0 16 16" fill="none" stroke="currentColor"
+                     strokeWidth="1.5" strokeLinecap="round">
+                  <circle cx="7.2" cy="7.2" r="4.4" />
+                  <path d="m10.6 10.6 3 3" />
+                </svg>
+              </span>
+            </div>
+          )}
+        </div>
 
-                {/* 위: 브랜드 마크 + 카테고리 */}
-                <div className="absolute inset-x-0 top-0 flex items-start justify-between gap-3 p-4">
-                  <div className="flex flex-wrap items-center gap-2">
-                    <span className={`text-[11px] font-semibold tracking-tight ${mid}`}>
-                      meridian.
-                    </span>
-                    <span
-                      className="text-[11px] font-semibold tracking-tight"
-                      style={{ color: getCategoryStyle(post.category, !light).color }}
-                    >
-                      {post.category}
-                    </span>
-                  </div>
-                  <span
-                    aria-hidden
-                    className={`flex h-7 w-7 flex-none items-center justify-center rounded-full border text-xs transition-colors duration-300 ${
-                      light
-                        ? "border-black/15 text-black/50 group-hover:border-accent group-hover:bg-accent group-hover:text-white"
-                        : "border-white/30 text-white/80 group-hover:border-white group-hover:bg-white group-hover:text-black"
-                    }`}
+        {tab === "posts" && (
+          <>
+            <nav className="ins-cats" aria-label="갈래">
+              {insightCategories.map((c, i) => (
+                <span key={c.slug} className="contents">
+                  {i > 0 && <i aria-hidden>|</i>}
+                  <button
+                    type="button"
+                    onClick={() => pick(c.slug)}
+                    aria-current={active.slug === c.slug ? "page" : undefined}
                   >
-                    &#8599;
-                  </span>
-                </div>
+                    {c.label}
+                    <em>{countOf(c.match)}</em>
+                  </button>
+                </span>
+              ))}
+            </nav>
 
-                {/* 아래: 각주 줄 */}
-                <div className="absolute inset-x-0 bottom-0 px-4 pb-4">
-                  <div className={`flex items-end justify-between gap-3 border-t pt-3 ${line}`}>
-                    <span className={`text-[11px] ${dim}`}>meridian.</span>
-                    <span className={`text-[11px] tabular-nums ${mid}`}>
-                      {post.date}
-                    </span>
-                  </div>
-                </div>
-              </Link>
-              );
-            })}
-          </div>
+            {shown.length > 0 && (
+              <ul className="ins-grid">
+                {shown.map((post) => (
+                  <li key={post.slug}>
+                    <Link href={`/blog/${post.slug}`} className="ins-card">
+                      <span className="ins-thumb">
+                        {post.coverImage ? (
+                          <Image
+                            src={post.coverImage}
+                            alt=""
+                            fill
+                            sizes="(max-width: 700px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                            className="object-cover object-top"
+                          />
+                        ) : (
+                          <CardNews post={post} />
+                        )}
+                      </span>
+                      <span className="ins-body">
+                        <span className="ins-meta">
+                          <b style={{ color: getCategoryStyle(post.category, false).color }}>
+                            {post.category}
+                          </b>
+                          <i aria-hidden>|</i>
+                          <time dateTime={post.date}>{post.date}</time>
+                        </span>
+                        <h3 className="ins-title">
+                          <TitleWithTail title={post.title} />
+                        </h3>
+                        <span className="ins-excerpt">{post.description}</span>
+                      </span>
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            )}
+
+            {filtered.length === 0 && (
+              <p className="ins-empty">
+                {q.trim()
+                  ? `「${q.trim()}」에 걸리는 글이 없습니다.`
+                  : "이 갈래엔 아직 글이 없습니다."}
+              </p>
+            )}
+
+            {pages > 1 && (
+              <nav className="ins-pager" aria-label="페이지">
+                <button
+                  type="button"
+                  onClick={() => setPage(cur - 1)}
+                  disabled={cur === 1}
+                  aria-label="이전 판"
+                >
+                  <Chevron dir="left" />
+                </button>
+                <span className="ins-pager-n">
+                  {Array.from({ length: pages }, (_, i) => i + 1)
+                    /* 판이 많으면 앞뒤 한 칸과 처음 · 끝만 세운다. 마흔 칸을
+                       다 세우면 그 줄이 목록보다 길어진다. */
+                    .filter((n) => n === 1 || n === pages || Math.abs(n - cur) <= 1)
+                    .map((n, i, arr) => (
+                      <span key={n} className="contents">
+                        {i > 0 && arr[i - 1] !== n - 1 && <em aria-hidden>…</em>}
+                        <button
+                          type="button"
+                          onClick={() => setPage(n)}
+                          aria-current={n === cur ? "page" : undefined}
+                        >
+                          {n}
+                        </button>
+                      </span>
+                    ))}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => setPage(cur + 1)}
+                  disabled={cur === pages}
+                  aria-label="다음 판"
+                >
+                  <Chevron dir="right" />
+                </button>
+              </nav>
+            )}
+          </>
         )}
 
-        {filtered.length === 0 && (
-          <div className="py-24 text-center">
-            <p className="text-lg text-muted">이 카테고리엔 아직 글이 없습니다.</p>
-            <p className="mt-2 text-sm text-subtle">다른 카테고리를 눌러 보세요.</p>
-          </div>
+        {/* ── 자주 묻는 질문. 컨택트 페이지에 있던 것을 여기로 옮겼다. ── */}
+        {tab === "faq" && (
+          <ul className="ins-faq">
+            {faq.map((item, i) => (
+              <li key={item.q} className={open === i ? "is-open" : undefined}>
+                <button
+                  type="button"
+                  aria-expanded={open === i}
+                  onClick={() => setOpen(open === i ? null : i)}
+                >
+                  <span className="ins-faq-q">{item.q}</span>
+                  <span className="ins-faq-mark" aria-hidden />
+                </button>
+                {open === i && <p className="ins-faq-a">{item.a}</p>}
+              </li>
+            ))}
+          </ul>
         )}
       </div>
     </section>
+  );
+}
+
+/* 화살괄호 하나. 앞뒤 · 페이지 · 돌려보기가 전부 이걸 쓴다. */
+function Chevron({ dir }: { dir: "left" | "right" }) {
+  return (
+    <svg viewBox="0 0 16 16" aria-hidden fill="none" stroke="currentColor"
+         strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round">
+      {dir === "left" ? <path d="M10 3 5 8l5 5" /> : <path d="m6 3 5 5-5 5" />}
+    </svg>
   );
 }

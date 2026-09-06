@@ -94,7 +94,7 @@ export default function PrincipalUnfold() {
 
       {/* 업무 영역. 왼쪽 기준선에서 한 줄씩 밀려 나온다. */}
       <div className="pu-areas">
-        <p className="pu-areas-lab">Practice Areas</p>
+        <p className="pu-areas-lab">Service Areas</p>
         {/* 파란 기준선은 두 목록을 하나로 감싼 이 칸이 그린다.
             목록을 둘로 나눠 각각 선을 그리면 펼칠 때 선이 끊겨 보인다. */}
         <div className="pu-areas-list">

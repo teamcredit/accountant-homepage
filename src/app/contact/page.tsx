@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import { siteConfig } from "@/lib/constants";
 import ContactForm from "@/components/contact/contact-form";
 import { AnimateOnScroll, LineReveal } from "@/components/motion";
@@ -58,7 +59,7 @@ export default async function ContactPage({ searchParams }: ContactPageProps) {
   return (
     <>
       {/* Hero */}
-      <section className="page-hero bg-foreground text-white relative overflow-hidden">
+      <section className="page-hero bg-deep text-white relative overflow-hidden">
         {/* 히어로 배경 영상. 사이트 전체가 같은 소재를 쓴다. */}
         <HeroVideo opacity={0.38} />
         <div className="absolute inset-0 opacity-[0.03]">
@@ -68,7 +69,7 @@ export default async function ContactPage({ searchParams }: ContactPageProps) {
         </div>
         <div className="max-w-[1600px] mx-auto px-6 relative z-10">
           <AnimateOnScroll variant="fadeIn">
-            <p className="text-xs tracking-[0.4em] text-neutral-500 mb-6 uppercase">
+            <p className="text-xs tracking-[0.4em] text-on-deep-muted mb-6 uppercase">
               Contact
             </p>
           </AnimateOnScroll>
@@ -162,6 +163,17 @@ export default async function ContactPage({ searchParams }: ContactPageProps) {
               <p className="t-desc mt-5" style={{ wordBreak: "keep-all" }}>
                 여기에 없는 것은 문의에 적어 주세요. 같이 답을 드립니다.
               </p>
+              {/* 답하는 사람은 대표 회계사다. /members 의 사진과 같은 사람을
+                  그린 캐릭터. 「직접 답한다」는 말을 글로 한 번 더 쓰지 않고
+                  그림으로 둔다. */}
+              <Image
+                src="/images/founder-3d-idea.png"
+                alt=""
+                aria-hidden
+                width={360}
+                height={360}
+                className="mt-8 w-[148px] h-auto -ml-3 select-none"
+              />
             </AnimateOnScroll>
 
             <AnimateOnScroll variant="fadeUp" delay={0.15} className="lg:col-span-8">

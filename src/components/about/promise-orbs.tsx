@@ -61,42 +61,8 @@ export default function PromiseOrbs({ show = false }: { show?: boolean }) {
         </motion.div>
       ))}
 
-      {/* 두 원을 가로지르는 0° 선. 서 있는 선이 아니라 지나가는 레이저다.
-          빛줄기가 위에서 아래로 한 번 훑고, 그 자리에 옅은 잔상만 남는다. */}
-      <div className="promise-meridian" aria-hidden>
-        <motion.span
-          className="promise-meridian-beam"
-          {...(reduced
-            ? { style: { display: "none" } }
-            : {
-                initial: { top: "-50%", opacity: 0 },
-                animate: show
-                  ? { top: ["-50%", "100%"], opacity: [0, 1, 1, 0] }
-                  : { top: "-50%", opacity: 0 },
-                transition: {
-                  duration: 1.6,
-                  delay: show ? 0.25 : 0,
-                  ease: "linear",
-                  opacity: { duration: 1.6, times: [0, 0.08, 0.85, 1], delay: show ? 0.25 : 0 },
-                },
-              })}
-        />
-        <motion.span
-          className="promise-meridian-trail"
-          {...(reduced
-            ? {}
-            : {
-                initial: { scaleY: 0, opacity: 0 },
-                animate: show ? { scaleY: 1, opacity: 1 } : { scaleY: 0, opacity: 0 },
-                style: { transformOrigin: "top center" },
-                /* 빛이 지나간 만큼만 남는다 — 빛과 같은 속도로 따라 그린다. */
-                transition: {
-                  scaleY: { duration: 1.6, delay: show ? 0.25 : 0, ease: "linear" },
-                  opacity: { duration: 0.2, delay: show ? 0.25 : 0 },
-                },
-              })}
-        />
-      </div>
+      {/* 두 원 사이의 0° 선을 없앴다. 원 둘 사이를 세로로 가르니
+          두 약속이 하나로 안 읽히고 갈라져 보였다. */}
 
     </div>
   );

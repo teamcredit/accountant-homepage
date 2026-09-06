@@ -8,6 +8,9 @@ export interface Service {
   deliverables: string[]; // 클라이언트가 받는 결과물 (보고서 · 모델 · 신고서 등)
   applicableScenarios: string[]; // 어떤 상황에 적용되는가
   regulations?: string[]; // 관련 법령 · 규정 (적용 가능 시)
+  /* 이 서비스와 맞물리는 인사이트 갈래. 글 목록을 손으로 붙이지 않고
+     갈래만 적어 둔다 — 글이 늘어도 여기는 안 고친다. */
+  postTopics?: string[];
 }
 
 export interface Member {
@@ -25,6 +28,7 @@ export interface Persona {
   slug: string;
   title: string;
   englishLabel: string;
+  /* 「|」 는 줄을 끊는 자리다. 화면에서 그 표시로 나눠 세운다. */
   description: string;
   bottlenecks: string[];
   outputs: string[];
@@ -68,6 +72,7 @@ export const services: Service[] = [
       "소득세법 제160조 (장부의 비치 · 기록)",
       "근로기준법 · 4대 보험 관련 규정",
     ],
+    postTopics: ["부가가치세", "원천세·4대보험"],
   },
   {
     slug: "tax-adjustment",
@@ -105,6 +110,7 @@ export const services: Service[] = [
       "조세특례제한법 (각종 세액공제 · 감면)",
       "국세기본법 제45조 (수정신고) · 제45조의2 (경정청구)",
     ],
+    postTopics: ["법인세", "소득세"],
   },
   {
     slug: "tax-advisory",
@@ -141,6 +147,7 @@ export const services: Service[] = [
       "법인세법 제52조 (부당행위계산 부인)",
       "국세기본법 제55조 이하 (이의신청 · 심사청구 · 심판청구)",
     ],
+    postTopics: ["세무일반", "상속·증여세"],
   },
   {
     slug: "valuation",
@@ -178,6 +185,7 @@ export const services: Service[] = [
       "법인세법 시행령 제89조 (시가)",
       "K-IFRS 1113호 · 일반기업회계기준 (공정가치 측정)",
     ],
+    postTopics: ["법인세", "상속·증여세"],
   },
   {
     slug: "transaction-advisory",
@@ -216,6 +224,7 @@ export const services: Service[] = [
       "K-IFRS · 일반기업회계기준",
       "상법 제522조의3 (소규모합병) · 제530조의2 이하 (분할)",
     ],
+    postTopics: ["법인세", "세무일반"],
   },
   {
     slug: "audit-advisory",
@@ -251,6 +260,7 @@ export const services: Service[] = [
       "K-IFRS · 일반기업회계기준",
       "내부회계관리제도 운영규정",
     ],
+    postTopics: ["법인세", "세무일반"],
   },
 ];
 
@@ -285,7 +295,7 @@ export const personas: Persona[] = [
     title: "법인을 막 세운 대표",
     englishLabel: "Early-stage Founder",
     description:
-      "설립 직후엔 신고 일정도, 증빙 기준도, 비용 처리 원칙도 비어 있습니다. 이때 기준을 잡아두면 이후 기장과 신고가 가볍습니다.",
+      "설립 직후엔 신고 일정도, 증빙 기준도, 비용 처리 원칙도 비어 있습니다.|이때 기준을 잡아두면 이후 기장과 신고가 가볍습니다.",
     bottlenecks: [
       "부가세 · 원천세 일정과 자료 제출 방식이 정리되지 않음",
       "대표 급여, 비용 처리, 법인카드 사용 기준이 없음",
@@ -303,7 +313,7 @@ export const personas: Persona[] = [
     title: "매출이 커진 대표",
     englishLabel: "Growing CEO",
     description:
-      "거래와 인력이 늘면, 장부를 맞추는 것만으론 부족합니다. 월별 보고와 세무조정이 제때 돌아야 대표가 숫자를 믿습니다.",
+      "거래와 인력이 늘면, 장부를 맞추는 것만으론 부족합니다.|월별 보고와 세무조정이 제때 돌아야 대표가 숫자를 믿습니다.",
     bottlenecks: [
       "결산 일정이 밀리고 월별 숫자 확인이 늦어짐",
       "기장 누락 · 계정 오분류가 누적됨",
@@ -321,7 +331,7 @@ export const personas: Persona[] = [
     title: "중요한 결정을 앞둔 대표",
     englishLabel: "Owner in Transition",
     description:
-      "지분 이동, 승계, 매각. 큰 결정은 실행 전에 세금과 구조부터 비교합니다. 기장 데이터를 자문까지 이어 쓰면 판단이 빠릅니다.",
+      "지분 이동, 승계, 매각. 큰 결정은 실행 전에 세금과 구조부터 비교합니다.|기장 데이터를 자문까지 이어 쓰면 판단이 빠릅니다.",
     bottlenecks: [
       "법인과 개인 세부담을 따로 봐서 전체 판단이 늦어짐",
       "지분 이동 · 증여 · 승계 안별 차이를 숫자로 비교하지 못함",

@@ -292,8 +292,9 @@ export default function PromoMotion() {
         anchorLinks.forEach(a => a.removeAttribute('aria-current'));
         cur?.a.setAttribute('aria-current', 'true');
 
-        // 앵커가 남색 구간 위에 있으면 밝게
-        const onDark = [...document.querySelectorAll('.invert')].some(el => {
+        // 앵커가 짙은 구간 위에 있으면 밝게.
+        // .invert 는 이제 흰 구간이다. 짙은 데는 .deep 이 붙은 칸과 첫 화면뿐이다.
+        const onDark = [...document.querySelectorAll('.invert.deep, .about-stage, .about-stage-static')].some(el => {
           const r = el.getBoundingClientRect();
           return r.top < mid && r.bottom > mid;
         });

@@ -221,7 +221,7 @@ export default async function BlogPostPage({ params }: Props) {
         dangerouslySetInnerHTML={{ __html: toSafeJsonLd(breadcrumbJsonLd) }}
       />
 
-      <section className="page-hero relative overflow-hidden bg-foreground text-white">
+      <section className="page-hero relative overflow-hidden bg-deep text-white">
         {/* 히어로 배경 영상. 사이트 전체가 같은 소재를 쓴다. */}
         <HeroVideo opacity={0.3} />
         <div className="relative z-10 mx-auto max-w-3xl px-6">
@@ -433,7 +433,7 @@ export default async function BlogPostPage({ params }: Props) {
         </section>
       )}
 
-      <section className="bg-foreground py-16 text-white md:py-20">
+      <section className="bg-deep py-16 text-white md:py-20">
         <div className="mx-auto max-w-3xl px-6 text-center">
           <p className="mb-6 leading-relaxed text-neutral-400">
             글 내용이 현재 상황에 바로 적용되는지 확인이 필요하면 상담으로 이어서 보겠습니다.

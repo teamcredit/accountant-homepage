@@ -118,7 +118,7 @@ export default function DiagnosticChecklist() {
       </div>
 
       <div className="xl:col-span-4">
-        <div className="border border-foreground bg-foreground text-white p-8 md:p-10 xl:sticky xl:top-32">
+        <div className="border border-deep bg-deep text-white p-8 md:p-10 xl:sticky xl:top-32">
           <p className="t-label t-label-d">
             Diagnostic Summary
           </p>

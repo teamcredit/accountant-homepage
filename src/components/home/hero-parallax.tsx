@@ -32,7 +32,7 @@ export default function HeroParallax({
   const disabled = reduced || isMobile;
 
   return (
-    <section className="relative bg-foreground text-white min-h-screen flex items-center overflow-hidden">
+    <section className="relative bg-deep text-white min-h-screen flex items-center overflow-hidden">
       {/* Background layer */}
       {disabled ? (
         <>{backgroundContent}</>

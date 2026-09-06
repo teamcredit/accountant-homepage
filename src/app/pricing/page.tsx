@@ -16,7 +16,7 @@ export default function PricingPage() {
   return (
     <>
       {/* Hero */}
-      <section className="page-hero bg-foreground text-white relative overflow-hidden">
+      <section className="page-hero bg-deep text-white relative overflow-hidden">
         {/* 히어로 배경 영상. 사이트 전체가 같은 소재를 쓴다. */}
         <HeroVideo opacity={0.38} />
         <div className="absolute inset-0 opacity-[0.03]">
@@ -26,7 +26,7 @@ export default function PricingPage() {
         </div>
         <div className="max-w-[1600px] mx-auto px-6 relative z-10">
           <AnimateOnScroll variant="fadeIn">
-            <p className="text-xs tracking-[0.4em] text-neutral-500 mb-6 uppercase">
+            <p className="text-xs tracking-[0.4em] text-on-deep-muted mb-6 uppercase">
               Estimate
             </p>
           </AnimateOnScroll>

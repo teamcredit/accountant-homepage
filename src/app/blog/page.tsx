@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import { getAllPosts } from "@/lib/posts";
+import { contactFaq } from "@/lib/faq";
 import { AnimateOnScroll, LineReveal } from "@/components/motion";
 import BlogContent from "./blog-content";
 import HeroVideo from "@/components/layout/hero-video";
@@ -25,7 +27,7 @@ export default function BlogPage() {
 
   return (
     <>
-      <section className="page-hero relative overflow-hidden bg-foreground text-white">
+      <section className="page-hero relative overflow-hidden bg-deep text-white">
         {/* 히어로 배경 영상. 사이트 전체가 같은 소재를 쓴다. */}
         <HeroVideo opacity={0.38} />
         <div className="absolute inset-0 opacity-[0.03]">
@@ -36,7 +38,7 @@ export default function BlogPage() {
 
         <div className="relative z-10 mx-auto max-w-[1600px] px-6">
           <AnimateOnScroll variant="fadeIn">
-            <p className="mb-6 text-xs uppercase tracking-[0.4em] text-neutral-500">
+            <p className="mb-6 text-xs uppercase tracking-[0.4em] text-on-deep-muted">
               Blog
             </p>
           </AnimateOnScroll>
@@ -60,7 +62,12 @@ export default function BlogPage() {
         </div>
       </section>
 
-      <BlogContent posts={posts} />
+      {/* BlogContent 가 주소의 ?cat= 을 읽는다. 이 페이지는 미리 만들어 두는
+          정적 페이지라, Suspense 로 감싸지 않으면 프로덕션 빌드가 깨진다.
+          (node_modules/next/dist/docs .../use-search-params.md 의 Prerendering) */}
+      <Suspense fallback={null}>
+        <BlogContent posts={posts} faq={contactFaq} />
+      </Suspense>
     </>
   );
 }

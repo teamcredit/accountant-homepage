@@ -239,7 +239,7 @@ export default function PreviewPage() {
   return (
     <>
       {/* Hero */}
-      <section className="py-20 md:py-28 bg-foreground text-white">
+      <section className="py-20 md:py-28 bg-deep text-white">
         <div className="max-w-[1600px] mx-auto px-6">
           <p className="text-xs tracking-[0.4em] text-neutral-500 mb-6 uppercase">
             Internal · noindex
@@ -316,7 +316,7 @@ export default function PreviewPage() {
       </section>
 
       {/* How to switch */}
-      <section className="py-24 md:py-32 bg-foreground text-white">
+      <section className="py-24 md:py-32 bg-deep text-white">
         <div className="max-w-[1600px] mx-auto px-6">
           <p className="text-xs tracking-[0.4em] text-neutral-500 mb-6 uppercase">
             How to Switch

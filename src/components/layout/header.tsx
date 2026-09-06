@@ -4,13 +4,17 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState, useEffect, useRef } from "react";
 import { motion, useScroll, useSpring } from "motion/react";
-import { navLinks } from "@/lib/constants";
+import { DesktopNav, MobileNav, MegaPanel, useMenuOpen } from "./site-nav";
 import SiteSearch from "./site-search";
+import ScheduleCube from "./schedule-cube";
 import Wordmark from "@/components/brand/wordmark";
 
 export default function Header() {
   const pathname = usePathname();
   const [mobileOpen, setMobileOpen] = useState(false);
+  /* 펼침판은 헤더 안에서 열린다. 어느 칸이 열렸는지 헤더가 들고 있어야
+     판 위에 마우스가 있는 동안 닫히지 않는다. */
+  const menu = useMenuOpen();
   const { scrollYProgress } = useScroll();
   const scaleX = useSpring(scrollYProgress, { stiffness: 200, damping: 50, restDelta: 0.001 });
 
@@ -101,15 +105,21 @@ export default function Header() {
     <>
       <header
         ref={headerRef}
-        data-tone={tone}
+        /* 모바일 메뉴가 열리면 그 밑은 무조건 흰 판이다. 자동 판정은
+           스크롤할 때만 다시 재기 때문에, 검은 히어로에서 메뉴를 열면
+           흰 글자가 흰 판 위에 남아 로고와 닫기 단추가 사라졌다. */
+        data-tone={mobileOpen ? "light" : tone}
+        data-mega={menu.open ? "true" : "false"}
         className="site-header glass-bar z-50"
+        onPointerLeave={menu.scheduleClose}
       >
         {/* 본문(1600px)과 같은 폭을 쓴다. 1280 으로 가두면 넓은 화면에서
             헤더만 좁아 보인다. 높이도 한 단계 키워 답답함을 던다. */}
         <div
           className="max-w-[1600px] mx-auto h-20 flex items-center justify-between"
-          /* 본문(.wrap)과 같은 좌우 여백. 어긋나면 로고와 본문 글이 안 맞는다. */
-          style={{ paddingInline: "clamp(20px, 4vw, 40px)" }}
+          /* 본문과 같은 여백을 쓴다. clamp 로 따로 잡아 뒀더니 헤더는 40px,
+             본문은 29px 이 되어 로고와 글 왼쪽 끝이 11px 어긋나 있었다. */
+          style={{ paddingInline: "var(--site-gutter-6)" }}
         >
           {/* Logo */}
           <Link
@@ -121,32 +131,12 @@ export default function Header() {
 
           {/* Desktop Nav + Pricing + Client Login */}
           <div className="hidden md:flex items-center gap-8">
-            <nav className="flex items-center gap-10">
-              {navLinks.map((link) => {
-                const isActive =
-                  link.href === "/"
-                    ? pathname === "/"
-                    : pathname.startsWith(link.href);
-                return (
-                  <Link
-                    key={link.href}
-                    href={link.href}
-                    /* prefetch 를 끄면 누른 다음에야 그 페이지를 받으러 간다.
-                       메뉴 이동이 한 박자 늦는 원인이었다. 기본값(자동)으로 되돌린다. */
-                    /* 지금 어디에 있는지가 첫눈에 보여야 한다.
-                       글씨를 브랜드 파랑으로 바꾸고 밑줄을 켜 둔 채로 고정한다. */
-                    className={`relative text-[0.8125rem] font-medium tracking-[0.08em] transition-colors duration-300 hover-underline ${
-                      isActive
-                        ? "text-accent font-semibold nav-on"
-                        : "text-muted hover:text-foreground"
-                    }`}
-                  >
-                    {link.label}
-                  </Link>
-                );
-              })}
-            </nav>
+            <DesktopNav ctl={menu} />
             <div className="flex items-center gap-6">
+              {/* 다음 마감일. 넓은 화면에서만 선다.
+                  문의 단추보다 앞이다 — 단추가 오른쪽 끝을 지켜야 본문
+                  오른쪽 끝과 한 줄로 맞는다. */}
+              <ScheduleCube />
               {/* CONTACT 옆 물음표. 누르면 알약 검색창으로 늘어난다. */}
               <SiteSearch />
               {/* 홈(promo)의 .btn .btn-fill 과 같은 생김새.
@@ -157,9 +147,14 @@ export default function Header() {
             </div>
           </div>
 
-          {/* Mobile Menu Button */}
+          {/* 손가락 화면. 문의 단추가 메뉴 왼쪽에 같이 선다 —
+              메뉴를 열지 않고도 바로 갈 수 있어야 한다. */}
+          <div className="md:hidden flex items-center gap-2">
+            <a href="/contact" className="hdr-cta hdr-cta--sm">
+              기장 문의하기
+            </a>
           <button
-            className="md:hidden relative w-10 h-10 flex items-center justify-center"
+            className="relative w-10 h-10 flex items-center justify-center"
             onClick={() => setMobileOpen(!mobileOpen)}
             aria-label={mobileOpen ? "메뉴 닫기" : "메뉴 열기"}
             aria-expanded={mobileOpen}
@@ -183,7 +178,11 @@ export default function Header() {
               />
             </div>
           </button>
+          </div>
         </div>
+        {/* 펼침판. 헤더가 키를 키워 이 자리를 만든다. */}
+        <MegaPanel ctl={menu} />
+
         {/* Scroll progress bar */}
         <motion.div
           className="absolute bottom-0 left-0 right-0 h-[2px] bg-accent origin-left"
@@ -204,51 +203,24 @@ export default function Header() {
             : "invisible opacity-0 pointer-events-none"
         }`}
       >
-        <nav className="flex flex-col items-center justify-center h-full gap-8">
-          {navLinks.map((link, index) => {
-            const isActive =
-              link.href === "/"
-                ? pathname === "/"
-                : pathname.startsWith(link.href);
-            return (
-              <Link
-                key={link.href}
-                href={link.href}
-                onClick={() => setMobileOpen(false)}
-                className={`text-2xl font-light tracking-[0.12em] transition-all duration-200 ${
-                  mobileOpen
-                    ? "opacity-100 translate-y-0"
-                    : "opacity-0 translate-y-4"
-                } ${isActive ? "text-accent font-normal" : "text-muted hover:text-foreground"}`}
-                style={{
-                  transitionDelay: mobileOpen ? `${index * 15 + 20}ms` : "0ms",
-                }}
-              >
-                {link.label}
-              </Link>
-            );
-          })}
-          <div
-            className={`mt-6 flex items-center gap-3 transition-all duration-200 ${
-              mobileOpen
-                ? "opacity-100 translate-y-0"
-                : "opacity-0 translate-y-4"
-            }`}
-            style={{
-              transitionDelay: mobileOpen
-                ? `${navLinks.length * 15 + 20}ms`
-                : "0ms",
-            }}
-          >
-            <a
-              href="/contact"
-              onClick={() => setMobileOpen(false)}
-              className="hdr-cta"
-            >
-              기장 문의하기
-            </a>
+        {/* 가운데 정렬을 버리고 왼쪽으로 세운다. 하위가 한 칸 들여쓰기로
+            붙는데, 가운데 정렬에서는 그 계층이 안 읽힌다. */}
+        <div className="mnav-shell">
+          {/* 검색은 데스크톱에만 있었다. 손으로 쓰는 사람이 더 많다. */}
+          <div className="mnav-search">
+            <SiteSearch />
           </div>
-        </nav>
+
+          <MobileNav onNavigate={() => setMobileOpen(false)} />
+
+          <a
+            href="/contact"
+            onClick={() => setMobileOpen(false)}
+            className="hdr-cta mnav-cta"
+          >
+            기장 문의하기
+          </a>
+        </div>
       </div>
     </>
   );

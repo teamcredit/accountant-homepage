@@ -27,6 +27,7 @@ import Wordmark from "@/components/brand/wordmark";
 export default function AboutOpening() {
   const ref = useRef<HTMLDivElement>(null);
   const reduced = useReducedMotion();
+  /* 화면이 붙었는지. 서버와 첫 렌더를 같게 두려고 쓴다. */
 
   /* 좁은 화면인지. 지구본을 옆으로 밀 자리가 없으면 위로 올린다. */
   const [narrow, setNarrow] = useState(false);
@@ -57,10 +58,37 @@ export default function AboutOpening() {
      일부러 비워 둔 여백이다 — 마지막 문장을 읽는 동안 화면이 붙어 있고,
      그 다음 섹션이 훅 올라오지 않는다. */
 
-  /* ① 로고. 흐려져 사라지지 않는다 — 지구본과 같은 궤도로 왼쪽에 붙어 가다가
+  /* ⓪ 첫 화면 영상. 스크롤이 시작되면 위아래에서 셔터가 닫히듯 높이가
+     줄어들며 꺼지고, 그 자리에서 지구본이 켜진다.
+     닫히는 구간(0.05~0.20)과 지구본이 켜지는 구간(0.15~0.27)을 조금
+     겹쳐 둔다. 완전히 끊어 두면 빈 흰 화면이 한 박자 낀다. */
+  /* 자르는 건 mask 가 아니라 clip-path 다. 마스크는 그림만 지우고 자리는
+     남겨서, 헤더가 「내 밑에 어두운 판이 있다」로 읽은 채 흰 화면 위에서
+     흰 글씨가 됐다. clip-path 는 잘린 자리가 손에도 안 잡힌다. */
+  const shutTop = useTransform(p, [0.05, 0.2], [0, 50]);
+  const shutBot = useTransform(p, [0.05, 0.2], [0, 50]);
+  const videoClip = useMotionTemplate`inset(${shutTop}% 0% ${shutBot}% 0%)`;
+  /* 마지막에 남는 한 줄까지 끈다. 셔터만으로는 1px 짜리 띠가 남는다. */
+  const videoFade = useTransform(p, [0.17, 0.21], [1, 0]);
+
+  /* 영상이 살아 있는 동안만 DOM 에 둔다. 헤더는 자기 아래 요소의 배경색을
+     읽어 밝기를 정하는데, 다 꺼진 영상 판이 남아 있으면 흰 화면인데도
+     계속 「어둡다」로 읽어 로고가 흰색으로 사라진다. */
+  const [videoOn, setVideoOn] = useState(true);
+  useMotionValueEvent(p, "change", (v) => setVideoOn(v < 0.215));
+  /* 헤더는 자기 밑에 깔린 배경색을 「스크롤할 때」 다시 잰다. 영상이
+     사라지는 순간은 스크롤이 아니라 렌더라, 한 박자 늦게 흰 화면 위에
+     흰 글씨가 남았다. 사라진 뒤 한 번 알려 준다. */
+  useEffect(() => {
+    window.dispatchEvent(new Event("scroll"));
+  }, [videoOn]);
+
+  /* ① 로고. 영상 위에서는 흰색, 영상이 꺼지면 검정으로 넘어간다.
+     흐려져 사라지지 않는다 — 지구본과 같은 궤도로 왼쪽에 붙어 가다가
      ③ 광선이 지구본을 지울 때 같이 지워진다(아래 globeMask 를 같이 쓴다).
      그래서 여기에는 opacity 가 없다. 크기만 줄어 지구본 위 이름표가 된다. */
   const logoScale = useTransform(p, [0, 0.21, 0.41], [1, 1, 0.34]);
+  const logoColor = useTransform(p, [0.11, 0.2], ["#FFFFFF", "#000000"]);
 
   /* ② 지구본 — 켜지고, 왼쪽으로 물러난다.
      사라지는 건 흐려져서가 아니라 ③ 광선이 지나가며 지워서다(아래 마스크). */
@@ -91,10 +119,13 @@ export default function AboutOpening() {
   /* ③ 남는 문장. 광선 꽁무니를 바짝 따라 붙는다.
      그리고 ④ 가 올라올 때 자리를 넘겨준다 — 작아지고 흐려진다.
      같은 크기로 둘이 나란히 서면 어느 쪽을 읽어야 할지 알 수 없다. */
-  const lastOpacity = useTransform(p, [0.65, 0.72, 0.80, 0.87], [0, 1, 1, 0.4]);
-  const lastY = useTransform(p, [0.65, 0.77], [36, 0]);
+  /* 아래 문단이 올라오면 완전히 사라진다. 0.4 로 남겨 두니 다음 글과 겹쳤다.
+     머무는 구간이 0.72~0.78, 여섯 칸뿐이라 읽기도 전에 넘어갔다.
+     0.70~0.86 으로 세 배 가까이 늘린다. */
+  const lastOpacity = useTransform(p, [0.63, 0.7, 0.86, 0.92], [0, 1, 1, 0]);
+  const lastY = useTransform(p, [0.63, 0.74], [36, 0]);
   /* 올라가는 것과 작아지는 것은 한 동작이다. 시각을 어긋내면 두 번 움직여 보인다. */
-  const lastScale = useTransform(p, [0.72, 0.87], [1, 0.6]);
+  const lastScale = useTransform(p, [0.86, 0.95], [1, 0.6]);
 
   /* .about-close 는 「문장 + 회사 설명」을 한 덩어리로 가운데 세운다.
      그런데 문장 혼자 떠 있는 동안에는 아래 설명의 높이만큼 위로 밀려 있다 —
@@ -115,29 +146,42 @@ export default function AboutOpening() {
     ro.observe(el);
     return () => ro.disconnect();
   }, []);
-  const closeY = useTransform(p, [0.72, 0.87], [shift, 0]);
+  const closeY = useTransform(p, [0.86, 0.95], [shift, 0]);
 
   /* ④ 그래서 이게 뭐 하는 회사인지. 문장 하나로는 안 보였다.
      남겨 둔 뒤쪽 여백(0.76~1.0)을 여기에 쓴다. 여기가 이 화면의 결론이라
      위 문장보다 크게 선다. */
-  const whatOpacity = useTransform(p, [0.78, 0.87], [0, 1]);
-  const whatY = useTransform(p, [0.78, 0.91], [28, 0]);
+  /* 0.91 에서 끝내 두니 남은 9% 동안 붙은 채로 흰 화면만 굴렀다.
+     끝까지 쓴다 — 다 읽히는 순간 판이 풀리고 다음 장이 올라온다. */
+  const whatOpacity = useTransform(p, [0.88, 0.95], [0, 1]);
+  const whatY = useTransform(p, [0.88, 1], [28, 0]);
 
+  /* 움직임을 꺼 둔 화면.
+     예전에는 이름·본초자오선·마지막 문장을 한 판에 다 쌓았다. 스크롤로
+     넘기던 세 장면이 한 화면에 겹쳐 보여서, 「기준선이 되어드리겠습니다」가
+     나올 때도 본초자오선 설명이 그대로 남아 있었다.
+     장면을 두 판으로 끊는다 — 앞 판이 화면 밖으로 나간 뒤에 뒷 판이 온다.
+ */
   if (reduced) {
     return (
       <div className="about-stage-static">
-        <h1 className="about-logo">
-          <Wordmark mark={false} />
-        </h1>
-        <MeridianGlobe className="mglobe--dark" />
-        <Meaning />
-        <div className="about-close">
-          <p className="about-last">
-            <span className="text-accent-bright">메리디안</span>이 그 기준선이
-            되어드리겠습니다.
-          </p>
-          <What />
-        </div>
+        <section className="ass-scene">
+          <h1 className="about-logo">
+            <Wordmark mark={false} />
+          </h1>
+          <MeridianGlobe />
+          <Meaning />
+        </section>
+
+        <section className="ass-scene">
+          <div className="about-close">
+            <p className="about-last">
+              <span className="text-accent">메리디안</span>이 그 기준선이
+              되어드리겠습니다.
+            </p>
+            <What />
+          </div>
+        </section>
       </div>
     );
   }
@@ -145,6 +189,28 @@ export default function AboutOpening() {
   return (
     <div ref={ref} className="about-stage">
       <div className="about-stage-pin">
+        {/* ⓪ 첫 화면 영상. 제일 뒤에 깐다. */}
+        {videoOn && (
+          <motion.div
+            className="about-video"
+            style={{
+              clipPath: videoClip,
+              WebkitClipPath: videoClip,
+              opacity: videoFade,
+            }}
+          >
+            {/* webm 이 먼저다 — 같은 화질에 mp4 보다 15% 작다.
+                7.8MB 원본을 crf 27 로 다시 떠서 1.1MB 로 줄였다. */}
+            <video autoPlay muted loop playsInline preload="metadata">
+              <source src="/home-hero.webm" type="video/webm" />
+              <source src="/home-hero.mp4" type="video/mp4" />
+            </video>
+            {/* 흰 로고가 얹히는 자리를 눌러 준다. 안 누르면 밝은 장면에서
+              이름이 사라진다. 헤더도 이 색을 읽어 밝기를 정한다. */}
+            <div className="about-video-veil" />
+          </motion.div>
+        )}
+
         {/* 지구본. 자기 자리를 잡는 건 .mglobe 가 하고, 여기서는 밀고 끄기만 한다. */}
         <motion.div
           className="about-globe"
@@ -159,7 +225,7 @@ export default function AboutOpening() {
               scale: globeScale,
             }}
           >
-            <MeridianGlobe className="mglobe--dark mglobe--xl" />
+            <MeridianGlobe className="mglobe--xl" />
           </motion.div>
         </motion.div>
 
@@ -171,7 +237,7 @@ export default function AboutOpening() {
         >
           <motion.div
             className="about-logo-move"
-            style={{ x: globeX, y: globeY, scale: logoScale }}
+            style={{ x: globeX, y: globeY, scale: logoScale, color: logoColor }}
           >
             <h1 className="about-logo">
               <Wordmark mark={false} />
@@ -200,7 +266,7 @@ export default function AboutOpening() {
             className="about-last"
             style={{ opacity: lastOpacity, y: lastY, scale: lastScale }}
           >
-            <span className="text-accent-bright">메리디안</span>이 그 기준선이
+            <span className="text-accent">메리디안</span>이 그 기준선이
             되어드리겠습니다.
           </motion.p>
 
@@ -219,7 +285,7 @@ function Meaning() {
     <>
       <p className="about-eyebrow">Prime Meridian</p>
       <h2 className="about-term">
-        본초자오선<span className="text-accent-bright">.</span>
+        본초자오선<span className="text-accent">.</span>
       </h2>
       <div className="about-rule" />
       <p className="about-body">
@@ -240,7 +306,7 @@ function Meaning() {
 function What() {
   return (
     <div className="about-what">
-      <div className="about-what-rule" />
+      {/* 위에 있던 파란 세로선은 뺐다. 로고 바로 위를 가른다. */}
       {/* 회사 이름은 글자가 아니라 로고로 선다. 이 화면의 마지막 장면이고,
           바로 위에서 지구본이 지워진 자리라 마크가 그 자리를 이어받는다. */}
       <p className="about-what-name">
@@ -248,7 +314,7 @@ function What() {
       </p>
       <p className="about-what-body">
         <span className="s">매일의 기장부터 세무조정, 세무자문, 가치평가까지</span>
-        <span className="s">회계사가 직접 맡습니다.</span>
+        <span className="s"><strong>회계사가 직접 맡습니다.</strong></span>
       </p>
       {/* 여기까지가 「무엇을 하는가」. 한 줄 더 — 그 일이 어디에 모이는지. */}
       <p className="about-what-more">

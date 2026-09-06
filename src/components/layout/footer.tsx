@@ -1,26 +1,24 @@
 import Link from "next/link";
-import { siteConfig, navLinks, imageCredits } from "@/lib/constants";
+import { siteConfig, navMenu, sitePages, imageCredits } from "@/lib/constants";
 import { StaggerChildren } from "@/components/motion";
 import { StaggerItem } from "@/components/motion/stagger-item";
 
 export default function Footer() {
-  const practiceLinks = [
-    { label: "세무 기장", href: "/services/tax-bookkeeping" },
-    { label: "세무 조정", href: "/services/tax-adjustment" },
-    { label: "세무 자문", href: "/services/tax-advisory" },
-    { label: "기업가치평가", href: "/services/valuation" },
-    { label: "M&A · IPO 자문", href: "/services/transaction-advisory" },
-  ];
+  /* 상단 메뉴의 「서비스」와 같은 목록을 본다.
+     전에는 여기에 다섯 개만 손으로 적혀 있어서 회계감사·회계자문 한 장이
+     사이트 어디에서도 링크가 없었다. */
+  const practiceLinks = (navMenu.find((m) => m.href === "/services")?.columns ?? [])
+    .flatMap((col) => col.items);
 
   return (
-    <footer className="bg-foreground text-white">
+    <footer className="bg-deep text-white">
       {/* Divider */}
-      <div className="max-w-[1600px] mx-auto px-5 sm:px-8 lg:px-10 pt-12">
+      <div className="max-w-[1600px] mx-auto px-6 pt-12">
         <div className="h-px bg-neutral-800" />
       </div>
 
       {/* Main Footer Content */}
-      <div className="max-w-[1600px] mx-auto px-5 sm:px-8 lg:px-10 py-16">
+      <div className="max-w-[1600px] mx-auto px-6 py-16">
         <StaggerChildren staggerDelay={0.1} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-12 lg:gap-8">
           {/* Brand Column */}
           <StaggerItem className="sm:col-span-2 lg:col-span-1">
@@ -31,16 +29,16 @@ export default function Footer() {
               {siteConfig.tagline}
             </p>
             <div className="mt-6 space-y-1">
-              <p className="text-xs text-neutral-500">
+              <p className="text-xs text-neutral-400">
                 Founder · {siteConfig.founder} 공인회계사
               </p>
             </div>
           </StaggerItem>
 
-          {/* Practice Column */}
+          {/* Service Column */}
           <StaggerItem>
             <h3 className="t-label t-label-d mb-5">
-              Practice
+              Service
             </h3>
             <nav className="flex flex-col gap-3">
               {practiceLinks.map((link) => (
@@ -60,8 +58,11 @@ export default function Footer() {
             <h3 className="t-label t-label-d mb-5">
               Menu
             </h3>
+            {/* 상단 메뉴가 아니라 전체 페이지 목록을 건다.
+                푸터는 상단에 자리가 없어 밀린 것들이 가는 곳이다 —
+                수임료·회계사 소개가 여기에도 없으면 갈 길이 아예 없다. */}
             <nav className="flex flex-col gap-3">
-              {navLinks.map((link) => (
+              {sitePages.map((link) => (
                 <Link
                   key={link.href}
                   href={link.href}
@@ -80,7 +81,7 @@ export default function Footer() {
             </h3>
             <div className="flex flex-col gap-3 text-sm text-neutral-400">
               <p>
-                <span className="text-neutral-500 text-xs uppercase tracking-wider">Kakao</span>
+                <span className="text-neutral-400 text-xs uppercase tracking-wider">Kakao</span>
                 <br />
                 <a
                   href={siteConfig.kakaoChannelUrl}
@@ -92,7 +93,7 @@ export default function Footer() {
                 </a>
               </p>
               <p>
-                <span className="text-neutral-500 text-xs uppercase tracking-wider">Email</span>
+                <span className="text-neutral-400 text-xs uppercase tracking-wider">Email</span>
                 <br />
                 <a
                   href={`mailto:${siteConfig.email}`}
@@ -102,7 +103,7 @@ export default function Footer() {
                 </a>
               </p>
               <p className="mt-2 leading-relaxed">
-                <span className="text-neutral-500 text-xs uppercase tracking-wider">Location</span>
+                <span className="text-neutral-400 text-xs uppercase tracking-wider">Location</span>
                 <br />
                 {siteConfig.location}
               </p>
@@ -122,10 +123,10 @@ export default function Footer() {
       </div>
 
       {/* Affiliation Disclosure */}
-      <div className="max-w-[1600px] mx-auto px-5 sm:px-8 lg:px-10">
+      <div className="max-w-[1600px] mx-auto px-6">
         <div className="h-px bg-neutral-800" />
       </div>
-      <div className="max-w-[1600px] mx-auto px-5 sm:px-8 lg:px-10 py-8 space-y-4">
+      <div className="max-w-[1600px] mx-auto px-6 py-8 space-y-4">
         <p className="text-xs text-neutral-400 leading-relaxed max-w-4xl">
           <span className="text-neutral-300 font-medium">Affiliation Notice.</span>{" "}
           {siteConfig.affiliation}
@@ -158,10 +159,10 @@ export default function Footer() {
       </div>
 
       {/* Bottom Bar */}
-      <div className="max-w-[1600px] mx-auto px-5 sm:px-8 lg:px-10">
+      <div className="max-w-[1600px] mx-auto px-6">
         <div className="h-px bg-neutral-800" />
       </div>
-      <div className="max-w-[1600px] mx-auto px-5 sm:px-8 lg:px-10 py-6 flex flex-col sm:flex-row items-center justify-between gap-4">
+      <div className="max-w-[1600px] mx-auto px-6 py-6 flex flex-col sm:flex-row items-center justify-between gap-4">
         <p className="text-xs text-neutral-400 tracking-wide">
           &copy; {new Date().getFullYear()} {siteConfig.name}. All rights reserved.
         </p>

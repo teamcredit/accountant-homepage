@@ -9,6 +9,7 @@ import ScrollCue from "@/components/layout/scroll-cue";
 import Footer from "@/components/layout/footer";
 import SmoothScrollProvider from "@/components/providers/smooth-scroll-provider";
 import { siteConfig } from "@/lib/constants";
+import ScrollToTop from "@/components/layout/scroll-to-top";
 
 /* About 히어로의 'Meridian.' 을 찍는 서체.
    이름만 부르고 안 불러오면 방문자 화면에서는 Georgia 로 떨어진다. */
@@ -127,6 +128,17 @@ export default function RootLayout({
   return (
     <html lang="ko" data-theme="light" className={cormorant.variable}>
       <head>
+        {/* 본문 Pretendard · 제목 Wanted Sans.
+            둘 다 public/fonts 에 직접 두고 unicode-range 로 쪼개 실어서,
+            방문자 컴퓨터에 폰트가 깔려 있는지와 무관하게 같은 화면이 나오게 한다.
+            (전에는 이름만 부르고 안 불러와서 사람마다 다른 폰트로 보였다.) */}
+        {/* eslint-disable @next/next/no-css-tags --
+            next/font 로는 unicode-range 별 쪼개기를 못 쓴다. 한글 가변폰트 한 벌이
+            1.2MB 라, 통째로 실으면 첫 화면이 그만큼 늦어진다. 92조각으로 나눠 두고
+            그 페이지에 실제로 쓰인 글자 범위만 받아 가게 한다(보통 100~200KB). */}
+        <link rel="stylesheet" href="/fonts/pretendard/PretendardVariable.css" />
+        <link rel="stylesheet" href="/fonts/wanted/WantedSansVariable.css" />
+        {/* eslint-enable @next/next/no-css-tags */}
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: toSafeJsonLd(organizationJsonLd) }}
@@ -137,6 +149,8 @@ export default function RootLayout({
         />
       </head>
       <body className="min-h-screen flex flex-col antialiased">
+        {/* 새로고침하면 맨 위에서 시작한다. */}
+        <ScrollToTop />
         {/* 헤더 유리가 뒤를 휘게 하는 필터. 화면에 안 보이지만 이게 있어야 굴절이 돈다. */}
         <GlassFilterDefs />
         <SmoothScrollProvider>

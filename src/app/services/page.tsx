@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { services } from "@/lib/data";
 import { AnimateOnScroll, LineReveal } from "@/components/motion";
-import StickyScrollServices from "@/components/services/sticky-scroll-services";
 import HeroVideo from "@/components/layout/hero-video";
+import ServicePicker from "@/components/services/service-picker";
 
 export const metadata: Metadata = {
   title: "PRACTICE",
@@ -18,7 +18,7 @@ export default function ServicesPage() {
   return (
     <>
       {/* Hero */}
-      <section className="page-hero bg-foreground text-white relative overflow-hidden">
+      <section className="page-hero bg-deep text-white relative overflow-hidden">
         {/* 히어로 배경 영상. 사이트 전체가 같은 소재를 쓴다. */}
         <HeroVideo opacity={0.38} />
         <div className="absolute inset-0 opacity-[0.03]">
@@ -28,8 +28,8 @@ export default function ServicesPage() {
         </div>
         <div className="max-w-[1600px] mx-auto px-6 relative z-10">
           <AnimateOnScroll variant="fadeIn">
-            <p className="text-xs tracking-[0.4em] text-neutral-500 mb-6 uppercase">
-              Practice
+            <p className="text-xs tracking-[0.4em] text-on-deep-muted mb-6 uppercase">
+              Service
             </p>
           </AnimateOnScroll>
           <AnimateOnScroll variant="fadeUp" delay={0.1}>
@@ -49,12 +49,23 @@ export default function ServicesPage() {
         </div>
       </section>
 
-      {/* Services - Sticky Scroll Layout */}
-      <section className="py-24 md:py-32">
+      {/* ─── 목차 ───
+          아래 붙잡는 스크롤은 한 번에 하나씩만 보여준다. 여섯 개가 뭐가
+          있는지 훑고 싶은 사람은 여기서 바로 고르고, 읽고 싶은 사람만
+          아래로 내려간다. 상단 메뉴의 「서비스」 판과 같은 목록이다. */}
+      <section className="py-20 md:py-24">
         <div className="max-w-[1600px] mx-auto px-6">
-          <StickyScrollServices services={services} />
+          <AnimateOnScroll variant="fadeUp">
+            <p className="t-eyebrow mb-8">SERVICE</p>
+          </AnimateOnScroll>
+          <ServicePicker services={services} />
         </div>
       </section>
+
+      {/* 붙잡는 스크롤을 없앴다.
+          여섯 개를 한 번에 하나씩 넘겨 보여주는 구간이었는데, 같은 여섯 개가
+          위 목차에도 있고 상세 여섯 장에도 있었다. 세 번째였다. */
+      }
 
       {/* ─── 1년의 흐름 ─── */}
       <section className="py-24 md:py-32 bg-card border-y border-border overflow-x-clip">
@@ -72,19 +83,23 @@ export default function ServicesPage() {
             <div className="mt-8 h-px w-12 bg-accent" />
             <p className="t-desc mt-8 max-w-2xl">
               매월 어느 일정이 돌아가고, 그 사이에 무엇을 하는지.
-              기장은 매일, 신고는 분기, 자문은 결정이 닥칠 때.
+              {/* 뒷문장이 이 장의 답이다. 앞문장에 붙여 두면 한 문단으로
+                  뭉개져서, 정작 읽어야 할 한 줄이 안 보인다. */}
+              <span className="yflow-lede">
+                기장은 매일, 신고는 분기, 자문은 결정이 닥칠 때.
+              </span>
             </p>
           </AnimateOnScroll>
 
-          <div className="aflow mt-16">
+          <ol className="yflow mt-16">
             {[
               {
                 q: "Q1",
                 months: "1 – 3월",
                 deadlines: [
-                  "1월 · 부가세 2기 확정신고",
-                  "2월 · 면세사업장 현황",
-                  "3월 · 법인세 신고 (12월 결산)",
+                  "1.25 · 부가세 2기 확정신고",
+                  "2.10 · 면세사업장 현황",
+                  "3.31 · 법인세 신고 (12월 결산)",
                 ],
                 role: "전년 결산을 닫고, 법인세 절세 라인을 마무리. 새해 장부 기준을 다시 잡습니다.",
               },
@@ -92,9 +107,9 @@ export default function ServicesPage() {
                 q: "Q2",
                 months: "4 – 6월",
                 deadlines: [
-                  "4월 · 부가세 1기 예정신고",
-                  "5월 · 종합소득세 신고",
-                  "6월 · 성실신고확인서 제출",
+                  "4.25 · 부가세 1기 예정신고",
+                  "5.31 · 종합소득세 신고",
+                  "6.30 · 성실신고확인서 제출",
                 ],
                 role: "종소세 절세선을 다시 보고, 성실신고 라인을 잡습니다. 1분기 결산도 이때 점검.",
               },
@@ -102,9 +117,8 @@ export default function ServicesPage() {
                 q: "Q3",
                 months: "7 – 9월",
                 deadlines: [
-                  "7월 · 부가세 1기 확정신고",
-                  "8월 · 법인세 중간예납",
-                  "원천세 매월 10일",
+                  "7.25 · 부가세 1기 확정신고",
+                  "8.31 · 법인세 중간예납",
                 ],
                 role: "반기 결산을 끊고, 하반기 절세 방향을 다시 잡습니다. 자료도 이때 정돈.",
               },
@@ -112,36 +126,67 @@ export default function ServicesPage() {
                 q: "Q4",
                 months: "10 – 12월",
                 deadlines: [
-                  "10월 · 부가세 2기 예정신고",
-                  "11월 · 종합소득세 중간예납",
+                  "10.25 · 부가세 2기 예정신고",
+                  "11.30 · 종합소득세 중간예납",
                   "12월 · 결산 사전 정리",
                 ],
                 role: "연말 결산을 미리 다듬어두고, 다음 해 그림을 그립니다. 큰 의사결정이 몰리는 분기.",
               },
-            ].map((item) => (
-              <div key={item.q} className="aflow-card">
-                <div className="aflow-head">
-                  <p className="aflow-q">{item.q}</p>
-                  <p className="t-label">{item.months}</p>
-                </div>
-                <p className="t-label aflow-sub">주요 일정</p>
-                <ul className="t-body-sm aflow-list">
-                  {item.deadlines.map((d) => (
-                    <li key={d}>{d}</li>
+            ].map((item, i) => (
+              <li key={item.q} className="yflow-q">
+                {/* 눈금 위의 점. 선은 목록 전체가 하나로 긋는다 —
+                    칸마다 그으면 사이가 끊겨 계단처럼 보인다. */}
+                <span className="yflow-dot" aria-hidden />
+                <p className="yflow-label">
+                  <b>{item.q}</b>
+                  <span>{item.months}</span>
+                </p>
+
+                {/* 열두 달 중 이 분기가 어디인지. 글로 「1 – 3월」이라 적어 두면
+                    한 해에서 어느 자리인지가 안 잡힌다. */}
+                <span className="yflow-months" aria-hidden>
+                  {Array.from({ length: 12 }, (_, m) => (
+                    <i key={m} className={Math.floor(m / 3) === i ? "on" : ""} />
                   ))}
+                </span>
+                <ul className="yflow-dl">
+                  {item.deadlines.map((d) => {
+                    const [head, ...rest] = d.split(" · ");
+                    const body = rest.length ? rest.join(" · ") : head;
+                    /* 세목을 색으로 나눈다. 열두 줄이 다 같은 검정이면
+                       무엇이 되풀이되는 일인지 안 보인다. */
+                    const kind = body.includes("부가세")
+                      ? "vat"
+                      : body.includes("법인세")
+                        ? "corp"
+                        : body.includes("소득세") || body.includes("성실신고")
+                          ? "inc"
+                          : "etc";
+                    return (
+                      <li key={d}>
+                        <span className="yflow-m">{rest.length ? head : ""}</span>
+                        <span className="yflow-t">
+                          <i className={`yflow-k yflow-k--${kind}`} aria-hidden />
+                          {body}
+                        </span>
+                      </li>
+                    );
+                  })}
                 </ul>
-                <div className="aflow-body">
-                  {/* 카드 안 구분선이 곧 흐르는 줄이다. 첫 칸에서만 그리고
-                      폭을 네 칸 전체로 늘려, 카드를 관통해 한 줄로 이어진다. */}
-                  <span className="aflow-line" aria-hidden />
-                  <p className="t-label aflow-sub">이 분기의 일</p>
-                  <p className="t-body-sm" style={{ wordBreak: "keep-all" }}>
-                    {item.role}
-                  </p>
-                </div>
-              </div>
+                <p className="yflow-role">{item.role}</p>
+                <span className="yflow-i" aria-hidden>{String(i + 1).padStart(2, "0")}</span>
+              </li>
             ))}
-          </div>
+          </ol>
+
+          {/* 원천세는 Q3 안에 끼워 두면 3분기 일로 읽힌다. 열두 번 돌아오는
+              일이라 넷 아래 따로 한 줄을 둔다. */}
+          <p className="yflow-every">
+            <span className="yflow-every-lab">매월</span>
+            <span className="yflow-every-d">10일</span>
+            <i className="yflow-k yflow-k--etc" aria-hidden />
+            원천세 신고 · 납부
+          </p>
 
           <p className="mt-10 text-xs text-muted leading-relaxed">
             ※ 국세청 기준 주요 신고·납부 기한. 담당 법인의 신고 의무 및 마감일은 실제와 상이할 수 있습니다.
@@ -151,7 +196,7 @@ export default function ServicesPage() {
 
       {/* CTA */}
       <AnimateOnScroll variant="fadeIn">
-        <section className="py-24 md:py-32 bg-foreground text-white">
+        <section className="py-24 md:py-32 bg-deep text-white">
           <div className="max-w-[1600px] mx-auto px-6 text-center">
             <AnimateOnScroll variant="fadeUp">
               <p className="t-eyebrow t-eyebrow-d t-eyebrow-c mb-6">

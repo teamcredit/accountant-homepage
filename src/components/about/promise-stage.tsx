@@ -24,10 +24,20 @@ import PromiseOrbs from "./promise-orbs";
 
 /* 스크롤을 어디까지 내렸을 때 무엇이 일어나는가.
    대화는 앞쪽 절반에서 한 마디씩 차오르고, 다 읽을 틈을 둔 다음 날아간다. */
-const TALK_FROM = 0.04;
-const TALK_TO = 0.5;
-const EXIT_AT = 0.62;
-const ORBS_AT = 0.68;
+const TALK_FROM = 0;
+/* 판이 붙기 전(제목이 아래에서 올라오는 동안)에는 스크롤 진행이 0 이라
+   화면 아래쪽이 통째로 비어 있었다. 제목이 보이는 순간 이미 대화가
+   굴러가고 있게 바닥을 깔아 둔다.
+   첫 마디가 다 올라오는 눈금이 5 다(말풍선 하나가 5 칸). 6 으로 두면
+   첫 마디는 서 있고 두 번째 마디가 입력 중인 상태에서 시작한다. */
+const STEP_FLOOR = 6;
+/* 손님 말 세 마디가 여기까지 다 오른다. */
+const TALK_TO = 0.46;
+/* 우리 답 두 마디를 읽을 자리. 예전에는 0.5 에서 답이 나오고 0.62 에 벌써
+   날아가서, 두 번째 마디(「구조 자체를 다르게 두기로 했습니다」)가
+   화면에 떴다가 바로 사라졌다. */
+const EXIT_AT = 0.7;
+const ORBS_AT = 0.78;
 
 /* head — 「Our Promise / 메리디안의 약속」 제목. 무대 안에 같이 붙인다.
    바깥에 두면 무대가 화면에 붙어 있는 동안 제목만 위로 흘러 나가서,
@@ -42,7 +52,7 @@ export default function PromiseStage({ head }: { head?: ReactNode }) {
     offset: ["start start", "end end"],
   });
 
-  const [step, setStep] = useState(0);
+  const [step, setStep] = useState(STEP_FLOOR);
   const [exit, setExit] = useState(false);
   const [orbs, setOrbs] = useState(false);
 
@@ -66,7 +76,10 @@ export default function PromiseStage({ head }: { head?: ReactNode }) {
      선이 다 그어진 뒤 한 박자 읽을 시간까지 두고 놓는다. */
   const HOLD_MS = 2500;
   const hold = () => {
+    /* 손가락으로 미는 화면에서는 붙잡지 않는다. 관성으로 밀고 있는데
+       중간에 멈춰 세우면 버벅이는 것으로 읽힌다. */
     if (held.current || reduced || !lenis) return;
+    if (window.matchMedia("(pointer: coarse)").matches) return;
     held.current = true;
     lenis.stop();
     holdTimer.current = setTimeout(() => lenis.start(), HOLD_MS);
@@ -76,7 +89,7 @@ export default function PromiseStage({ head }: { head?: ReactNode }) {
      구간(offset)이 무시된다. 값만 받아 상태로 바꾸면 그 문제가 없다. */
   useMotionValueEvent(scrollYProgress, "change", (v) => {
     const t = (v - TALK_FROM) / (TALK_TO - TALK_FROM);
-    const next = Math.max(0, Math.min(THREAD_STEPS, Math.ceil(t * THREAD_STEPS)));
+    const next = Math.max(STEP_FLOOR, Math.min(THREAD_STEPS, Math.ceil(t * THREAD_STEPS)));
     setStep((prev) => (prev === next ? prev : next));
     setExit(v >= EXIT_AT);
     if (v >= ORBS_AT) hold();

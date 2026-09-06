@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { getAllPosts } from "@/lib/posts";
 import { services, personas } from "@/lib/data";
-import { navLinks } from "@/lib/constants";
+import { sitePages } from "@/lib/constants";
 
 /**
  * 검색 목록.
@@ -54,8 +54,10 @@ function build(): SearchItem[] {
     });
   }
 
-  for (const l of navLinks) {
-    items.push({ title: l.label, href: l.href, kind: "페이지", hint: "메뉴", terms: l.label });
+  /* 상단 메뉴만 색인하면 메뉴에 없는 페이지는 검색해도 안 나온다.
+     수임료·회계사 소개가 그렇게 빠져 있었다. 이제 전체 목록을 본다. */
+  for (const l of sitePages) {
+    items.push({ title: l.label, href: l.href, kind: "페이지", hint: l.hint, terms: `${l.label} ${l.hint}` });
   }
 
   return items;

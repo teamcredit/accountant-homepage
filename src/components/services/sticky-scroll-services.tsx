@@ -66,7 +66,7 @@ export default function StickyScrollServices({
                 <div className="py-12 md:py-16 grid grid-cols-1 md:grid-cols-12 gap-8 md:gap-12 items-center">
                   <div className="md:col-span-5">
                     <div className="flex items-baseline gap-4">
-                      <span className="text-5xl md:text-7xl font-bold tracking-tighter text-neutral-200 group-hover:text-foreground transition-colors duration-500">
+                      <span className="text-5xl md:text-7xl font-bold tracking-tighter text-[#C7D3EE] group-hover:text-foreground transition-colors duration-500" aria-hidden>
                         {num}
                       </span>
                       <h2 className="text-2xl md:text-3xl font-bold tracking-tight">
@@ -150,7 +150,7 @@ export default function StickyScrollServices({
                   exit={{ opacity: 0, y: -20 }}
                   transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] as [number, number, number, number] }}
                 >
-                  <span className="text-8xl font-bold tracking-tighter text-neutral-200">
+                  <span className="text-8xl font-bold tracking-tighter text-[#C7D3EE]" aria-hidden>
                     {String(activeIndex + 1).padStart(2, "0")}
                   </span>
                   <h2 className="mt-2 text-3xl font-bold tracking-tight">

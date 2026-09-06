@@ -17,6 +17,7 @@
 
    움직임을 꺼 둔 사람에게는 전부 켜진 상태로 한 번에 보인다. */
 
+import Image from "next/image";
 import { motion, useReducedMotion, type Variants } from "motion/react";
 
 const EASE = [0.16, 1, 0.3, 1] as const;
@@ -49,8 +50,8 @@ const OUTGOING = [
 /* 「입력 중…」이 머무는 칸 수. 한 칸만 주면 점이 뜨자마자 말이 나와서
    쓰는 중이라는 게 안 읽힌다. 여러 칸을 비워 그만큼 붙잡아 둔다.
    손님 쪽은 세 마디가 이어지므로 우리 쪽보다 짧게 잡는다. */
-const IN_HOLD = 3;
-const TYPING_HOLD = 5;
+const IN_HOLD = 4;
+const TYPING_HOLD = 6;
 
 /* 손님 말 한 마디가 차지하는 칸: 「입력 중」 + 말 한 줄. */
 const IN_BLOCK = IN_HOLD + 1;
@@ -101,9 +102,20 @@ const rowVariants: Variants = {
   /* 손님 말은 왼쪽, 우리 말은 오른쪽. 각자 왔던 쪽으로 되돌아 나간다. */
   gone: ({ dir }: Custom) => ({
     opacity: 0,
-    x: `${dir * 120}%`,
+    /* 제 폭의 120% 만 움직이면 말풍선이 화면 한복판에서 사라진다.
+       62vw 도 모자랐다 — 2560px 화면에서는 오른쪽 말풍선이 화면 끝
+       196px 앞에서 멈춰 그 자리에서 사라졌다. 화면 폭 하나를 통째로
+       움직이면 어디서 출발하든 반드시 밖으로 나간다. */
+    x: `${dir * 105}vw`,
     scale: 0.96,
-    transition: { duration: 0.75, ease: [0.4, 0, 1, 1] },
+    /* 옅어지는 것과 날아가는 것을 따로 잡는다. 한 시각으로 묶어 두니
+       화면을 벗어나기도 전에 투명해져서, 날아 나간 게 아니라 그 자리에서
+       지워진 것처럼 보였다. 옅어지는 건 다 나간 뒤에 시작한다. */
+    transition: {
+      x: { duration: 1.05, ease: [0.35, 0, 1, 1] },
+      scale: { duration: 1.05, ease: [0.35, 0, 1, 1] },
+      opacity: { duration: 0.25, delay: 0.8, ease: "linear" },
+    },
   }),
 };
 
@@ -151,21 +163,37 @@ export default function ComplaintThread({
 
       {/* 다 듣고 나서 답한다. 한 덩어리로 보내면 공지가 되니 두 마디로 나눈다.
           첫 마디는 점 세 개로 먼저 뜨고, 그 풍선이 그대로 말로 부푼다. */}
-      {OUTGOING.map((t, i) => {
-        const first = i === 0;
-        const last = i === OUTGOING.length - 1;
-        const at = first ? TYPING_AT : OUT_FROM + i;
-        const typing = !reduced && first && step > at && step <= OUT_FROM;
-        return (
-          <motion.div
-            key={t}
-            className="imsg-row imsg-row--out"
-            {...anim(at, { dir: 1, slow: last })}
-          >
-            <Bubble kind="out" typing={typing} reduced={reduced} text={t} tailless={!last} />
-          </motion.div>
-        );
-      })}
+      {/* 우리 답 두 마디와 답하는 사람. 사람을 한 덩어리로 옆에 세운다 —
+          동그란 프로필로 넣으면 아이콘이 되고, 누가 말하는지가 안 읽힌다. */}
+      <div className="imsg-out">
+        <div className="imsg-out-lines">
+          {OUTGOING.map((t, i) => {
+            const first = i === 0;
+            const last = i === OUTGOING.length - 1;
+            const at = first ? TYPING_AT : OUT_FROM + i;
+            const typing = !reduced && first && step > at && step <= OUT_FROM;
+            return (
+              <motion.div
+                key={t}
+                className="imsg-row imsg-row--out"
+                {...anim(at, { dir: 1, slow: last })}
+              >
+                <Bubble kind="out" typing={typing} reduced={reduced} text={t} tailless={!last} />
+              </motion.div>
+            );
+          })}
+        </div>
+
+        <motion.div className="imsg-who" {...anim(OUT_FROM, { dir: 1 })} aria-hidden>
+          <Image
+            src="/images/founder-3d-idea.png"
+            alt=""
+            width={688}
+            height={688}
+            sizes="(max-width: 760px) 132px, 236px"
+          />
+        </motion.div>
+      </div>
 
     </div>
   );
