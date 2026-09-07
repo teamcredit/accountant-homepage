@@ -60,8 +60,16 @@ export default function ServiceMerge({ items }) {
     const label = document.querySelector(".svm-label");
     if (!cards.length || !target) return;
 
-    // 움직임을 줄이는 설정이면 스크롤 연동을 안 한다. 대시보드는 그냥 보인다.
-    if (reduce) {
+    /* 좁은 화면에서는 이 연출을 통째로 안 한다.
+       CSS 는 이미 1000px 아래에서 .svm 을 display:none 으로 빼 두는데,
+       그런데도 아래 스크롤 계산은 계속 돌고 있었다. 감춰진 스택을 재면
+       모든 값이 0 이라, 카드가 가야 할 거리도 0 이 되고 그 0 을 기준으로
+       .stage 의 visibility 와 opacity 를 켰다 껐다 했다.
+       휴대폰에서 빠르게 내릴 때 화면이 튀던 게 이것이다. */
+    const narrow = matchMedia("(max-width: 1000px)").matches;
+
+    // 움직임을 줄이는 설정이거나 좁은 화면이면 대시보드는 그냥 보인다.
+    if (reduce || narrow) {
       gsap.set(root, { opacity: 1 });
       gsap.set(label, { opacity: 1 });
       const stageEl = document.querySelector(".stage");
@@ -741,17 +749,47 @@ export default function ServiceMerge({ items }) {
           shot.style.transform = "none";
         }
       };
-      addEventListener("scroll", onScroll, { passive: true });
+      /* ── 그리는 시각을 스크롤 이벤트가 아니라 화면 그리는 박자에 맞춴다 ──
+         전에는 native scroll 이벤트로 돌았다. 브라우저는 빠르게 굴릴 때
+         이 이벤트를 몰아서 한 번만 주거나 그리는 시각과 어긋나게 준다.
+         그래서 카드는 한 프레임 늦은 자리에 그려지고, 다음 프레임에 두 칸을
+         한꺼번에 따라잡는다 — 그게 「빨리 내리면 튄다」의 정체다.
+
+         같은 페이지의 기능 구간(.feat-rail)이 안정적인 이유가 이거다.
+         그쪽은 Lenis 의 rAF 안에서 돈다. 여기도 같은 박자로 맞춘다.
+         값이 안 바뀌었으면 아무것도 안 한다 — 헛도는 비용은 없다. */
+      let lastY = -1;
+      let rafId = 0;
+      const tick = () => {
+        rafId = requestAnimationFrame(tick);
+        if (scrollY === lastY) return;
+        lastY = scrollY;
+        onScroll();
+      };
       gsap.set(root, { opacity: 1 });
       onScroll();                       // 첫 화면 상태를 바로 그린다
+      rafId = requestAnimationFrame(tick);
 
-      // 창 크기가 바뀌면 거리와 카드 크기를 다시 잰다
-      const onResize = () => { stickTop = null; base = sizeCards() || base; moves = measure(); onScroll(); };
+      /* 창 크기가 바뀌면 거리와 카드 크기를 다시 잰다.
+         단, 가로가 그대로면 다시 재지 않는다. 휴대폰은 주소창이 접히고
+         펴질 때마다 세로만 바뀐 resize 를 쏘는데, 그때 measure() 가
+         「스크롤한 뒤의 자리」를 새 기준으로 잡아 버려서 카드가 그만큼
+         한 번에 뛰었다. 가로가 바뀔 때만 다시 잰다. */
+      let lastW = innerWidth;
+      const onResize = () => {
+        if (innerWidth === lastW) return;
+        lastW = innerWidth;
+        stickTop = null;
+        base = sizeCards() || base;
+        moves = measure();
+        lastY = -1;
+        onScroll();
+      };
       addEventListener("resize", onResize);
 
       return () => {
         removeEventListener("resize", onResize);
-        removeEventListener("scroll", onScroll);
+        if (rafId) cancelAnimationFrame(rafId);
       };
     }, root);
 

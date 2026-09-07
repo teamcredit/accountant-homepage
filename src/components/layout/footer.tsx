@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { siteConfig, navMenu, sitePages, imageCredits } from "@/lib/constants";
+import { siteConfig, navMenu, imageCredits } from "@/lib/constants";
 import { StaggerChildren } from "@/components/motion";
 import { StaggerItem } from "@/components/motion/stagger-item";
 
@@ -10,6 +10,15 @@ export default function Footer() {
   const practiceLinks = (navMenu.find((m) => m.href === "/services")?.columns ?? [])
     .flatMap((col) => col.items);
 
+  /* 메뉴 이름은 상단 메뉴에서 그대로 가져온다. 전에는 여기만 「홈 · 회사
+     소개 · 회계사 소개」처럼 한글이라, 같은 페이지가 위아래에서 다른
+     이름으로 불렸다. 위에 없는 두 개(홈·문의)만 같은 말투로 붙인다. */
+  const menuLinks = [
+    { href: "/", label: "HOME" },
+    ...navMenu.map(({ href, label }) => ({ href, label })),
+    { href: "/contact", label: "CONTACT" },
+  ];
+
   return (
     <footer className="bg-deep text-white">
       {/* Divider */}
@@ -19,9 +28,13 @@ export default function Footer() {
 
       {/* Main Footer Content */}
       <div className="max-w-[1600px] mx-auto px-6 py-16">
-        <StaggerChildren staggerDelay={0.1} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-12 lg:gap-8">
+        {/* 손 안에서는 두 단이다. 세 단으로 쪼갰더니 칸이 100px 밖에 안 돼
+              누를 자리가 없었다 — 링크 열일곱 개가 전부 15px 높이였다.
+              회사 소개는 두 칸, 링크 두 묶음은 한 칸씩, 연락처는 다시 두 칸을
+              써서 아래에 카드로 앉힌다. */}
+        <StaggerChildren staggerDelay={0.1} className="ft-grid grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-x-5 gap-y-7 sm:gap-12 lg:gap-8">
           {/* Brand Column */}
-          <StaggerItem className="sm:col-span-2 lg:col-span-1">
+          <StaggerItem className="col-span-2 lg:col-span-1">
             <h3 className="text-base font-bold tracking-[0.12em] uppercase mb-5">
               {siteConfig.name}
             </h3>
@@ -61,8 +74,9 @@ export default function Footer() {
             {/* 상단 메뉴가 아니라 전체 페이지 목록을 건다.
                 푸터는 상단에 자리가 없어 밀린 것들이 가는 곳이다 —
                 수임료·회계사 소개가 여기에도 없으면 갈 길이 아예 없다. */}
-            <nav className="flex flex-col gap-3">
-              {sitePages.map((link) => (
+            {/* 두 줄로 세운다. 여덟 개를 한 줄로 쌓으면 이 칸만 세로로 길다. */}
+            <nav className="ft-menu grid grid-cols-2 gap-x-3">
+              {menuLinks.map((link) => (
                 <Link
                   key={link.href}
                   href={link.href}
@@ -74,8 +88,8 @@ export default function Footer() {
             </nav>
           </StaggerItem>
 
-          {/* Contact Column */}
-          <StaggerItem>
+          {/* Contact Column — 손 안에서는 두 칸을 다 쓰는 카드로 앉힌다. */}
+          <StaggerItem className="ft-contact col-span-2 lg:col-span-1">
             <h3 className="t-label t-label-d mb-5">
               Contact
             </h3>

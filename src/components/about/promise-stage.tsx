@@ -21,6 +21,7 @@ import { useMotionValueEvent, useReducedMotion, useScroll } from "motion/react";
 import { useLenis } from "lenis/react";
 import ComplaintThread, { THREAD_STEPS } from "./complaint-thread";
 import PromiseOrbs from "./promise-orbs";
+import { useHandheld } from "@/lib/use-media";
 
 /* 스크롤을 어디까지 내렸을 때 무엇이 일어나는가.
    대화는 앞쪽 절반에서 한 마디씩 차오르고, 다 읽을 틈을 둔 다음 날아간다. */
@@ -44,6 +45,11 @@ const ORBS_AT = 0.78;
    지금 보고 있는 게 무엇에 대한 이야기인지 알 수 없게 된다. */
 export default function PromiseStage({ head }: { head?: ReactNode }) {
   const reduced = useReducedMotion();
+  /* 좁은 화면에서는 붙이지 않는다. 판 하나(100svh)에 대화와 약속이 다
+     들어가지 않아 답하는 쪽과 약속 01 이 아래에서 잘려 나갔고, 스크롤을
+     빨리 굴리면 장면이 건너뛰어 화면이 튀었다. 그냥 위아래로 쌓는다. */
+  const handheld = useHandheld();
+  const flat = reduced || handheld;
   const ref = useRef<HTMLDivElement>(null);
   const lenis = useLenis();
 
@@ -88,6 +94,9 @@ export default function PromiseStage({ head }: { head?: ReactNode }) {
   /* motion 12 는 스크롤 값을 브라우저에 넘겨 버려서 style 로 엮으면
      구간(offset)이 무시된다. 값만 받아 상태로 바꾸면 그 문제가 없다. */
   useMotionValueEvent(scrollYProgress, "change", (v) => {
+    /* 쌓아 놓고 보는 화면에서는 장면을 세지 않는다. 세어 봐야 쓰는 데가
+       없는데 스크롤 한 번에 상태가 세 개씩 바뀌어 다시 그리기만 한다. */
+    if (flat) return;
     const t = (v - TALK_FROM) / (TALK_TO - TALK_FROM);
     const next = Math.max(STEP_FLOOR, Math.min(THREAD_STEPS, Math.ceil(t * THREAD_STEPS)));
     setStep((prev) => (prev === next ? prev : next));
@@ -96,12 +105,12 @@ export default function PromiseStage({ head }: { head?: ReactNode }) {
     setOrbs(v >= ORBS_AT);
   });
 
-  if (reduced) {
+  if (flat) {
     return (
-      <div ref={ref}>
+      <div ref={ref} className="promise-flat">
         {head}
         <ComplaintThread />
-        <div className="mt-16">
+        <div className="promise-flat-orbs">
           <PromiseOrbs show />
         </div>
       </div>

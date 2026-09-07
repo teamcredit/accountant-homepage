@@ -55,8 +55,11 @@ export const metadata: Metadata = {
 
 /* 홈. 대시보드 이야기는 /portal 로, 회계사 이력은 /members 로 옮겼다.
    여기서는 각각 배너 하나와 이름 한 줄로만 건넨다.
-   순서: 히어로(지구본) → 약속·선언문 → 지켜가는 방식 → 대시보드 배너 →
-        하는 일 → 무엇이 다른가 → 인사이트 → 상담 */
+   순서: 히어로(영상 → 무슨 회사인가) → 약속 → 대시보드 배너 →
+        하는 일 → 무엇이 다른가 → 인사이트 → 상담
+
+   ※ 본초자오선(지구본·광선)은 /about 이 맡는다. 첫 화면에서 이름의
+     유래부터 꺼내면 세무·회계 자문사라는 걸 알기 전에 스크롤이 끝난다. */
 export default function Home() {
   const posts = getAllPosts();
 
@@ -79,8 +82,8 @@ export default function Home() {
 
       <div id="top">
 
-      {/* 1. 첫 화면. 지구본 세 장면. 흰 바탕이 헤더 뒤까지 올라가도록
-          컴포넌트가 스스로 위로 당긴다. */}
+      {/* 1. 첫 화면. 영상 한 판, 그다음 무슨 회사인가 한 판.
+          바탕이 헤더 뒤까지 올라가도록 컴포넌트가 스스로 위로 당긴다. */}
       <AboutOpening />
 
       {/* 2. 메리디안의 약속. ABOUT 에 있던 한 무대를 그대로 가져왔다.
@@ -180,7 +183,7 @@ export default function Home() {
           {/* 여섯 개를 다 보고 싶은 사람에게. 카드마다 있는 「자세히 →」와
               다른 곳으로 간다 — 이건 목록 전체다. */}
           <div className="svc-cta rise">
-            <a className="btn btn-line" href="/services">하는 일 자세히 보기 →</a>
+            <Link className="btn btn-line" href="/services">하는 일 자세히 보기 →</Link>
           </div>
         </div>
       </section>
@@ -243,7 +246,7 @@ export default function Home() {
               </Link>
             ))}
           </div>
-          <p style={{'marginTop': 'var(--s4)', 'textAlign': 'right'}}><a href="/blog" style={{'fontSize': 'var(--t-0)', 'fontWeight': '600', 'color': 'var(--blue)', 'textDecoration': 'none'}}>모든 글 보기 →</a></p>
+          <p style={{'marginTop': 'var(--s4)', 'textAlign': 'right'}}><Link href="/blog" style={{'fontSize': 'var(--t-0)', 'fontWeight': '600', 'color': 'var(--blue)', 'textDecoration': 'none'}}>모든 글 보기 →</Link></p>
         </div>
       </section>
 

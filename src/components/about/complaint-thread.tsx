@@ -18,6 +18,7 @@
    움직임을 꺼 둔 사람에게는 전부 켜진 상태로 한 번에 보인다. */
 
 import Image from "next/image";
+import { useEffect, useRef, useState } from "react";
 import { motion, useReducedMotion, type Variants } from "motion/react";
 
 const EASE = [0.16, 1, 0.3, 1] as const;
@@ -139,8 +140,26 @@ export default function ComplaintThread({
           animate: exit ? "gone" : step > i ? "shown" : "hidden",
         };
 
+  /* 「입력 중」 점 세 개는 무한히 돈다. 화면 밖에 있어도 브라우저는
+     프레임마다 그걸 다시 그린다 — 홈 어디를 굴러도 계속 값이 나갔다.
+     이 대화가 화면에 들어와 있을 때만 돌린다.
+     스크롤마다 재지 않는다. 들어오고 나가는 그 순간에만 한 번씩 불린다. */
+  const rootRef = useRef<HTMLDivElement>(null);
+  const [onScreen, setOnScreen] = useState(false);
+
+  useEffect(() => {
+    const el = rootRef.current;
+    if (!el) return;
+    const io = new IntersectionObserver(
+      ([e]) => setOnScreen(e.isIntersecting),
+      { rootMargin: "160px 0px" },
+    );
+    io.observe(el);
+    return () => io.disconnect();
+  }, []);
+
   return (
-    <div className="imsg">
+    <div className="imsg" ref={rootRef} data-live={onScreen ? "1" : "0"}>
       {INCOMING.map((m, i) => {
         const at = i * IN_BLOCK;
         /* 점 세 개가 뜨는 구간. 이 구간이 지나면 같은 풍선이 말로 부푼다. */

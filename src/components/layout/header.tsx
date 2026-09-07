@@ -1,8 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
 import { useState, useEffect, useRef } from "react";
+import { usePathname } from "next/navigation";
 import { motion, useScroll, useSpring } from "motion/react";
 import { DesktopNav, MobileNav, MegaPanel, useMenuOpen } from "./site-nav";
 import SiteSearch from "./site-search";
@@ -10,7 +10,6 @@ import ScheduleCube from "./schedule-cube";
 import Wordmark from "@/components/brand/wordmark";
 
 export default function Header() {
-  const pathname = usePathname();
   const [mobileOpen, setMobileOpen] = useState(false);
   /* 펼침판은 헤더 안에서 열린다. 어느 칸이 열렸는지 헤더가 들고 있어야
      판 위에 마우스가 있는 동안 닫히지 않는다. */
@@ -18,53 +17,47 @@ export default function Header() {
   const { scrollYProgress } = useScroll();
   const scaleX = useSpring(scrollYProgress, { stiffness: 200, damping: 50, restDelta: 0.001 });
 
-  /* 헤더 뒤가 흰 본문일 때와 검은 히어로일 때가 다르다.
-     흰 유리를 검정 위에 얹으면 회색 판이 되고 글자가 사라진다.
-     그래서 헤더 바로 밑에 뭐가 깔려 있는지 매 스크롤마다 집어서
-     검정이면 어두운 유리로 통째로 뒤집는다. */
+  const pathname = usePathname();
   const headerRef = useRef<HTMLElement>(null);
-  /* 첫 값은 「어두움」이다. 모든 페이지의 맨 위는 검은 히어로라
-     밝은 유리로 시작하면 새로고침할 때마다 흰 띠가 한 프레임 번쩍인다. */
+
+  /* 헤더 모습은 두 가지뿐이다. 배경을 읽지 않는다.
+       맨 위        — 막 없음, 흰 글씨. 히어로가 그대로 비친다.
+       조금이라도 내리면 — 흰 막, 검은 글씨.
+
+     예전에는 스크롤마다 elementFromPoint 로 헤더 밑을 찍어 밝기를 쟀다.
+     재는 점 하나가 영상 판 위끝과 10px 밖에 안 떨어져 한 픽셀 차이로
+     흑백이 뒤집혔고, 어긋난 판정이 어두운 막을 흰 구역까지 끌고 갔다.
+     지금은 스크롤 값 하나만 본다 — 틀릴 수가 없다.
+
+     맨 위가 흰 쪽(예: /portal)에서는 처음부터 흰 막으로 시작한다.
+     그건 쪽이 열릴 때 한 번만 본다. 매 스크롤이 아니다. */
+  /* 첫 값은 「어두움」이다. 모든 쪽의 맨 위가 검은 히어로라, 밝은 쪽으로
+     시작하면 새로고침할 때마다 흰 띠가 한 프레임 번쩍인다. */
   const [tone, setTone] = useState<"light" | "dark">("dark");
 
   useEffect(() => {
-    const read = () => {
-      const el = headerRef.current;
-      if (!el) return;
-      const h = el.getBoundingClientRect().height || 80;
-      /* 헤더를 잠깐 통과시켜 그 아래 진짜 바닥을 집는다. */
-      el.style.pointerEvents = "none";
-      const hit = document.elementFromPoint(window.innerWidth / 2, h + 4);
-      el.style.pointerEvents = "";
-      if (!hit) return;
+    /* 이 쪽의 맨 위가 어두운가. 쪽이 열릴 때 한 번만 본다. */
+    const first = document.querySelector(
+      "main .about-stage, main .about-flat, main .page-hero, main section",
+    );
+    const topDark =
+      !!first &&
+      (first.classList.contains("bg-deep") ||
+        first.classList.contains("about-stage") ||
+        first.classList.contains("about-flat") ||
+        !!first.querySelector("video"));
 
-      /* 위로 올라가며 배경색이 칠해진 첫 조상을 찾는다.
-         투명한 요소는 색을 안 가지므로 건너뛴다. */
-      let node: Element | null = hit;
-      let bg = "";
-      while (node && node !== document.documentElement) {
-        const c = getComputedStyle(node).backgroundColor;
-        const m = c.match(/[\d.]+/g);
-        if (m && (m.length < 4 || Number(m[3]) > 0.5)) {
-          bg = c;
-          break;
-        }
-        node = node.parentElement;
-      }
-      const m = bg.match(/[\d.]+/g);
-      if (!m) return setTone("light");
-      /* 밝기(luma). 절반보다 어두우면 어두운 유리로 간다. */
-      const luma =
-        (0.2126 * Number(m[0]) + 0.7152 * Number(m[1]) + 0.0722 * Number(m[2])) / 255;
-      setTone(luma < 0.5 ? "dark" : "light");
+    const apply = () => {
+      const next = topDark && window.scrollY < 24 ? "dark" : "light";
+      setTone((prev) => (prev === next ? prev : next));
     };
-
-    read();
-    window.addEventListener("scroll", read, { passive: true });
-    window.addEventListener("resize", read);
+    /* 첫 읽기는 한 프레임 미룬다. 효과(effect) 안에서 곧바로 상태를 바꾸면
+       그린 걸 또 그리게 된다. */
+    const id = requestAnimationFrame(apply);
+    window.addEventListener("scroll", apply, { passive: true });
     return () => {
-      window.removeEventListener("scroll", read);
-      window.removeEventListener("resize", read);
+      cancelAnimationFrame(id);
+      window.removeEventListener("scroll", apply);
     };
   }, [pathname]);
 
@@ -108,7 +101,10 @@ export default function Header() {
         /* 모바일 메뉴가 열리면 그 밑은 무조건 흰 판이다. 자동 판정은
            스크롤할 때만 다시 재기 때문에, 검은 히어로에서 메뉴를 열면
            흰 글자가 흰 판 위에 남아 로고와 닫기 단추가 사라졌다. */
-        data-tone={mobileOpen ? "light" : tone}
+        /* 펼침판이 열리면 막대와 판이 한 장이어야 한다. 맨 위의 「막 없음」
+            상태로는 판이 통째로 비쳐 글이 안 읽힌다 — 열리는 동안은 내려온
+            뒤의 모습(흰 막 + 검은 글씨)으로 통일한다. */
+        data-tone={mobileOpen || menu.open ? "light" : tone}
         data-mega={menu.open ? "true" : "false"}
         className="site-header glass-bar z-50"
         onPointerLeave={menu.scheduleClose}
@@ -116,7 +112,7 @@ export default function Header() {
         {/* 본문(1600px)과 같은 폭을 쓴다. 1280 으로 가두면 넓은 화면에서
             헤더만 좁아 보인다. 높이도 한 단계 키워 답답함을 던다. */}
         <div
-          className="max-w-[1600px] mx-auto h-20 flex items-center justify-between"
+          className="hdr-bar max-w-[1600px] mx-auto h-20 flex items-center justify-between"
           /* 본문과 같은 여백을 쓴다. clamp 로 따로 잡아 뒀더니 헤더는 40px,
              본문은 29px 이 되어 로고와 글 왼쪽 끝이 11px 어긋나 있었다. */
           style={{ paddingInline: "var(--site-gutter-6)" }}
@@ -190,19 +186,19 @@ export default function Header() {
         />
       </header>
 
-      {/* Mobile Nav - Full Screen Overlay */}
+      {/* 모바일 메뉴. 화면을 통째로 덮지 않는다 —
+          오른쪽 2/3 만 열리고 왼쪽 1/3 은 뒤 화면이 어둡게 비친다.
+          그 어두운 자리를 누르면 닫힌다. */}
       <div
         id="mobile-navigation"
         aria-hidden={!mobileOpen}
         aria-label="모바일 메뉴"
         aria-modal={mobileOpen ? true : undefined}
         role={mobileOpen ? "dialog" : undefined}
-        className={`fixed inset-0 z-40 bg-background transition-all duration-200 ease-[cubic-bezier(0.16,1,0.3,1)] ${
-          mobileOpen
-            ? "visible opacity-100 pointer-events-auto"
-            : "invisible opacity-0 pointer-events-none"
-        }`}
+        onClick={() => setMobileOpen(false)}
+        className={`mnav-scrim ${mobileOpen ? "is-open" : ""}`}
       >
+        <div className="mnav-sheet" onClick={(e) => e.stopPropagation()}>
         {/* 가운데 정렬을 버리고 왼쪽으로 세운다. 하위가 한 칸 들여쓰기로
             붙는데, 가운데 정렬에서는 그 계층이 안 읽힌다. */}
         <div className="mnav-shell">
@@ -220,6 +216,18 @@ export default function Header() {
           >
             기장 문의하기
           </a>
+        </div>
+        {/* 판이 헤더 위를 덮으므로 헤더의 그 단추를 못 누른다.
+            닫는 단추는 판 안에 따로 둔다. */}
+        <button
+          type="button"
+          className="mnav-close"
+          aria-label="메뉴 닫기"
+          onClick={() => setMobileOpen(false)}
+        >
+          <span aria-hidden />
+          <span aria-hidden />
+        </button>
         </div>
       </div>
     </>

@@ -96,7 +96,15 @@ export default function SiteSearch() {
       })()
     : [];
 
-  useEffect(() => setCursor(0), [q]);
+  /* 찾는 말이 바뀌면 고른 줄을 첫 줄로 되돌린다.
+     useEffect 로 하면 한 번 그린 뒤에 또 그린다 — 그 사이 한 프레임 동안
+     지워진 목록의 세 번째 줄이 골라진 채로 보인다.
+     그리는 중에 바로 되돌리면 그 한 번이 없다. React 가 권하는 방식이다. */
+  const [lastQ, setLastQ] = useState(q);
+  if (lastQ !== q) {
+    setLastQ(q);
+    setCursor(0);
+  }
 
   function openBox() {
     setPh(PLACEHOLDERS[Math.floor(Math.random() * PLACEHOLDERS.length)]);

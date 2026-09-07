@@ -1,43 +1,40 @@
 "use client";
 
-/* About 페이지 첫 화면. 스크롤 한 번에 세 장면이 이어진다.
+/* 홈 첫 화면. 장면은 둘뿐이다.
 
-   ① 로고만 있다. 뒤에는 아무것도 없다.
-   ② 로고가 사라지고 지구본이 켜지면서 왼쪽으로 물러난다.
-      비는 오른쪽 자리에 본초자오선이 무엇인지가 들어온다.
-   ③ 파란 광선이 오른쪽에서 왼쪽으로 훑고 지나가며 지구본을 지우고,
-      "메리디안이 그 기준선이 되어드리겠습니다" 만 남는다.
+   ① 영상이 화면을 채우고 그 위에 이름이 선다.
+   ② 스크롤하면 영상이 본문 열 폭의 판으로 줄어 화면 위에 남고,
+      그 밑에서 「무엇을 하는 회사인가」가 올라온다.
+      영상을 아예 끄면 다음 화면이 흰 바탕에 글 한 덩어리뿐이라
+      위아래로 570px 이 빈다. 판을 남겨 화면을 둘로 나눈다.
 
-   화면은 붙어 있고(sticky) 스크롤 양이 시간 역할을 한다.
-   움직임을 꺼 둔 사람에게는 세 장면을 그냥 위아래로 쌓아서 보여준다. */
+   ── 본초자오선 장면은 여기서 뺐다 ─────────────────────────
+   지구본이 돌고 광선이 지나가는 그 장면은 /about 의 §① 로 옮겼다.
+   첫 화면에서 이름의 유래부터 꺼내면, 세무·회계 자문사라는 걸 알기도
+   전에 스크롤이 끝난다. 다시 여기로 가져오지 말 것.
 
-import { useEffect, useRef, useState } from "react";
+   ── 좁은 화면에서는 붙이지 않는다 ────────────────────────
+   프레임마다 clip-path 를 다시 쓰는 일이 휴대폰에서 제일 무겁다.
+   넘김이 끊기고 빠르게 굴리면 화면이 튀던 원인이 그것이라, 좁은 화면은
+   영상 한 판과 설명 한 판을 그냥 위아래로 쌓는다. */
+
+import Link from "next/link";
+import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties } from "react";
 import {
   motion,
   useScroll,
   useTransform,
-  useMotionTemplate,
   useMotionValue,
   useMotionValueEvent,
   useReducedMotion,
 } from "motion/react";
-import MeridianGlobe from "@/components/about/meridian-globe";
 import Wordmark from "@/components/brand/wordmark";
+import { useHandheld } from "@/lib/use-media";
 
 export default function AboutOpening() {
   const ref = useRef<HTMLDivElement>(null);
   const reduced = useReducedMotion();
-  /* 화면이 붙었는지. 서버와 첫 렌더를 같게 두려고 쓴다. */
-
-  /* 좁은 화면인지. 지구본을 옆으로 밀 자리가 없으면 위로 올린다. */
-  const [narrow, setNarrow] = useState(false);
-  useEffect(() => {
-    const m = window.matchMedia("(max-width: 900px)");
-    const sync = () => setNarrow(m.matches);
-    sync();
-    m.addEventListener("change", sync);
-    return () => m.removeEventListener("change", sync);
-  }, []);
+  const handheld = useHandheld();
 
   /* 이 구간을 지나는 동안 0 → 1. 그게 아래 모든 값의 시계다. */
   const { scrollYProgress } = useScroll({
@@ -46,141 +43,111 @@ export default function AboutOpening() {
   });
 
   /* 값을 한 번 옮겨 담는다.
-     useScroll 이 준 값을 opacity 에 바로 물리면 브라우저의 스크롤 타임라인으로
+     useScroll 이 준 값을 style 에 바로 물리면 브라우저의 스크롤 타임라인으로
      넘어가는데, 그쪽은 target/offset 을 안 보고 문서 전체를 구간으로 잡는다.
      그래서 장면이 실제보다 세 배 늘어졌다. 평범한 값으로 옮기면 그 경로를
      안 타고 우리가 준 구간대로 돈다. 다시 그리지 않으니 값도 안 든다. */
   const p = useMotionValue(0);
   useMotionValueEvent(scrollYProgress, "change", (v) => p.set(v));
 
-  /* 장면 시각. 아래 숫자는 다 이 0~1 위의 눈금이다.
-     끝(1.0)까지 다 쓰지 않고 0.76 쯤에서 장면을 끝낸다. 남는 뒤쪽은
-     일부러 비워 둔 여백이다 — 마지막 문장을 읽는 동안 화면이 붙어 있고,
-     그 다음 섹션이 훅 올라오지 않는다. */
+  /* ⓪ 영상. 예전에는 위아래에서 셔터가 닫히듯 아예 꺼졌다. 그러면 다음
+     화면이 흰 바탕에 글 한 덩어리뿐이라 위아래로 570px 이 비었다.
+     지금은 끄지 않는다 — 본문 열 폭의 판으로 줄어들어 화면 위에 남는다.
+     그 밑에서 글이 올라오면 한 화면이 「영상 + 글」 둘로 찬다.
 
-  /* ⓪ 첫 화면 영상. 스크롤이 시작되면 위아래에서 셔터가 닫히듯 높이가
-     줄어들며 꺼지고, 그 자리에서 지구본이 켜진다.
-     닫히는 구간(0.05~0.20)과 지구본이 켜지는 구간(0.15~0.27)을 조금
-     겹쳐 둔다. 완전히 끊어 두면 빈 흰 화면이 한 박자 낀다. */
-  /* 자르는 건 mask 가 아니라 clip-path 다. 마스크는 그림만 지우고 자리는
-     남겨서, 헤더가 「내 밑에 어두운 판이 있다」로 읽은 채 흰 화면 위에서
-     흰 글씨가 됐다. clip-path 는 잘린 자리가 손에도 안 잡힌다. */
-  const shutTop = useTransform(p, [0.05, 0.2], [0, 50]);
-  const shutBot = useTransform(p, [0.05, 0.2], [0, 50]);
-  const videoClip = useMotionTemplate`inset(${shutTop}% 0% ${shutBot}% 0%)`;
-  /* 마지막에 남는 한 줄까지 끈다. 셔터만으로는 1px 짜리 띠가 남는다. */
-  const videoFade = useTransform(p, [0.17, 0.21], [1, 0]);
+     줄어드는 모양은 CSS 가 정한다(.about-video). 여기서는 0 에서 1 까지
+     진행도만 넘긴다 — 판의 자리와 크기는 본문 열·헤더 높이에 매여 있어서
+     px 로 여기 적어 두면 화면 크기가 바뀔 때마다 어긋난다. */
+  const filmP = useTransform(p, [0.18, 0.44], [0, 1]);
 
-  /* 영상이 살아 있는 동안만 DOM 에 둔다. 헤더는 자기 아래 요소의 배경색을
-     읽어 밝기를 정하는데, 다 꺼진 영상 판이 남아 있으면 흰 화면인데도
-     계속 「어둡다」로 읽어 로고가 흰색으로 사라진다. */
-  const [videoOn, setVideoOn] = useState(true);
-  useMotionValueEvent(p, "change", (v) => setVideoOn(v < 0.215));
-  /* 헤더는 자기 밑에 깔린 배경색을 「스크롤할 때」 다시 잰다. 영상이
-     사라지는 순간은 스크롤이 아니라 렌더라, 한 박자 늦게 흰 화면 위에
-     흰 글씨가 남았다. 사라진 뒤 한 번 알려 준다. */
+  /* 헤더는 자기 밑에 깔린 배경색을 읽어 글자 밝기를 정한다. 영상이 위에서
+     물러나면 헤더 밑은 흰 바탕이 되므로 그때 한 번 다시 재라고 알려 준다.
+     예전에는 영상 판을 통째로 DOM 에서 뺐는데, 이제는 남으므로 뺄 수 없다. */
+  const [filmShrunk, setFilmShrunk] = useState(false);
+  useMotionValueEvent(p, "change", (v) => {
+    const next = v > 0.2;
+    setFilmShrunk((prev) => (prev === next ? prev : next));
+  });
   useEffect(() => {
     window.dispatchEvent(new Event("scroll"));
-  }, [videoOn]);
+  }, [filmShrunk]);
 
-  /* ① 로고. 영상 위에서는 흰색, 영상이 꺼지면 검정으로 넘어간다.
-     흐려져 사라지지 않는다 — 지구본과 같은 궤도로 왼쪽에 붙어 가다가
-     ③ 광선이 지구본을 지울 때 같이 지워진다(아래 globeMask 를 같이 쓴다).
-     그래서 여기에는 opacity 가 없다. 크기만 줄어 지구본 위 이름표가 된다. */
-  const logoScale = useTransform(p, [0, 0.21, 0.41], [1, 1, 0.34]);
-  const logoColor = useTransform(p, [0.11, 0.2], ["#FFFFFF", "#000000"]);
+  /* ① 이름이 내려오는 길.
+     화면 한가운데(크게) → 글판 왼쪽 위 제자리(작게).
+     가는 거리와 줄어드는 비율은 화면마다 달라서 재야 한다. 아래
+     useLayoutEffect 가 첫 그림 전에 한 번, 그리고 폭이 바뀔 때마다 잰다. */
+  const nameRef = useRef<HTMLDivElement>(null);
+  const flyRef = useRef<HTMLDivElement>(null);
+  const [fly, setFly] = useState<{ dx: number; dy: number; s: number } | null>(null);
 
-  /* ② 지구본 — 켜지고, 왼쪽으로 물러난다.
-     사라지는 건 흐려져서가 아니라 ③ 광선이 지나가며 지워서다(아래 마스크). */
-  const globeOpacity = useTransform(p, [0.15, 0.27], [0, 1]);
-  const globeX = useTransform(p, [0.21, 0.41], ["0%", narrow ? "0%" : "-26%"]);
-  const globeY = useTransform(p, [0.21, 0.41], ["0%", narrow ? "-20%" : "0%"]);
-  const globeScale = useTransform(p, [0.15, 0.41], [1.12, 0.9]);
-
-  /* ② 본초자오선의 뜻 */
-  const meaningOpacity = useTransform(p, [0.3, 0.4, 0.52, 0.58], [0, 1, 1, 0]);
-  const meaningY = useTransform(p, [0.3, 0.4], [40, 0]);
-
-  /* ③ 광선. 오른쪽 끝에서 왼쪽 끝으로 한 번 지나간다.
-     이 장면이 이 화면에서 제일 볼 만한 대목인데 0.18 구간으로는 훅 지나갔다.
-     구간을 0.21 로 넓히고 아래 .about-stage 높이도 같이 늘려서
-     실제 스크롤 거리로 1.3배쯤 느리게 지나간다. */
-  const laserPos = useTransform(p, [0.52, 0.73], [160, -60]);
-  const laserX = useMotionTemplate`${laserPos}vw`;
-  const laserOpacity = useTransform(p, [0.51, 0.55, 0.70, 0.75], [0, 1, 1, 0]);
-
-  /* 지구본을 지우는 마스크. 광선 왼쪽은 남고 오른쪽은 지워진다.
-     광선이 오른쪽에서 와서 왼쪽으로 빠지니, 지나간 자리가 차례로 비는 셈이다.
-     경계에 2vw 를 풀어 두면 잘린 자국 대신 광선이 녹여 낸 것처럼 보인다.
-     ※ 마스크는 옮겨지지 않는 바깥 껍데기에 건다. 지구본을 왼쪽으로 미는
-        transform 과 같은 요소에 걸면 마스크까지 같이 밀려간다. */
-  const globeMask = useMotionTemplate`linear-gradient(90deg, #000 ${laserPos}vw, transparent calc(${laserPos}vw + 2vw))`;
-
-  /* ③ 남는 문장. 광선 꽁무니를 바짝 따라 붙는다.
-     그리고 ④ 가 올라올 때 자리를 넘겨준다 — 작아지고 흐려진다.
-     같은 크기로 둘이 나란히 서면 어느 쪽을 읽어야 할지 알 수 없다. */
-  /* 아래 문단이 올라오면 완전히 사라진다. 0.4 로 남겨 두니 다음 글과 겹쳤다.
-     머무는 구간이 0.72~0.78, 여섯 칸뿐이라 읽기도 전에 넘어갔다.
-     0.70~0.86 으로 세 배 가까이 늘린다. */
-  const lastOpacity = useTransform(p, [0.63, 0.7, 0.86, 0.92], [0, 1, 1, 0]);
-  const lastY = useTransform(p, [0.63, 0.74], [36, 0]);
-  /* 올라가는 것과 작아지는 것은 한 동작이다. 시각을 어긋내면 두 번 움직여 보인다. */
-  const lastScale = useTransform(p, [0.86, 0.95], [1, 0.6]);
-
-  /* .about-close 는 「문장 + 회사 설명」을 한 덩어리로 가운데 세운다.
-     그런데 문장 혼자 떠 있는 동안에는 아래 설명의 높이만큼 위로 밀려 있다 —
-     화면 한가운데가 아니라 위쪽에 뜬다. 그래서 설명이 나오기 전까지는
-     그 높이의 절반만큼 통째로 내려 두고, 설명이 올라올 때 제자리로 돌린다.
-     높이는 글꼴이 실리고 화면 폭이 바뀌면 달라지므로 재서 쓴다. */
-  const whatRef = useRef<HTMLDivElement>(null);
-  const [shift, setShift] = useState(0);
-  useEffect(() => {
-    const el = whatRef.current;
-    if (!el) return;
+  useLayoutEffect(() => {
+    if (reduced || handheld) return;
+    let w = 0;
     const measure = () => {
-      /* 2rem = .about-what 의 위 여백 */
-      setShift((el.offsetHeight + 32) / 2);
+      const box = nameRef.current;
+      const ink = box?.querySelector(".brand-lockup") as HTMLElement | null;
+      if (!box || !ink) return;
+      /* 잴 때는 움직임을 잠시 끈다. 안 그러면 「이미 옮겨진 자리」를
+         새 기준으로 잡아 화면이 한 번 튄다. */
+      const prev = flyRef.current?.style.transform ?? "";
+      if (flyRef.current) flyRef.current.style.transform = "none";
+      const r = ink.getBoundingClientRect();
+      if (flyRef.current) flyRef.current.style.transform = prev;
+      const root = parseFloat(getComputedStyle(document.documentElement).fontSize) || 16;
+      /* 처음 크기는 예전 가운데 로고와 같다 — clamp(3.2rem, 13vw, 13rem). */
+      const startPx = Math.min(Math.max(3.2 * root, window.innerWidth * 0.13), 13 * root);
+      const nowPx = parseFloat(getComputedStyle(box).fontSize) || startPx;
+      setFly({
+        dx: window.innerWidth / 2 - (r.left + r.width / 2),
+        dy: window.innerHeight / 2 - (r.top + r.height / 2),
+        s: startPx / nowPx,
+      });
     };
     measure();
-    const ro = new ResizeObserver(measure);
-    ro.observe(el);
-    return () => ro.disconnect();
-  }, []);
-  const closeY = useTransform(p, [0.86, 0.95], [shift, 0]);
+    w = window.innerWidth;
+    const onResize = () => {
+      /* 가로가 안 바뀐 resize 는 무시한다. 주소창이 접힐 때마다 오는
+         세로만 바뀐 resize 에 다시 재면 로고가 한 칸씩 뛴다. */
+      if (window.innerWidth === w) return;
+      w = window.innerWidth;
+      measure();
+    };
+    window.addEventListener("resize", onResize);
+    return () => window.removeEventListener("resize", onResize);
+  }, [reduced, handheld]);
 
-  /* ④ 그래서 이게 뭐 하는 회사인지. 문장 하나로는 안 보였다.
-     남겨 둔 뒤쪽 여백(0.76~1.0)을 여기에 쓴다. 여기가 이 화면의 결론이라
-     위 문장보다 크게 선다. */
-  /* 0.91 에서 끝내 두니 남은 9% 동안 붙은 채로 흰 화면만 굴렀다.
-     끝까지 쓴다 — 다 읽히는 순간 판이 풀리고 다음 장이 올라온다. */
-  const whatOpacity = useTransform(p, [0.88, 0.95], [0, 1]);
-  const whatY = useTransform(p, [0.88, 1], [28, 0]);
+  const flyT = useTransform(p, [0.08, 0.4], [1, 0]);
+  const flyX = useTransform(flyT, (t) => (fly ? fly.dx * t : 0));
+  const flyY = useTransform(flyT, (t) => (fly ? fly.dy * t : 0));
+  const flyS = useTransform(flyT, (t) => (fly ? 1 + (fly.s - 1) * t : 1));
+  /* 색. 영상 위에서는 흰 글씨, 흰 바탕에 내려앉으면 검정. */
+  const flyColor = useTransform(p, [0.26, 0.38], ["#ffffff", "#0F141B"]);
+  const flyStyle = { x: flyX, y: flyY, scale: flyS, color: flyColor };
 
-  /* 움직임을 꺼 둔 화면.
-     예전에는 이름·본초자오선·마지막 문장을 한 판에 다 쌓았다. 스크롤로
-     넘기던 세 장면이 한 화면에 겹쳐 보여서, 「기준선이 되어드리겠습니다」가
-     나올 때도 본초자오선 설명이 그대로 남아 있었다.
-     장면을 두 판으로 끊는다 — 앞 판이 화면 밖으로 나간 뒤에 뒷 판이 온다.
- */
-  if (reduced) {
+  /* ② 로고 말고 나머지. 로고가 다 내려온 뒤에 뜬다. */
+  const restP = useTransform(p, [0.42, 0.6], [0, 1]);
+
+  /* 움직임을 꺼 둔 화면과 휴대폰. 두 판을 그냥 위아래로 쌓는다. */
+  if (reduced || handheld) {
+    /* ref 는 여기도 붙인다. useScroll 이 붙을 데를 못 찾으면 콘솔에
+       경고를 남긴다 — 값은 안 쓰지만 자리는 준다. */
     return (
-      <div className="about-stage-static">
-        <section className="ass-scene">
+      <div ref={ref} className="about-flat">
+        <section className="aflat-film">
+          {!reduced && (
+            <video autoPlay muted loop playsInline preload="metadata">
+              <source src="/home-hero.webm" type="video/webm" />
+              <source src="/home-hero.mp4" type="video/mp4" />
+            </video>
+          )}
+          <div className="about-video-veil" />
           <h1 className="about-logo">
             <Wordmark mark={false} />
           </h1>
-          <MeridianGlobe />
-          <Meaning />
         </section>
 
-        <section className="ass-scene">
-          <div className="about-close">
-            <p className="about-last">
-              <span className="text-accent">메리디안</span>이 그 기준선이
-              되어드리겠습니다.
-            </p>
-            <What />
-          </div>
+        <section className="aflat-what">
+          <What />
         </section>
       </div>
     );
@@ -188,16 +155,11 @@ export default function AboutOpening() {
 
   return (
     <div ref={ref} className="about-stage">
-      <div className="about-stage-pin">
-        {/* ⓪ 첫 화면 영상. 제일 뒤에 깐다. */}
-        {videoOn && (
-          <motion.div
+      <div className="about-stage-pin" data-film={filmShrunk ? "small" : "full"}>
+        {/* ⓪ 영상. 제일 뒤에 깐다. 끄지 않고 위쪽 판으로 남긴다. */}
+        <motion.div
             className="about-video"
-            style={{
-              clipPath: videoClip,
-              WebkitClipPath: videoClip,
-              opacity: videoFade,
-            }}
+            style={{ "--vp": filmP } as unknown as CSSProperties}
           >
             {/* webm 이 먼저다 — 같은 화질에 mp4 보다 15% 작다.
                 7.8MB 원본을 crf 27 로 다시 떠서 1.1MB 로 줄였다. */}
@@ -206,112 +168,63 @@ export default function AboutOpening() {
               <source src="/home-hero.mp4" type="video/mp4" />
             </video>
             {/* 흰 로고가 얹히는 자리를 눌러 준다. 안 누르면 밝은 장면에서
-              이름이 사라진다. 헤더도 이 색을 읽어 밝기를 정한다. */}
+                이름이 사라진다. 헤더도 이 색을 읽어 밝기를 정한다. */}
             <div className="about-video-veil" />
-          </motion.div>
-        )}
-
-        {/* 지구본. 자기 자리를 잡는 건 .mglobe 가 하고, 여기서는 밀고 끄기만 한다. */}
-        <motion.div
-          className="about-globe"
-          style={{ maskImage: globeMask, WebkitMaskImage: globeMask }}
-        >
-          <motion.div
-            className="about-globe-move"
-            style={{
-              opacity: globeOpacity,
-              x: globeX,
-              y: globeY,
-              scale: globeScale,
-            }}
-          >
-            <MeridianGlobe className="mglobe--xl" />
-          </motion.div>
         </motion.div>
 
-        {/* ① 로고. 지구본과 같은 마스크를 쓴다 — 광선이 둘을 함께 지운다.
-            바깥 껍데기는 움직이지 않는다(마스크가 같이 밀려가면 안 된다). */}
+        {/* ① 무엇을 하는 회사인가.
+            로고는 이 판 안에 있다. 처음에는 화면 한가운데 크게 서 있다가
+            영상이 줄어드는 동안 제자리로 내려온다. 이름 하나가 계속
+            같은 이름으로 남아 있어야 「같은 것이 옮겨 갔다」로 읽힌다.
+            예전에는 가운데 로고와 아래 로고가 따로 있어서, 하나가 꺼지고
+            다른 하나가 켜졌다 — 둘로 보였다.
+            --rest 는 「로고 말고 나머지」의 진행도다. 로고가 다 내려온 뒤에
+            0 에서 1 로 간다. */}
         <motion.div
-          className="about-logo-shell"
-          style={{ maskImage: globeMask, WebkitMaskImage: globeMask }}
+          className="about-close"
+          style={{ "--rest": restP } as unknown as CSSProperties}
         >
-          <motion.div
-            className="about-logo-move"
-            style={{ x: globeX, y: globeY, scale: logoScale, color: logoColor }}
-          >
-            <h1 className="about-logo">
-              <Wordmark mark={false} />
-            </h1>
-          </motion.div>
-        </motion.div>
-
-        {/* ② */}
-        <motion.div
-          className="about-meaning"
-          style={{ opacity: meaningOpacity, y: meaningY }}
-        >
-          <Meaning />
-        </motion.div>
-
-        {/* ③ 광선 */}
-        <motion.div
-          className="about-laser"
-          style={{ x: laserX, opacity: laserOpacity }}
-          aria-hidden
-        />
-
-        {/* ③ + ④ */}
-        <motion.div className="about-close" style={{ y: closeY }}>
-          <motion.p
-            className="about-last"
-            style={{ opacity: lastOpacity, y: lastY, scale: lastScale }}
-          >
-            <span className="text-accent">메리디안</span>이 그 기준선이
-            되어드리겠습니다.
-          </motion.p>
-
-          <motion.div ref={whatRef} style={{ opacity: whatOpacity, y: whatY }}>
-            <What />
-          </motion.div>
+          <What nameRef={nameRef} flyRef={flyRef} flyStyle={flyStyle} />
         </motion.div>
       </div>
     </div>
   );
 }
 
-/* 두 번째 장면의 글. 정지 화면에서도 같은 걸 쓴다. */
-function Meaning() {
+/* 무슨 회사인가. 첫 화면이 이 한 판을 위해 있다 —
+   영상 다음에 바로 이게 와야 무엇을 파는 곳인지가 읽힌다. */
+function What({
+  nameRef,
+  flyRef,
+  flyStyle,
+}: {
+  nameRef?: React.Ref<HTMLDivElement>;
+  flyRef?: React.Ref<HTMLDivElement>;
+  flyStyle?: Record<string, unknown>;
+}) {
   return (
-    <>
-      <p className="about-eyebrow">Prime Meridian</p>
-      <h2 className="about-term">
-        본초자오선<span className="text-accent">.</span>
-      </h2>
-      <div className="about-rule" />
-      <p className="about-body">
-        영국 그리니치 천문대를 지나는 <strong>경도 0°선</strong>.
-        <br />
-        세계의 시간은 여기서 출발합니다.
-        <br />
-        런던도, 서울도, 뉴욕도 이 한 선에 시각을 맞춥니다.
-      </p>
-      <p className="about-body about-body-2">
-        사업의 모든 결정에도 <strong>기준선</strong>이 필요합니다.
-      </p>
-    </>
-  );
-}
-
-/* 그래서 무슨 회사인가. 기준선 이야기만 남기면 이게 뭐 하는 곳인지 안 보인다. */
-function What() {
-  return (
+    /* 넓은 화면은 좌우로 나눈다.
+       왼쪽은 「누구인가」— 로고와 업(業) 한 줄. 크게 세운다.
+       오른쪽은 「무엇을 해주는가」— 설명과 갈 곳.
+       한 줄로 쌓아 두면 가운데 580px 만 쓰고 좌우가 통째로 비었다.
+       좁은 화면에서는 두 묶음이 그냥 위아래로 쌓인다. */
     <div className="about-what">
-      {/* 위에 있던 파란 세로선은 뺐다. 로고 바로 위를 가른다. */}
-      {/* 회사 이름은 글자가 아니라 로고로 선다. 이 화면의 마지막 장면이고,
-          바로 위에서 지구본이 지워진 자리라 마크가 그 자리를 이어받는다. */}
-      <p className="about-what-name">
-        <Wordmark />
-      </p>
+      <div className="about-what-id">
+        {/* 회사 이름. 표식은 빼고 글자만 쓴다.
+            넓은 화면에서는 이 로고가 처음에 화면 한가운데 크게 섰다가
+            여기로 내려온다. 그 움직임은 부모(.about-logo-fly)가 맡는다. */}
+        <div className="about-what-name" ref={nameRef}>
+          <motion.div className="about-logo-fly" ref={flyRef} style={flyStyle}>
+            <Wordmark mark={false} />
+          </motion.div>
+        </div>
+        {/* 업(業)을 한 줄로 먼저 박는다. 이 줄이 없으면 아래 설명이
+            무엇에 대한 설명인지 모른 채 읽힌다.
+            고객이 제일 먼저 말한 것도 이것이다 — 영상 바로 아래서
+            세무·회계 자문사라는 걸 알 수 있어야 한다. */}
+        <p className="about-what-kind">세무 · 회계 자문</p>
+      </div>
+      <div className="about-what-say">
       <p className="about-what-body">
         <span className="s">매일의 기장부터 세무조정, 세무자문, 가치평가까지</span>
         <span className="s"><strong>회계사가 직접 맡습니다.</strong></span>
@@ -323,13 +236,16 @@ function What() {
           회사 전용 <strong className="hl">세무 대시보드</strong>까지.
         </span>
       </p>
+      {/* 같은 사이트 안이라 Link 로 간다. 주소는 그대로 — 바꾸면 검색 순위가 흔들린다.
+          <a> 로 두면 페이지를 통째로 다시 받아서 느리고, 린트도 막는다. */}
       <div className="about-what-cta">
-        <a className="about-btn about-btn--fill" href="/contact">
+        <Link className="about-btn about-btn--fill" href="/contact">
           상담하기
-        </a>
-        <a className="about-btn about-btn--line" href="/services">
+        </Link>
+        <Link className="about-btn about-btn--line" href="/services">
           하는 일 자세히 보기
-        </a>
+        </Link>
+      </div>
       </div>
     </div>
   );

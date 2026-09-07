@@ -23,6 +23,13 @@ export default function PromoMotion() {
     // 원본 스크립트는 즉시실행 함수다. 그 안에서 이벤트를 붙이고 끝난다.
     const stop = (() => {
       const rm = matchMedia('(prefers-reduced-motion: reduce)').matches;
+      /* 손가락으로 미는 화면인가.
+         아래의 「스냅」과 「브레이크」는 스크롤이 멎은 뒤 페이지를 최대
+         220px 스스로 옮긴다. 휠은 한 칸씩 끊겨 굴러가니 그게 정돈으로
+         읽히지만, 손가락은 이미 멈출 자리를 고른 뒤다 — 거기서 화면이
+         또 움직이면 넘김이 끊기고 튀는 것으로 읽힌다. 만지는 화면에서는
+         전부 끈다. 다시 켜지 말 것. */
+      const touch = matchMedia('(pointer: coarse)').matches;
 
       /* 이 화면을 떠날 때 전부 끊는다.
          안 끊으면 Lenis 와 raf 루프가 살아남아, 홈에 다시 들어올 때마다
@@ -64,7 +71,7 @@ export default function PromoMotion() {
          화면 가운데에 처음 걸리는 순간 스크롤을 잠깐 붙잡는다. 한 번만 한다.
          두 번째부터도 잡으면 되돌아 올라갈 때 못 지나가는 화면이 된다. */
       const creed = document.getElementById('creed');
-      if (!rm && lenis && creed) {
+      if (!rm && !touch && lenis && creed) {
         let heldCreed = false;
         const creedIo = new IntersectionObserver((es) => {
           if (!es[0].isIntersecting || heldCreed) return;
@@ -284,9 +291,20 @@ export default function PromoMotion() {
 
       function anchorScroll() {
         if (!anchor) return;
-        anchor.classList.toggle('on', scrollY > innerHeight * 0.5);
 
         const mid = innerHeight / 2;
+
+        /* 첫 화면이 화면 한가운데를 아직 잡고 있으면 띠를 안 띄운다.
+           영상이 본문 열 폭의 판으로 줄면서 띠(오른쪽 x1337~1440)가
+           판 위(~x1411)에 반쯤 걸친다. 위 절반은 어두운 영상, 아래 절반은
+           흰 바탕이라 어느 색을 골라도 한쪽이 안 읽힌다.
+           첫 화면은 어차피 「여기서 시작」 자리라 띠가 할 일도 없다. */
+        const heroEl = document.querySelector('.about-stage, .about-flat');
+        const heroHolds = heroEl
+          ? (() => { const r = heroEl.getBoundingClientRect(); return r.top < mid && r.bottom > mid; })()
+          : false;
+        anchor.classList.toggle('on', scrollY > innerHeight * 0.5 && !heroHolds);
+
         let cur = secs[0];
         for (const s of secs) if (s.el.getBoundingClientRect().top <= mid) cur = s;
         anchorLinks.forEach(a => a.removeAttribute('aria-current'));
@@ -294,7 +312,9 @@ export default function PromoMotion() {
 
         // 앵커가 짙은 구간 위에 있으면 밝게.
         // .invert 는 이제 흰 구간이다. 짙은 데는 .deep 이 붙은 칸과 첫 화면뿐이다.
-        const onDark = [...document.querySelectorAll('.invert.deep, .about-stage, .about-stage-static')].some(el => {
+        // .aflat-film 은 붙이지 않고 쌓아 놓는 첫 화면의 영상 판이다.
+        // 움직임을 꺼 두면 넓은 화면에서도 이쪽이 나오므로 같이 센다.
+        const onDark = [...document.querySelectorAll('.invert.deep, .about-stage, .aflat-film')].some(el => {
           const r = el.getBoundingClientRect();
           return r.top < mid && r.bottom > mid;
         });
@@ -533,7 +553,7 @@ export default function PromoMotion() {
       /* 스크롤이 멎으면 그 단계의 한가운데로 살짝 당긴다.
          문턱 근처에서 애매하게 걸쳐 있는 걸 막는다. */
       function makeSnap(el, steps) {
-        if (rm || !el) return;
+        if (rm || touch || !el) return;
         let timer = null;
         addEventListener('scroll', () => {
           clearTimeout(timer);
@@ -596,7 +616,7 @@ export default function PromoMotion() {
          평범한 섹션들만 경계에서 살짝 잡는다. */
       const plainSecs = [...document.querySelectorAll('main > section, main > .wrap')]
         .filter(el => !el.querySelector('.feat-rail, .stats-rail, .vs-rail, .gather, .pin-inner, .stage'));
-      if (!rm && plainSecs.length) {
+      if (!rm && !touch && plainSecs.length) {
         let t = null, lastY = scrollY;
         addEventListener('scroll', () => {
           const down = scrollY > lastY;

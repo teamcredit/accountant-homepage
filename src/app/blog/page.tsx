@@ -27,7 +27,7 @@ export default function BlogPage() {
 
   return (
     <>
-      <section className="page-hero relative overflow-hidden bg-deep text-white">
+      <section className="blog-hero page-hero relative overflow-hidden bg-deep text-white">
         {/* 히어로 배경 영상. 사이트 전체가 같은 소재를 쓴다. */}
         <HeroVideo opacity={0.38} />
         <div className="absolute inset-0 opacity-[0.03]">

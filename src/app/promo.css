@@ -58,7 +58,12 @@
 
   --wrap: 1600px;                    /* 본문 기본 폭 */
   --wrap-read: 1280px;               /* 읽는 글이 주인 구역. 넓히면 줄이 길어져 읽기 나빠진다 */
-  --pad: clamp(20px, 4vw, 40px);
+  /* 좌우 여백은 사이트 한 군데서만 정한다.
+     예전에는 여기만 clamp(20px, 4vw, 40px) 을 따로 써서, 헤더 로고와
+     본문 글머리가 어긋났다 — 1440 에서 로고는 29px, 글은 40px 이라
+     11px 안으로 들어가 있었고, 390 에서는 반대로 6px 밖으로 나가 있었다.
+     헤더와 다른 여섯 쪽이 쓰는 값을 그대로 받는다. */
+  --pad: var(--site-gutter-6);
   /* 서체는 홈에서 따로 정하지 않는다. globals.css 한 군데서만 정한다. */
   --sans: var(--font-sans);
   --disp: var(--font-display);
@@ -150,7 +155,9 @@ html:not(.lenis) { scroll-behavior: smooth; }
    여백이 그대로 보이기 시작해 한 단 줄인다. 좁히는 게 아니라 눈금을 바꾼 것이다. */
 section { padding: clamp(72px, 9vh, 108px) 0; }
 section > .wrap > .lede + * { margin-top: var(--s6); }
-#svc, #vs, #insight, #who { padding-block: clamp(84px, 10vh, 120px); }
+/* 구역 사이 여백. 2026-09-07 에 60% 로 내렸다 — 84/120 이 한 화면의
+   3분의 1을 빈 채로 먹고 있었다. */
+#svc, #vs, #insight, #who { padding-block: clamp(50px, 6vh, 72px); }
 h2.sec { font-size: clamp(1.9rem, 4.4vw, var(--t-3)); margin-top: var(--s3); max-width: 20ch; }
 .lede { font-size: var(--t-2); color: var(--tx-2); max-width: 40ch; margin-top: var(--s4); line-height: 1.5; font-weight: 400; }
 
@@ -225,11 +232,17 @@ h2.sec { font-size: clamp(1.9rem, 4.4vw, var(--t-3)); margin-top: var(--s3); max
 /* `.promo a { color: inherit }` 가 (0,1,1) 로 `.btn-fill` (0,1,0) 보다
    더 구체적이라 글자색을 검정으로 되돌린다. 같은 무게로 맞춰 이긴다. */
 .promo .btn-fill { background: var(--grad-blue); color: #fff; }
-.promo .btn-fill:hover { background: var(--grad-blue-d); }
+@media (hover: hover) {
+  .promo .btn-fill:hover { background: var(--grad-blue-d); }
+}
 .btn-line { border-color: var(--w-3); color: var(--tx); }
-.btn-line:hover { border-color: var(--tx-2); }
+@media (hover: hover) {
+  .btn-line:hover { border-color: var(--tx-2); }
+}
 .invert.deep .btn-line { border-color: rgba(255,255,255,.34); color: #FFFFFF; }
-.invert.deep .btn-line:hover { border-color: #FFFFFF; }
+@media (hover: hover) {
+  .invert.deep .btn-line:hover { border-color: #FFFFFF; }
+}
 
 .hcta { font-size: var(--t-0); padding: 9px 16px; }
 /* `.promo p { margin: 0 }` 이 (0,1,1) 로 `.cta-note` (0,1,0) 를 이긴다.
@@ -567,7 +580,9 @@ h2.sec { font-size: clamp(1.9rem, 4.4vw, var(--t-3)); margin-top: var(--s3); max
   font-family: inherit;
   transition: border-color .2s, background .2s;
 }
-.sched-open:hover { border-color: var(--blue); background: var(--blue-l); }
+@media (hover: hover) {
+  .sched-open:hover { border-color: var(--blue); background: var(--blue-l); }
+}
 .sched-open .lb { font-size: var(--t-0); font-weight: 600; color: var(--tx); }
 .sched-open .dd {
   font-size: var(--t--1); font-weight: 700; color: var(--blue);
@@ -594,7 +609,11 @@ h2.sec { font-size: clamp(1.9rem, 4.4vw, var(--t-3)); margin-top: var(--s3); max
   .sched-open .dd > span { animation: none; }
 }
 
-@media (max-width: 900px) {
+/* 900 이 아니라 1000 이다. 붙잡는 구간(.hero-hold)과 문구(.svm-label)와
+   히어로 두 칸(.hero-grid)이 전부 1000 에서 풀리는데 카드만 900 까지
+   남아 있었다. 901~1000px 에서는 붙잡지도 않는 화면 위로 카드가
+   흩어진 채 떠 있고, 그 자리를 기준으로 대시보드가 켜졌다 꺼졌다 했다. */
+@media (max-width: 1000px) {
   /* 좁은 화면에서는 흩어질 자리가 없다. 조용히 뺀다. */
   .svm { display: none; }
 }
@@ -667,7 +686,9 @@ h2.sec { font-size: clamp(1.9rem, 4.4vw, var(--t-3)); margin-top: var(--s3); max
 /* 제일 가까운 마감만 파랗다. 검정 위에서는 밝은 쪽 파랑을 쓴다. */
 .schp-panel .schp-list li.near .dday { color: var(--blue-b); }
 .schp-panel .schp-x { border-color: rgba(255,255,255,.24); color: rgba(255,255,255,.7); }
-.schp-panel .schp-x:hover { border-color: var(--blue-b); color: var(--blue-b); }
+@media (hover: hover) {
+  .schp-panel .schp-x:hover { border-color: var(--blue-b); color: var(--blue-b); }
+}
 .schp-panel .schp-chk input { accent-color: var(--blue-b); }
 
 /* 넓은 화면에서는 본문(.wrap) 오른쪽 끝에 맞춰 세운다. 화면 구석에 붙지 않게. */
@@ -712,7 +733,9 @@ h2.sec { font-size: clamp(1.9rem, 4.4vw, var(--t-3)); margin-top: var(--s3); max
   font-size: 20px; line-height: 1; color: var(--tx-2);
   transition: border-color .2s, color .2s;
 }
-.schp-x:hover { border-color: var(--blue); color: var(--blue); }
+@media (hover: hover) {
+  .schp-x:hover { border-color: var(--blue); color: var(--blue); }
+}
 
 .schp-list { list-style: none; margin: var(--s3) 0 0; padding: 0; }
 .schp-list li {
@@ -933,6 +956,19 @@ h2.sec { font-size: clamp(1.9rem, 4.4vw, var(--t-3)); margin-top: var(--s3); max
   .db-cells { grid-template-columns: repeat(2,1fr); }
   .db-row3, .db-row2 { grid-template-columns: 1fr; }
 }
+/* 태블릿 그림 안은 이야기가 다르다.
+   .dpk-win 안의 .db 는 언제나 1180×738 짜리 고정 판이고, 그걸 통째로
+   줄여서 태블릿 화면에 끼운다. 화면 폭은 이 판과 아무 상관이 없다.
+   그런데 위 규칙이 화면 폭만 보고 이 판까지 한 단으로 접어 버려,
+   휴대폰에서는 왼쪽 메뉴가 사라지고 아래가 판 밖으로 넘쳐 잘렸다.
+   그림 안에서는 넓은 화면의 짜임을 그대로 쓴다. */
+.dpk-win .db { grid-template-columns: 190px 1fr; }
+.dpk-win .db-side { display: block; }
+.dpk-win .db-seg,
+.dpk-win .db-search { display: flex; }
+.dpk-win .db-cells { grid-template-columns: repeat(6, 1fr); }
+.dpk-win .db-row3 { grid-template-columns: repeat(3, 1fr); }
+.dpk-win .db-row2 { grid-template-columns: 1fr 1.25fr; }
 .db-top {
   display: flex; align-items: center; gap: 9px;
   padding: 13px var(--s5); background: #0F1113; color: #fff; flex: none;
@@ -1211,7 +1247,7 @@ h2.sec { font-size: clamp(1.9rem, 4.4vw, var(--t-3)); margin-top: var(--s3); max
 /* ── 선언문. 이 사이트에서 제일 큰 문장. 다른 장식 없이 글자만. */
 /* 약속 섹션 안에 들어왔다. 바깥 섹션이 이미 위아래 여백을 갖고 있어
    여기서는 대화가 끝난 자리와 벌어질 만큼만 띄운다. */
-.creed { padding: clamp(64px, 9vh, 104px) 0 0; text-align: left; }
+.creed { padding: clamp(38px, 5.4vh, 62px) 0 0; text-align: left; }
 .creed-q {
   font-family: var(--disp); font-weight: 800;
   font-size: clamp(1.9rem, 5vw, 3.4rem); line-height: 1.35; letter-spacing: -.04em;
@@ -1267,8 +1303,8 @@ h2.sec { font-size: clamp(1.9rem, 4.4vw, var(--t-3)); margin-top: var(--s3); max
    물음이고 어디부터가 답인지 안 보인다. 짙은 판을 화면 폭 끝까지 깐다 —
    이 장의 결론이라 여기서 색이 한 번 바뀌어야 한다. */
 .creed-ans {
-  margin-top: clamp(56px, 8vh, 96px);
-  padding-block: clamp(72px, 10vh, 120px);
+  margin-top: clamp(34px, 4.8vh, 58px);
+  padding-block: clamp(43px, 6vh, 72px);
   background: var(--navy);
   color: #fff;
   text-align: center;
@@ -1515,7 +1551,9 @@ h2.sec { font-size: clamp(1.9rem, 4.4vw, var(--t-3)); margin-top: var(--s3); max
 /* ── 5. 근거 (누르면 열림) ───────────────── */
 .kpis { display: grid; grid-template-columns: repeat(4,1fr); gap: 1px; background: var(--w-3); }
 .kpi { background: var(--w); border: 0; text-align: left; font: inherit; color: inherit; padding: var(--s4); cursor: pointer; position: relative; transition: background .2s; min-width: 0; overflow: hidden; }
-.kpi:hover { background: var(--w-2); }
+@media (hover: hover) {
+  .kpi:hover { background: var(--w-2); }
+}
 .kpi[aria-expanded="true"] { background: var(--blue-l); }
 .kpi[aria-expanded="true"]::after { content:""; position:absolute; inset:auto 0 0; height:3px; background: var(--blue); }
 .kpi .lab { font-size: var(--t-0); color: var(--tx-2); }
@@ -1546,7 +1584,9 @@ h2.sec { font-size: clamp(1.9rem, 4.4vw, var(--t-3)); margin-top: var(--s3); max
 .rw { display: flex; justify-content: space-between; gap: var(--s3); font-size: var(--t-0); padding: 9px 0; border-bottom: 1px solid var(--w-3); }
 .rw span:last-child { font-variant-numeric: tabular-nums; }
 .evid-note { margin-top: var(--s4); font-size: var(--t--1); color: var(--tx-2); }
-.evid a:hover { text-decoration: underline; }
+@media (hover: hover) {
+  .evid a:hover { text-decoration: underline; }
+}
 @media (max-width: 760px) { .evid { grid-template-columns: 1fr; } }
 
 /* ── 배너 CTA. 본문 사이를 끊고 지나가는 띠. 메리디안 본가 방식. */
@@ -1566,10 +1606,18 @@ h2.sec { font-size: clamp(1.9rem, 4.4vw, var(--t-3)); margin-top: var(--s3); max
 }
 /* 마우스를 얹으면 색이 확실히 바뀌고 화살표가 오른쪽으로 늘어난다.
    전에는 바탕이 --w-2(거의 흰색)라 얹었는지 안 얹었는지 몰랐다. */
-.svc a:hover { background: color-mix(in srgb, var(--blue) 13%, var(--w)); }
-.svc a:hover h3 { color: var(--blue); }
-.svc a:hover .go { color: var(--blue); }
-.svc a:hover .go-a { width: 2.4rem; }
+@media (hover: hover) {
+  .svc a:hover { background: color-mix(in srgb, var(--blue) 13%, var(--w)); }
+}
+@media (hover: hover) {
+  .svc a:hover h3 { color: var(--blue); }
+}
+@media (hover: hover) {
+  .svc a:hover .go { color: var(--blue); }
+}
+@media (hover: hover) {
+  .svc a:hover .go-a { width: 2.4rem; }
+}
 .svc a { padding-left: var(--s4); }
 .svc a:nth-child(3n) { border-right: 0; }
 /* 카드 글씨를 한 칸씩 키운다. 제목은 t-1 과 t-2 사이(1.3rem)를 쓴다.
@@ -1600,7 +1648,27 @@ h2.sec { font-size: clamp(1.9rem, 4.4vw, var(--t-3)); margin-top: var(--s3); max
 /* 카드 본문은 지정한 자리에서 무조건 줄을 바꾼다.
    .s 는 기본이 inline-block 이라 폭이 남으면 붙어버린다. */
 .svc p .s, .step p .s { display: block; padding-right: 0; }
-@media (max-width: 860px) { .svc { grid-template-columns: 1fr; } .svc a { border-right: 0; padding-left: 0; } }
+/* 손 안에서는 카드 여섯 장을 두 줄씩 놓는다. 한 줄에 하나씩 쌓으면
+   여섯 칸이 세로로 늘어져 이 구역만 화면 두 개가 된다.
+   줄과 줄로 나누던 격자는 여기서 카드 테두리로 바꾼다 — 칸이 좁아
+   선만으로는 어디까지가 한 장인지 안 보인다. */
+@media (max-width: 860px) {
+  .svc {
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    border-top: 0;
+    margin-top: var(--s5);
+  }
+  .svc a {
+    padding: 15px 13px 13px;
+    border: 1px solid var(--w-3);
+    border-radius: 14px;
+    background: var(--w);
+  }
+  .svc h3 { font-size: 1.02rem; margin: 9px 0 6px; letter-spacing: -.02em; }
+  .svc p { font-size: .8rem; line-height: 1.55; }
+  .svc .go { margin-top: 11px; font-size: .78rem; }
+}
 
 /* ── 담당 회계사. 사진 + 이력. 박스 없이 선으로만. */
 
@@ -1630,7 +1698,9 @@ h2.sec { font-size: clamp(1.9rem, 4.4vw, var(--t-3)); margin-top: var(--s3); max
 .wpa li::before { content: ""; position: absolute; left: 0; top: .58em; width: 4px; height: 4px; border-radius: 50%; background: var(--blue); }
 .wmore { display: inline-block; margin-top: var(--s6); font-size: var(--t-1); font-weight: 700;
   border-bottom: 2px solid var(--tx); padding-bottom: 3px; text-decoration: none; transition: color .2s, border-color .2s; }
-.wmore:hover { color: var(--blue); border-color: var(--blue); }
+@media (hover: hover) {
+  .wmore:hover { color: var(--blue); border-color: var(--blue); }
+}
 @media (max-width: 980px) {
   .who-grid { grid-template-columns: 1fr; gap: var(--s5); align-items: start; }
   .who-grid img { max-width: 320px; height: auto; min-height: 0; aspect-ratio: 1/1; }
@@ -1659,8 +1729,12 @@ h2.sec { font-size: clamp(1.9rem, 4.4vw, var(--t-3)); margin-top: var(--s3); max
   align-items: baseline; padding: var(--s4) 0; border-bottom: 1px solid var(--w-3);
   text-decoration: none; transition: background .2s;
 }
-.posts a:hover { background: var(--w-2); }
-.posts a:hover h3 { color: var(--blue); }
+@media (hover: hover) {
+  .posts a:hover { background: var(--w-2); }
+}
+@media (hover: hover) {
+  .posts a:hover h3 { color: var(--blue); }
+}
 .posts .cat { font-size: var(--t--1); font-weight: 700; letter-spacing: .08em; color: var(--blue); text-transform: uppercase; }
 .posts h3 { font-size: var(--t-1); font-weight: 600; transition: color .2s; }
 .posts time { font-size: var(--t--1); color: var(--tx-2); }
@@ -1781,7 +1855,7 @@ h2.sec { font-size: clamp(1.9rem, 4.4vw, var(--t-3)); margin-top: var(--s3); max
 /* 붙박이 한 화면을 통째로 쓰던 구간이다. 표는 열 줄이 안 되는데 화면
    높이를 다 잡아 위아래가 텅 비었다. 붙박이를 풀고 내용 높이에 맞춘다. */
 .vs-rail { height: auto; }
-.vs-fix { position: static; min-height: 0; padding-block: clamp(40px, 5vh, 60px); }
+.vs-fix { position: static; min-height: 0; padding-block: clamp(24px, 3vh, 36px); }
 /* 줄마다 커지면 산만하다. 우리 칸 전체가 한 덩어리로 한 번 커진다. */
 .vs { position: relative; }
 .vs .ours { transition: background .4s; }
@@ -1851,10 +1925,14 @@ h2.sec { font-size: clamp(1.9rem, 4.4vw, var(--t-3)); margin-top: var(--s3); max
   white-space: nowrap; opacity: .55;
   transition: opacity .25s, color .25s;
 }
-.anchor a:hover .lb, .anchor a:focus-visible .lb { opacity: 1; color: var(--blue); }
+@media (hover: hover) {
+  .anchor a:hover .lb, .anchor a:focus-visible .lb { opacity: 1; color: var(--blue); }
+}
 .anchor a[aria-current="true"] .lb { opacity: 1; color: var(--blue); font-weight: 700; }
-.anchor.dark a:hover .lb,
+@media (hover: hover) {
+  .anchor.dark a:hover .lb,
 .anchor.dark a[aria-current="true"] .lb { color: var(--blue-b); }
+}
 .anchor .cir {
   width: var(--cir); height: var(--cir); border-radius: 50%; flex: none;
   border: 1.5px solid var(--w-3);
@@ -1863,7 +1941,9 @@ h2.sec { font-size: clamp(1.9rem, 4.4vw, var(--t-3)); margin-top: var(--s3); max
   position: relative; z-index: 1; background: var(--w);
   transition: border-color .25s, background .25s, scale .25s;
 }
-.anchor a:hover .cir { border-color: var(--blue); scale: 1.15; }
+@media (hover: hover) {
+  .anchor a:hover .cir { border-color: var(--blue); scale: 1.15; }
+}
 .anchor a[aria-current="true"] .cir { border-color: var(--blue); background: var(--blue); }
 
 /* 남색 구간 위에 있을 때는 색을 뒤집는다.
@@ -1897,7 +1977,7 @@ h2.sec { font-size: clamp(1.9rem, 4.4vw, var(--t-3)); margin-top: var(--s3); max
    여기서는 자리와 위아래 여백만 잡는다. */
 /* 위는 앞 무대가 방금 끝난 자리라 거의 붙인다. 아래는 대시보드 배너와
    맞닿는데, 88px + 배너 76px 이면 둘이 화면 하나만큼 떨어져 보였다. */
-.promise-sec { padding-block: clamp(16px, 2vh, 28px) clamp(24px, 3vh, 40px); overflow-x: clip; }
+.promise-sec { padding-block: clamp(10px, 1.2vh, 17px) clamp(14px, 1.8vh, 24px); overflow-x: clip; }
 .promise-hold { margin-top: var(--s6); }
 
 /* 기능 구간이 가로로 새어 문서 전체에 가로 스크롤이 생겼다(1440 화면에서 109px).
@@ -1910,7 +1990,7 @@ h2.sec { font-size: clamp(1.9rem, 4.4vw, var(--t-3)); margin-top: var(--s3); max
    여기 남은 건 문장 하나와 버튼 둘. 그래서 배경을 깔아 한 판으로 세운다. */
 .pbanner {
   position: relative; overflow-x: clip;
-  padding-block: clamp(28px, 3.5vh, 44px) clamp(56px, 6.5vh, 76px);
+  padding-block: clamp(17px, 2.1vh, 26px) clamp(34px, 3.9vh, 46px);
   /* 색은 섹션이 아니라 안쪽 띠(.pb-band)가 갖는다. */
   background: none;
   border: 0;
@@ -2033,7 +2113,35 @@ h2.sec { font-size: clamp(1.9rem, 4.4vw, var(--t-3)); margin-top: var(--s3); max
 }
 
 @media (max-width: 980px) {
-  .pb-tablet { max-width: none; margin-left: 0; }
+  /* 화면 폭까지 내보낸다. 338px 안에서 1180px 짜리 대시보드를 줄이면
+     0.27 배라 아무것도 안 읽힌다. 좌우 여백을 빼 0.33 배까지 올린다. */
+  .pb-tablet {
+    max-width: none;
+    margin-left: 0;
+    margin-inline: calc(var(--pad) * -1 + 8px);
+    position: relative;
+    z-index: 1;
+  }
+  /* 띠가 구역 전체(713px)를 덮어 태블릿(217px)이 그 안에 갇힌 그림이 됐다.
+     띠는 태블릿보다 낮아야 기기가 띠 위아래로 걸쳐 나온다.
+     태블릿을 감싼 .pb-stage 를 기준으로 0.7 배 높이만 깐다. */
+  .pb-band { display: none; }
+  /* 왼쪽 0° 세로선도 뺀다. 띠가 없어져 이 선만 화면 왼쪽에 덩그러니
+     서 있었다 — 무엇에 붙은 선인지 안 읽힌다. */
+  .pbanner::before { display: none; }
+  .pb-stage::before {
+    content: "";
+    position: absolute;
+    left: calc(50% - 50vw);
+    right: calc(50% - 50vw);
+    top: 50%;
+    height: 70%;
+    translate: 0 -50%;
+    z-index: 0;
+    background: linear-gradient(180deg, #DCE8FF 0%, #EAF1FF 100%);
+    border-top: 1px solid #CBDCFF;
+    border-bottom: 1px solid #CBDCFF;
+  }
   .pb-tablet-body { transform: none; padding: 8px; }
   .pb-glow { display: none; }
 }
@@ -2149,7 +2257,9 @@ h2.sec { font-size: clamp(1.9rem, 4.4vw, var(--t-3)); margin-top: var(--s3); max
   font-family: inherit; color: inherit; cursor: pointer;
   transition: color .2s, border-color .2s;
 }
-.pu-more:hover { color: var(--blue); border-color: var(--blue); }
+@media (hover: hover) {
+  .pu-more:hover { color: var(--blue); border-color: var(--blue); }
+}
 
 @media (max-width: 980px) {
   .pu-head { grid-template-columns: 1fr; gap: var(--s4); }
@@ -2176,7 +2286,9 @@ h2.sec { font-size: clamp(1.9rem, 4.4vw, var(--t-3)); margin-top: var(--s3); max
 .pu-aff-contact p { font-size: var(--t-1); line-height: 1.7; }
 .pu-aff-contact .pu-areas-lab { margin-bottom: var(--s2); }
 .pu-aff-contact a { text-decoration: none; border-bottom: 1px solid var(--w-3); transition: color .2s, border-color .2s; }
-.pu-aff-contact a:hover { color: var(--blue); border-color: var(--blue); }
+@media (hover: hover) {
+  .pu-aff-contact a:hover { color: var(--blue); border-color: var(--blue); }
+}
 .pu-aff-loc { color: var(--tx-2); font-size: var(--t-0) !important; padding-top: 6px; }
 
 @media (max-width: 980px) {
@@ -2221,7 +2333,9 @@ h2.sec { font-size: clamp(1.9rem, 4.4vw, var(--t-3)); margin-top: var(--s3); max
   font-size: var(--t-0); font-weight: 700; color: var(--blue);
   text-decoration: none;
 }
-.pw-more:hover { text-decoration: underline; text-underline-offset: 4px; }
+@media (hover: hover) {
+  .pw-more:hover { text-decoration: underline; text-underline-offset: 4px; }
+}
 
 @media (max-width: 760px) {
   .pw { grid-template-columns: 1fr; gap: var(--s4); }
@@ -2255,12 +2369,35 @@ h2.sec { font-size: clamp(1.9rem, 4.4vw, var(--t-3)); margin-top: var(--s3); max
   .vs-dark .vs tbody td.ours { font-size: 1.1em; }
 }
 
+/* 휴대폰에서는 비교표를 통째로 뺀다.
+   세 열짜리 표는 좁은 화면에서 글자가 줄줄이 접혀 「저가 기장 사무소」와
+   우리 답이 나란히 안 보인다 — 나란히 보이지 않으면 비교표가 아니다.
+   같은 이야기는 넓은 화면과 /about 이 맡는다. */
+@media (max-width: 900px) {
+  #vs { display: none; }
+}
+
 /* 여백이 두 겹으로 들어가 있었다 — 섹션이 90px, 그 안 .vs-fix 가 45px.
    위아래 135px 씩이라 표 넷보다 빈 곳이 넓었다. 안쪽 것만 남긴다. */
 #vs { padding-block: 0; }
 
 /* 하는 일과 비교표 사이. 여섯 개를 다 읽고 나면 「그래서?」가 되는 자리다. */
-.mid-cta { padding-block: clamp(48px, 7vh, 76px); }
+.mid-cta { padding-block: clamp(29px, 4.2vh, 46px); }
+
+/* ── 손 안에서는 구역 사이를 좁힌다 ─────────────────────────
+   재 본 값(390×844) — 인사이트 끝에서 마무리 제목까지 242px,
+   마무리 끝에서 푸터까지 190px, 하는 일 앞 131px 이 통째로 비어 있었다.
+   넓은 화면의 여백은 그대로 둔다. 거기서는 안 넓다. */
+@media (max-width: 900px) {
+  #svc, #vs, #insight, #who { padding-block: clamp(48px, 6vh, 64px); }
+  .mid-cta { padding-block: clamp(30px, 4vh, 44px); }
+  /* 마무리 짙은 판. 위 여백 84 + 안 여백 84 로 168px 이 그냥 비어 있었다. */
+  .creed-ans { margin-top: clamp(34px, 5vh, 56px); padding-block: clamp(44px, 6vh, 64px) clamp(30px, 4vh, 44px); }
+  .creed { padding-top: clamp(38px, 5vh, 60px); }
+  /* 부제목을 한 단 내린다. 제목 29px 옆에 24.3px 이라 둘이 같은 급으로 읽혔다.
+     globals.css 에도 같은 규칙을 뒀지만 이 파일이 나중에 실려서 여기가 이긴다. */
+  .lede, .hero-sub { font-size: 1.2rem; line-height: 1.62; }
+}
 .mid-cta-in {
   display: flex;
   flex-wrap: wrap;
@@ -2289,6 +2426,10 @@ h2.sec { font-size: clamp(1.9rem, 4.4vw, var(--t-3)); margin-top: var(--s3); max
   text-decoration: none;
   transition: color .18s ease, border-color .18s ease;
 }
-.mid-cta-go:hover { color: var(--blue-b); border-bottom-color: var(--blue-b); }
+@media (hover: hover) {
+  .mid-cta-go:hover { color: var(--blue-b); border-bottom-color: var(--blue-b); }
+}
 .mid-cta-go span { transition: translate .25s ease; }
-.mid-cta-go:hover span { translate: 4px 0; }
+@media (hover: hover) {
+  .mid-cta-go:hover span { translate: 4px 0; }
+}
