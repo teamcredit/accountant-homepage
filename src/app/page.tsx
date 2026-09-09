@@ -197,7 +197,7 @@ export default function Home() {
               <tr><th><VsIcon name="view" />관점</th><td className="theirs">가격 경쟁력 중심</td><td className="ours">대표 본업의 시간 확보</td></tr>
               <tr><th><VsIcon name="who" />누가 답하나</th><td className="theirs">사무 직원</td><td className="ours">공인회계사 직접</td></tr>
               <tr><th><VsIcon name="tech" />자료 처리 도구</th><td className="theirs">수기 · 단순 전산</td><td className="ours">자체 개발 소프트웨어</td></tr>
-              <tr><th><VsIcon name="board" />회사 자료 확인</th><td className="theirs">&mdash;</td><td className="ours">대시보드에 반영된 매출 · 매입 · 세무 현황 직접 조회</td></tr>
+              <tr><th><VsIcon name="board" />회사 자료 확인</th><td className="theirs">-</td><td className="ours">대시보드에 반영된 매출 · 매입 · 세무 현황 직접 조회</td></tr>
               <tr><th><VsIcon name="talk" />소통 방식</th><td className="theirs">담당자 연결 지연</td><td className="ours">회계사 직접 답신</td></tr>
             </tbody>
           </table>

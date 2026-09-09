@@ -33,6 +33,10 @@ export interface PostMeta {
   sourceLinks: PostSourceLink[];
   relatedSlugs: string[];
   keywords: string[];
+  /* 이 글이 어느 서비스 이야기인가. 「업무경험」 갈래의 글에만 적는다 —
+     서비스 상세 아래 「업무 경험」 칸이 이 값을 보고 제 사례만 고른다.
+     값은 서비스 주소 뒷조각이다. 예) services: [tax-bookkeeping] */
+  services: string[];
 }
 
 export interface PostData {
@@ -301,6 +305,7 @@ function parsePostMeta(slug: string, data: Record<string, unknown>): PostMeta {
       sourceLinks.length > 0 ? sourceLinks : getDefaultSourceLinks(slug, category),
     relatedSlugs: toStringArray(data.relatedSlugs),
     keywords: keywords.length > 0 ? keywords : getDefaultKeywords(slug, title, category),
+    services: toStringArray(data.services),
   };
 }
 

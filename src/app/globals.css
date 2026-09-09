@@ -3831,6 +3831,30 @@ section:not(.promise-dark) .promise-meridian-trail {
   text-wrap: pretty;
 }
 
+/* 주요 업무 — 이름이 먼저, 하는 일이 그 아래.
+   한 줄짜리 목록일 때는 번호와 글 두 칸이면 됐는데, 이름이 붙으면
+   셋이 되어 두 칸 격자에서 이름이 번호 아래로 떨어진다.
+   번호는 왼쪽 한 칸에 두고 이름과 글을 오른쪽에 쌓는다. */
+.svc-cards--work .svc-card { align-items: start; }
+.svc-cards--work .svc-chip { grid-row: 1; }
+.svc-card-h {
+  grid-column: 2;
+  margin: 0;
+  font-size: 1.02rem;
+  font-weight: 700;
+  letter-spacing: -.02em;
+  line-height: 1.4;
+  color: var(--color-foreground);
+  word-break: keep-all;
+}
+.svc-cards--work .svc-card p {
+  grid-column: 2;
+  margin-top: .5rem;
+  font-size: .89rem;
+  line-height: 1.65;
+  color: var(--color-subtle);
+}
+
 /* 번호는 알약으로. 글과 같은 크기로 두면 어디까지가 번호인지 안 보인다. */
 .svc-chip {
   display: inline-flex;
@@ -4523,6 +4547,10 @@ section:not(.promise-dark) .promise-meridian-trail {
 /* 꼬리 구간 안에 든 한 블록이다. 섹션이 아니라서 자기 여백만 갖는다. */
 .svc-read { padding-block: 0; }
 .svc-read-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px; }
+/* 줄 사이가 2px 뿐이라 네 줄이 한 덩어리로 뭉쳤다. 줄마다 아래 선을
+   깔아 어디서 끊기는지 보이게 하고, 위아래 숨을 준다. */
+.svc-read-list li + li { border-top: 1px solid var(--color-border); }
+.svc-read-list a { padding-block: 1.15rem; }
 .svc-read-list a {
   display: grid;
   grid-template-columns: 7.5rem 1fr auto;
@@ -4580,12 +4608,6 @@ section:not(.promise-dark) .promise-meridian-trail {
   gap: 0 1.4rem;
 }
 .svc-read-all--sub { color: var(--color-subtle); font-weight: 500; }
-/* 사례가 아직 없을 때. 밑에 뜨는 게 무엇인지 한 줄로 밝힌다. */
-.svc-read-sub {
-  margin: 1rem 0 0;
-  font-size: .85rem;
-  color: var(--color-subtle);
-}
 
 /* ── 고객 단계 고르기 ───────────────────────────
    셋을 세로로 이어 붙이면 페이지가 4,200px 이 된다. 읽는 사람은 셋 다

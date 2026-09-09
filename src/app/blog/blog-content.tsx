@@ -88,16 +88,34 @@ export default function BlogContent({ posts }: BlogContentProps) {
   const [page, setPage] = useState(1);
   const [lead, setLead] = useState(0);
 
+  /* 갈래가 바뀌면 맨 위 한 장과 몇 번째 판을 처음으로 되돌린다.
+     상단 메뉴에서 「법인세」로 넘어올 때는 pick() 을 안 거치고 주소만
+     바뀌므로, 여기서 주소를 보고 맞춘다. */
+  const [lastCat, setLastCat] = useState(active.slug);
+  if (lastCat !== active.slug) {
+    setLastCat(active.slug);
+    setLead(0);
+    setPage(1);
+  }
+
   const countOf = (match: string[]) =>
     match.length === 0
       ? posts.length
       : posts.filter((p) => match.includes(p.category)).length;
 
-  const filtered = useMemo(() => {
-    const byCat =
+  /* 맨 위 한 장도 고른 갈래를 따라간다.
+     예전에는 늘 전체 최신순이라, 메뉴에서 「법인세」를 눌러도 첫 화면은
+     그대로였다. 바뀌는 건 한참 아래 목록뿐이어서 아무 일도 안 일어난
+     것처럼 보였다. 찾는 말은 안 본다 — 글자를 칠 때마다 맨 위가 튄다. */
+  const byCat = useMemo(
+    () =>
       active.match.length === 0
         ? posts
-        : posts.filter((p) => active.match.includes(p.category));
+        : posts.filter((p) => active.match.includes(p.category)),
+    [posts, active],
+  );
+
+  const filtered = useMemo(() => {
     const needle = q.trim().toLowerCase();
     if (!needle) return byCat;
     /* 제목 · 요약 · 열쇳말까지 본다. 제목만 보면 「가지급금」처럼 본문에만
@@ -108,16 +126,16 @@ export default function BlogContent({ posts }: BlogContentProps) {
         .toLowerCase()
         .includes(needle)
     );
-  }, [posts, active, q]);
+  }, [byCat, q]);
 
   const pages = Math.max(1, Math.ceil(filtered.length / PER_PAGE));
   const cur = Math.min(page, pages);
   const shown = filtered.slice((cur - 1) * PER_PAGE, cur * PER_PAGE);
 
-  /* 맨 위 다섯 장은 늘 최신순이다 — 갈래를 골라도 안 바뀐다. 여기는
-     「무엇이 새로 올라왔나」를 보는 자리고, 아래가 고르는 자리다. */
-  const leads = posts.slice(0, LEAD_N);
-  const heroPost = leads[lead];
+  const leads = byCat.slice(0, LEAD_N);
+  /* 다섯 장이 안 되는 갈래가 있다. 돌려보기 수를 실제 장수로 센다. */
+  const leadN = leads.length;
+  const heroPost = leads[Math.min(lead, Math.max(0, leadN - 1))];
 
   const pick = (slug: string) => {
     setPage(1);
@@ -153,27 +171,31 @@ export default function BlogContent({ posts }: BlogContentProps) {
                 <div className="ins-lead-bot">
                 <p className="ins-lead-excerpt">{heroPost.description}</p>
 
-                {/* 다섯 장을 돌려 본다. 자동으로 넘어가지 않는다 —
-                    읽는 중에 바뀌면 방금 본 글을 다시 찾아야 한다. */}
+                {/* 최대 다섯 장을 돌려 본다. 자동으로 넘어가지 않는다 —
+                    읽는 중에 바뀌면 방금 본 글을 다시 찾아야 한다.
+                    한 장뿐인 갈래에서는 「1 / 1」과 못 쓰는 화살표만
+                    남으니 아예 안 세운다. */}
+                {leadN > 1 && (
                 <div className="ins-step">
                   <button
                     type="button"
-                    onClick={() => setLead((v) => (v - 1 + LEAD_N) % LEAD_N)}
+                    onClick={() => setLead((v) => (v - 1 + leadN) % leadN)}
                     aria-label="이전 글"
                   >
                     <Chevron dir="left" />
                   </button>
                   <span>
-                    <b>{lead + 1}</b> / {LEAD_N}
+                    <b>{Math.min(lead, leadN - 1) + 1}</b> / {leadN}
                   </span>
                   <button
                     type="button"
-                    onClick={() => setLead((v) => (v + 1) % LEAD_N)}
+                    onClick={() => setLead((v) => (v + 1) % leadN)}
                     aria-label="다음 글"
                   >
                     <Chevron dir="right" />
                   </button>
                 </div>
+                )}
                 </div>
               </div>
 

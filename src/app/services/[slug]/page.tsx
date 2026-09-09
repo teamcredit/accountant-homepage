@@ -54,10 +54,23 @@ export default async function ServiceDetailPage({ params }: Props) {
     ? all.filter((post) => service.postTopics!.includes(post.category)).slice(0, 3)
     : [];
   /* 실제로 한 일을 적은 글. 갈래가 「업무경험」인 것만 센다 — 해설 글을
-     「업무 경험」이라 달아 두면 읽는 사람이 사례로 오해한다. */
+     「업무 경험」이라 달아 두면 읽는 사람이 사례로 오해한다.
+     그중에서도 이 서비스 것만 고른다. 글 머리말에
+     services: [tax-bookkeeping] 처럼 적어 두면 여기에 선다.
+     services 를 안 적은 사례 글은 어느 서비스에도 안 붙는다 —
+     아무 데나 붙는 것보다 안 붙는 편이 낫다. */
   const cases = all
-    .filter((post) => post.category === "업무경험" || post.category === "업무 경험")
+    .filter(
+      (post) =>
+        (post.category === "업무경험" || post.category === "업무 경험") &&
+        post.services.includes(slug),
+    )
     .slice(0, 3);
+
+  /* 사례를 앞에, 해설 글을 뒤에 세운다. 예전에는 사례가 없을 때만
+     해설 글을 대신 넣고 「아직 올린 사례가 없습니다」를 붙였는데,
+     사과부터 하는 칸이 됐다. 둘을 같이 세우고 이름은 둘 다 부른다. */
+  const reads = [...cases, ...related.filter((r) => !cases.some((c) => c.slug === r.slug))].slice(0, 4);
 
   const num = currentIndex >= 0 ? String(currentIndex + 1).padStart(2, "0") : null;
 
@@ -181,23 +194,38 @@ export default async function ServiceDetailPage({ params }: Props) {
         </section>
       )}
 
-      {/* 본체 — 하는 일. 분류 페이지는 비어 있으니 안 세운다. */}
-      {service.details.length > 0 && (
+      {/* 본체 — 주요 업무. 분류 페이지는 비어 있으니 안 세운다.
+          예전에는 「하는 일」 한 줄짜리 목록 대여섯 개였다. 이름만 늘어놓아
+          무엇을 어떻게 하는지가 안 읽혔다. 이름을 앞에 세우고 그 아래에
+          하는 일을 적는다. */}
+      {(service.mainWork?.length || service.details.length > 0) && (
       <section className="svc-body">
         <div className="max-w-[1600px] mx-auto px-6">
           <AnimateOnScroll variant="fadeUp">
             <div className="svc-head svc-head--lead">
-              <h2 className="svc-h">하는 일</h2>
-              <span className="svc-en">What we do</span>
+              <h2 className="svc-h">주요 업무</h2>
+              <span className="svc-en">Main practice</span>
             </div>
-            <ul className="svc-cards">
-              {service.details.map((detail, i) => (
-                <li key={i} className="svc-card">
-                  <span className="svc-chip">{String(i + 1).padStart(2, "0")}</span>
-                  <p>{detail}</p>
-                </li>
-              ))}
-            </ul>
+            {service.mainWork?.length ? (
+              <ul className="svc-cards svc-cards--work">
+                {service.mainWork.map((w, i) => (
+                  <li key={w.title} className="svc-card">
+                    <span className="svc-chip">{String(i + 1).padStart(2, "0")}</span>
+                    <h3 className="svc-card-h">{w.title}</h3>
+                    <p>{w.body}</p>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <ul className="svc-cards">
+                {service.details.map((detail, i) => (
+                  <li key={i} className="svc-card">
+                    <span className="svc-chip">{String(i + 1).padStart(2, "0")}</span>
+                    <p>{detail}</p>
+                  </li>
+                ))}
+              </ul>
+            )}
           </AnimateOnScroll>
         </div>
       </section>
@@ -291,17 +319,12 @@ export default async function ServiceDetailPage({ params }: Props) {
         <div className="svc-read">
             <AnimateOnScroll variant="fadeUp">
               <div className="svc-head">
-                <h2 className="svc-h">업무 경험</h2>
-                <span className="svc-en">Case Notes</span>
+                <h2 className="svc-h">업무 경험 &amp; 인사이트</h2>
+                <span className="svc-en">Case notes &amp; insights</span>
               </div>
-              {/* 업무 경험 글이 아직 없으면 그 자리에 관련 글을 둔다.
-                  무엇을 보고 있는지는 작은 이름표로 밝힌다. */}
-              {cases.length === 0 && related.length > 0 && (
-                <p className="svc-read-sub">아직 올린 사례가 없습니다. 관련 글부터 보시겠어요.</p>
-              )}
-              {(cases.length ? cases : related).length > 0 && (
+              {reads.length > 0 && (
                 <ul className="svc-read-list">
-                  {(cases.length ? cases : related).map((post) => (
+                  {reads.map((post) => (
                     <li key={post.slug}>
                       <Link href={`/blog/${post.slug}`}>
                         <span className="svc-read-cat">{post.category}</span>
@@ -313,7 +336,15 @@ export default async function ServiceDetailPage({ params }: Props) {
                 </ul>
               )}
               <div className="svc-read-more">
-                <Link href="/blog" className="svc-read-all">
+                {cases.length > 0 && (
+                  <Link href="/blog?cat=case" className="svc-read-all">
+                    업무 경험 전체 보기 <span aria-hidden>&rarr;</span>
+                  </Link>
+                )}
+                <Link
+                  href="/blog"
+                  className={`svc-read-all${cases.length > 0 ? " svc-read-all--sub" : ""}`}
+                >
                   블로그 전체 보기 <span aria-hidden>&rarr;</span>
                 </Link>
               </div>
