@@ -18,8 +18,8 @@
 import Link from "next/link";
 import Image from "next/image";
 import { useState } from "react";
-import type { Service } from "@/lib/data";
-import { serviceGroups } from "@/lib/constants";
+import { oneLine, type Service } from "@/lib/data";
+import { serviceGroups, orderedServices } from "@/lib/constants";
 import { useHandheld } from "@/lib/use-media";
 import ServiceIcon from "./service-icon";
 
@@ -44,10 +44,12 @@ function Detail({ s }: { s: Service }) {
       <div className="spick-body">
         <ServiceIcon name={s.icon} className="spick-big" />
         <h3>{s.title}</h3>
-        <p className="spick-desc">{s.description}</p>
+        <p className="spick-desc">{oneLine(s.description)}</p>
 
+        {/* 알약 안에 긴 문장을 넣어 두었더니 설명인지 누르는 것인지
+            구분이 안 됐다. 핵심 업무 몇 마디를 목록으로 세운다(첨삭 #66). */}
         <ul className="spick-tags">
-          {s.details.slice(0, 4).map((d) => (
+          {(s.keywords ?? s.details.slice(0, 4)).map((d) => (
             <li key={d}>{d}</li>
           ))}
         </ul>
@@ -60,12 +62,12 @@ function Detail({ s }: { s: Service }) {
   );
 }
 
-export default function ServicePicker({ services }: { services: Service[] }) {
+export default function ServicePicker() {
   const [pick, setPick] = useState(0);
   const handheld = useHandheld();
   /* 손 안에서 지금 펼쳐 둔 줄. null 이면 다 접혀 있다. */
   const [open, setOpen] = useState<number | null>(null);
-  const cur = services[pick];
+  const cur = orderedServices[pick];
 
   /* ── 손 안 — 누른 줄 밑이 펼쳐진다 ───────────────────────── */
   if (handheld) {
@@ -77,8 +79,8 @@ export default function ServicePicker({ services }: { services: Service[] }) {
               <p className="spick-glab">{g.title}</p>
               <ul>
                 {g.slugs.map((slug) => {
-                  const i = services.findIndex((x) => x.slug === slug);
-                  const s = services[i];
+                  const i = orderedServices.findIndex((x) => x.slug === slug);
+                  const s = orderedServices[i];
                   if (!s) return null;
                   const isOpen = open === i;
                   return (
@@ -128,8 +130,8 @@ export default function ServicePicker({ services }: { services: Service[] }) {
             <p className="spick-glab">{g.title}</p>
             <ul>
               {g.slugs.map((slug) => {
-                const i = services.findIndex((x) => x.slug === slug);
-                const s = services[i];
+                const i = orderedServices.findIndex((x) => x.slug === slug);
+                const s = orderedServices[i];
                 if (!s) return null;
                 return (
                   <li key={slug}>

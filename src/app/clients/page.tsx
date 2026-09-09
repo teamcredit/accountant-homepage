@@ -42,9 +42,8 @@ export default function WhoPage() {
             <LineReveal className="h-0.5 w-20 bg-accent-bright" delay={0.3} />
           </div>
           <AnimateOnScroll variant="fadeUp" delay={0.4}>
-            <p className="mt-8 text-lg text-neutral-400 max-w-3xl leading-relaxed">
-              설립 직후엔 기장 기준을 세웁니다. 성장기엔 신고와 조정을 다시 잡습니다.
-              큰 결정 앞에선 세부담부터 비교합니다.
+            <p className="mt-8 text-lg text-neutral-400 max-w-3xl leading-relaxed svc-desc--lines">
+              {"설립 직후엔 기장 기준을 세웁니다.\n성장기엔 신고와 조정을 다시 잡습니다. 큰 결정 앞에선 세부담부터 비교합니다."}
             </p>
           </AnimateOnScroll>
         </div>

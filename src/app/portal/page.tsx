@@ -1,6 +1,6 @@
 import Link from "next/link";
 import type { Metadata } from "next";
-import { services } from "@/lib/data";
+import { orderedServices } from "@/lib/constants";
 import { siteConfig } from "@/lib/constants";
 import PromoMotion from "@/components/home/promo-motion";
 import ServiceMerge from "@/components/home/service-merge";
@@ -78,7 +78,7 @@ export default function Portal() {
 
             {/* 일정표가 있던 자리. 흩어진 서비스가 한 장으로 모인다.
                 일정은 팝업으로 뺐다 — 히어로의 '일정 보기' 버튼으로 다시 연다. */}
-            <ServiceMerge items={services.slice(0, 6).map(s => ({ slug: s.slug, title: s.title }))} />
+            <ServiceMerge items={orderedServices.map(s => ({ slug: s.slug, title: s.title }))} />
           </div>
         </div>
         </div>
@@ -458,7 +458,7 @@ export default function Portal() {
           <p className="lede rise"><span className="s">상담에서 실제 대시보드를 보여드립니다.</span><span className="s">그다음에 정하셔도 늦지 않습니다.</span></p>
           <div className="hero-cta rise" style={{'justifyContent': 'center', 'marginTop': 'var(--s5)'}}>
             <a className="btn btn-fill" href="/contact">기장 이관 상담하기</a>
-            <a className="btn btn-line" href="/contact">전화로 문의</a>
+            <a className="btn btn-line" href={`tel:${siteConfig.tel}`}>전화 문의</a>
           </div>
           <p className="cta-note rise" style={{'color': '#7E90AB'}}>상담은 무료입니다.</p>
         </div>

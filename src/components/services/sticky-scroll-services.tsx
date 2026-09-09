@@ -9,7 +9,7 @@ import {
   useReducedMotion,
 } from "motion/react";
 import Link from "next/link";
-import type { Service } from "@/lib/data";
+import { deliverableNames, oneLine, type Service } from "@/lib/data";
 
 interface StickyScrollServicesProps {
   services: Service[];
@@ -76,7 +76,7 @@ export default function StickyScrollServices({
                   </div>
                   <div className="md:col-span-6 md:col-start-7">
                     <p className="text-muted leading-relaxed mb-6">
-                      {service.description}
+                      {oneLine(service.description)}
                     </p>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                       <div>
@@ -100,7 +100,7 @@ export default function StickyScrollServices({
                           산출물
                         </p>
                         <div className="space-y-2">
-                          {service.deliverables.slice(0, 4).map((item) => (
+                          {deliverableNames(service).slice(0, 4).map((item) => (
                             <p
                               key={item}
                               className="text-sm text-subtle py-1 flex items-start gap-2"
@@ -201,7 +201,7 @@ export default function StickyScrollServices({
                         산출물
                       </p>
                       <div className="space-y-3">
-                        {services[activeIndex].deliverables.slice(0, 4).map((item) => (
+                        {deliverableNames(services[activeIndex]).slice(0, 4).map((item) => (
                           <p
                             key={item}
                             className="text-sm text-subtle py-1.5 flex items-start gap-2"

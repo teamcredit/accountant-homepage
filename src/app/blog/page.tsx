@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
 import { getAllPosts } from "@/lib/posts";
-import { contactFaq } from "@/lib/faq";
 import { AnimateOnScroll, LineReveal } from "@/components/motion";
 import BlogContent from "./blog-content";
 import HeroVideo from "@/components/layout/hero-video";
@@ -66,7 +65,7 @@ export default function BlogPage() {
           정적 페이지라, Suspense 로 감싸지 않으면 프로덕션 빌드가 깨진다.
           (node_modules/next/dist/docs .../use-search-params.md 의 Prerendering) */}
       <Suspense fallback={null}>
-        <BlogContent posts={posts} faq={contactFaq} />
+        <BlogContent posts={posts} />
       </Suspense>
     </>
   );

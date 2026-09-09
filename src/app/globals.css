@@ -778,9 +778,11 @@ h1, h2, h3, h4 {
 /* 칸은 내용만큼만. 여섯 개짜리는 두 줄, 세 개짜리는 한 줄. */
 .hdr-mega-cols {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(0, 15rem));
-  gap: 0 clamp(2rem, 5vw, 4.5rem);
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(0, 12rem);
+  gap: 0 clamp(1.2rem, 2.4vw, 2.4rem);
   justify-content: start;
+  width: max-content;
 }
 .hdr-mega-coltitle {
   font-size: .6875rem;
@@ -867,8 +869,10 @@ h1, h2, h3, h4 {
 .mnav-shell {
   height: 100%;
   overflow-y: auto;
-  /* 칸이 화면의 2/3(390 에서 260px)라 좌우 여백을 줄인다. */
-  padding: 5.5rem clamp(18px, 5vw, 30px) 2.5rem;
+  /* 칸이 화면의 2/3(390 에서 260px)라 좌우 여백을 줄인다.
+     위 여백은 닫기 단추를 비키는 만큼만 — 5.5rem 이면 첫 줄이
+     너무 내려와서 SERVICE 를 펼치면 아래가 잘렸다. */
+  padding: 4.4rem clamp(18px, 5vw, 30px) 1.8rem;
   display: flex;
   flex-direction: column;
 }
@@ -896,13 +900,13 @@ h1, h2, h3, h4 {
 .mnav-close span:first-child { rotate: 45deg; }
 .mnav-close span:last-child { rotate: -45deg; }
 .mnav-close:focus-visible { outline: 2px solid var(--color-accent); outline-offset: 2px; }
-.mnav-search { margin-bottom: 1.75rem; }
+.mnav-search { margin-bottom: 1.15rem; }
 .mnav { display: flex; flex-direction: column; }
 
 .mnav-row {
   display: block;
-  padding: 15px 0;
-  font-size: 1.375rem;
+  padding: 10px 0;
+  font-size: 1.3rem;
   font-weight: 500;
   letter-spacing: -0.02em;
   color: var(--color-foreground);
@@ -918,14 +922,14 @@ h1, h2, h3, h4 {
 }
 .mnav-rowlink {
   flex: 1;
-  padding: 15px 0;
+  padding: 10px 0;
   color: inherit;
   text-decoration: none;
 }
 /* 손가락이 닿는 자리는 44px 아래로 내리지 않는다. */
 .mnav-toggle {
-  width: 48px;
-  height: 48px;
+  width: 44px;
+  height: 44px;
   display: grid;
   place-items: center;
   color: var(--color-subtle);
@@ -942,15 +946,25 @@ h1, h2, h3, h4 {
 
 .mnav-sub {
   list-style: none;
-  margin: 0 0 10px;
-  padding: 4px 0 4px 14px;
+  margin: 0 0 6px;
+  padding: 2px 0 2px 14px;
   border-left: 1px solid var(--color-border);
   display: flex;
   flex-direction: column;
 }
+/* 네 갈래 이름. 누르는 게 아니라 묶음 표시라 작고 흐리게 둔다. */
+.mnav-sublab {
+  margin: 6px 0 1px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.09em;
+  color: var(--color-accent);
+}
+.mnav-sub > li + li .mnav-sublab { margin-top: 10px; }
+.mnav-subin { list-style: none; margin: 0; padding: 0; }
 .mnav-sublink {
   display: block;
-  padding: 11px 0;
+  padding: 7px 0;
   font-size: 1rem;
   color: var(--color-muted);
   text-decoration: none;
@@ -958,10 +972,103 @@ h1, h2, h3, h4 {
 .mnav-sublink[aria-current="page"] { color: var(--color-accent); font-weight: 600; }
 
 .mnav-cta {
-  margin-top: 2rem;
+  margin-top: 1.4rem;
   align-self: flex-start;
   padding: 14px 24px;
   font-size: 0.9375rem;
+}
+
+/* 문장이 끝나는 자리에서 줄을 끊는다. 화면 폭에 맡기면 「제공합니다.
+   부가적으로」처럼 다음 문장 머리가 앞 줄에 매달린다.
+   좁은 화면에서는 어차피 접히니 그때는 자동으로 둔다. */
+@media (min-width: 768px) {
+  .svc-desc--lines { white-space: pre-line; }
+}
+
+/* 이름이 비슷한 짝을 나란히. 세무기장 / 경리 아웃소싱(첨삭 #69). */
+.svc-cmp {
+  margin: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 20rem), 1fr));
+  gap: .8rem;
+}
+.svc-cmp > div {
+  padding: clamp(1.1rem, 2vw, 1.5rem);
+  border: 1px solid var(--color-border);
+  border-radius: 14px;
+}
+.svc-cmp dt {
+  font-size: 1.05rem;
+  font-weight: 700;
+  letter-spacing: -.02em;
+  color: var(--color-accent);
+}
+.svc-cmp dd {
+  margin: .5rem 0 0;
+  font-size: .9rem;
+  line-height: 1.65;
+  color: var(--color-strong);
+  word-break: keep-all;
+}
+.svc-cmp-note {
+  margin: .9rem 0 0;
+  font-size: .82rem;
+  color: var(--color-subtle);
+}
+
+/* ── 분류 페이지의 세부 업무 ─────────────────────
+   세무자문처럼 아래에 여러 업무를 데리고 있는 쪽에만 선다.
+   대분류 설명을 한 번 더 읽히지 않고 바로 상세로 보낸다(첨삭 #74). */
+.svc-kids {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
+  gap: .8rem;
+}
+.svc-kids a {
+  position: relative;
+  display: block;
+  height: 100%;
+  padding: clamp(1.1rem, 2vw, 1.5rem);
+  border: 1px solid var(--color-border);
+  border-radius: 14px;
+  text-decoration: none;
+  color: inherit;
+  transition: border-color .18s ease, background .18s ease;
+}
+@media (hover: hover) {
+  .svc-kids a:hover {
+    border-color: var(--color-accent);
+    background: color-mix(in srgb, var(--color-accent) 5%, transparent);
+  }
+  .svc-kids a:hover .svc-kid-go { transform: translateX(3px); }
+}
+.svc-kid-i {
+  width: 1.9rem;
+  height: 1.9rem;
+  color: var(--color-accent);
+}
+.svc-kids h3 {
+  margin: .8rem 0 .4rem;
+  font-size: 1.15rem;
+  font-weight: 700;
+  letter-spacing: -.02em;
+}
+.svc-kids p {
+  margin: 0;
+  font-size: .875rem;
+  line-height: 1.6;
+  color: var(--color-subtle);
+  word-break: keep-all;
+}
+.svc-kid-go {
+  position: absolute;
+  top: clamp(1.1rem, 2vw, 1.5rem);
+  right: clamp(1.1rem, 2vw, 1.5rem);
+  color: var(--color-accent);
+  transition: transform .18s ease;
 }
 
 /* ── 서비스 상세 ────────────────────────────────
@@ -1056,6 +1163,22 @@ h1, h2, h3, h4 {
   width: .6rem;
   height: 1px;
   background: var(--color-accent);
+}
+
+/* 상황 이름과 그때 하는 일을 위아래로 나눈 줄(첨삭 #55).
+   한 줄로 이으면 어디까지가 상황이고 어디부터가 답인지 안 보인다. */
+.svc-when-two b {
+  display: block;
+  font-weight: 600;
+  letter-spacing: -.01em;
+}
+.svc-when-two span {
+  display: block;
+  margin-top: .3rem;
+  font-size: .85rem;
+  font-weight: 400;
+  line-height: 1.6;
+  color: var(--color-subtle);
 }
 
 /* ── 결론 ───────────────────────────────────────
@@ -1188,7 +1311,7 @@ h1, h2, h3, h4 {
    72ch 로 넓히고, 마지막 줄이 짧게 남으면 브라우저가 앞줄에서 나눠
    가져가도록 text-wrap 을 pretty 로 둔다(안 되는 브라우저는 그냥 무시). */
 .page-hero--tall .svc-desc {
-  max-width: 72ch;
+  max-width: 80ch;
   text-wrap: pretty;
   /* 위 파란 줄과 이 글이 0px 로 맞붙어 있었다. 휴대폰에만 1.4rem 이
      들어가 있고 넓은 화면은 비어 있었다. 줄은 제목에 딸린 표시라
@@ -1332,6 +1455,42 @@ h1, h2, h3, h4 {
   border-color: var(--color-accent);
   background: var(--color-background);
   box-shadow: 0 0 0 3px rgba(43, 91, 255, 0.12);
+}
+
+/* 열면 40px 동그라미가 알약이 된다. 늘어난 만큼을 왼쪽에서 가져가면
+   메뉴가 통째로 밀려 ABOUT 이 로고에 붙는다(첨삭 #10).
+   늘어나는 쪽은 오른쪽이다 — 메뉴는 제자리에 있고, 문의 단추가 오른쪽으로
+   밀려 나간다. 마감일 칸은 알약이 덮는다.
+   시작 자리(--search-x)는 마지막 메뉴 오른쪽 끝이다. 자바스크립트가 잰다.
+   자리를 재는 기준은 헤더 줄(.hdr-bar)이라, 이 칸은 position 을 놓는다.
+   손 안 메뉴(.mnav-search)는 960px 아래라 이 묶음 밖이다. */
+@media (min-width: 960px) {
+  .site-search[data-open] { position: static; width: 40px; }
+  .site-search[data-open] .site-search-shell,
+  .site-search[data-open] .site-search-drop {
+    position: absolute;
+    z-index: 2;
+    left: var(--search-x, 55%);
+    /* 문의 단추 앞에서 멈춘다. 덮는 건 마감일 칸까지다. */
+    right: var(--search-r, calc(var(--site-gutter-6) + 8.5rem));
+    width: auto;
+  }
+  .site-search[data-open] .site-search-shell {
+    top: 50%;
+    transform: translateY(-50%);
+  }
+  /* 결과 판도 검색 줄에 맞춘다. 320px 로 두면 줄은 넓고 결과만 오른쪽
+     구석에 붙어 둘이 따로 논다. */
+  .site-search[data-open] .site-search-drop {
+    top: calc(100% - 8px);
+    z-index: 60;
+  }
+  /* 문의 단추는 그대로 둔다. 사라지는 건 마감일 칸뿐이다. */
+  .site-header:has(.site-search[data-open]) .sched-cube {
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity .16s ease;
+  }
 }
 
 /* 돋보기. 열리면 닫기 표시로 바뀐다. */
@@ -2764,7 +2923,7 @@ h1, h2, h3, h4 {
 
 /* 방향이 바뀌는 첫 마디에만 간격을 준다. */
 .imsg-row:not(.imsg-row--out) + .imsg-row--out { margin-top: 3rem; }
-.imsg-stamp + .imsg-out { margin-top: 3rem; }
+.imsg-row + .imsg-out { margin-top: 3rem; }
 /* 「입력 중」 점과 그 자리에 들어설 말은 같은 말풍선이다(.imsg-b--typing).
    예전에는 줄을 둘로 나눠 하나를 접었는데, 둘이 같이 보여서 없앴다. */
 
@@ -2988,9 +3147,8 @@ section:not(.promise-dark) .promise-meridian-trail {
   /* 말풍선 사이 간격. 한 마디씩 오르는 리듬은 그대로 두고 사이만 좁힌다. */
   .promise-pin .imsg-row { margin-top: 0.5rem; }
   .promise-pin .imsg-row--out { margin-top: 0.4rem; }
-  .promise-pin .imsg-stamp { margin-top: 0.5rem; }
   .promise-pin .imsg-row:not(.imsg-row--out) + .imsg-row--out,
-  .promise-pin .imsg-stamp + .imsg-out { margin-top: 1.4rem; }
+  .promise-pin .imsg-row + .imsg-out { margin-top: 1.4rem; }
   /* 답하는 사람 그림. 205px 짜리가 이 판에서 제일 큰 덩어리였다. */
   .promise-pin .imsg-out { --who: clamp(6.5rem, 10vw, 9rem); }
   .promise-pin .imsg-who { margin-bottom: -0.6rem; }
@@ -3569,15 +3727,23 @@ section:not(.promise-dark) .promise-meridian-trail {
 }
 .spick-tags {
   list-style: none; margin: 1.5rem 0 0; padding: 0;
-  display: flex; flex-wrap: wrap; gap: .45rem;
+  /* 한 줄에 늘어놓으면 셋이 붙어 한 문장처럼 읽힌다. 세로로 세운다. */
+  display: flex; flex-direction: column; gap: .35rem;
 }
+/* 알약(둥근 테두리)이었다. 눌리는 줄 알고 손이 가는데 아무 일도 안
+   일어났다. 테두리를 걷고 앞에 짧은 줄 하나만 남긴다(첨삭 #66). */
 .spick-tags li {
-  font-size: .8rem; font-weight: 500;
+  position: relative;
+  padding-left: .95rem;
+  font-size: .85rem; font-weight: 500;
   color: var(--color-strong);
-  background: var(--color-background);
-  border: 1px solid var(--color-border);
-  border-radius: 999px;
-  padding: .38rem .78rem;
+}
+.spick-tags li::before {
+  content: "";
+  position: absolute;
+  left: 0; top: .68em;
+  width: .5rem; height: 1px;
+  background: var(--color-accent);
 }
 .spick-go {
   display: inline-flex; align-items: center; gap: .45rem;
@@ -3935,26 +4101,34 @@ section:not(.promise-dark) .promise-meridian-trail {
   list-style: none;
   margin: 0;
   padding: 0;
-  /* 줄마다 따로 flex 를 쓰면 알약 폭이 달라 두 줄의 칸이 어긋난다.
-     한 격자에 담아야 「세무 기장」과 「기업가치평가」가 같은 자리에서
-     시작한다. .svcbar-grp 는 display:contents 로 껍데기만 없앤다. */
+  /* 예전에는 묶음이 둘(정기 · 사안별)이라 한 격자에 다 담고
+     .svcbar-grp 를 display:contents 로 지워도 두 줄로 반듯하게 떨어졌다.
+     넷으로 늘리자 칸 수가 3·1·2·2 로 달라져 한 줄기로 흘러버렸고,
+     「회계감사 회계감사 회계자문 PA」처럼 이름표와 업무가 붙었다.
+     묶음을 살려 두 칸에 나눠 넣는다 — 칸 안에서만 줄이 바뀐다. */
   display: grid;
-  grid-template-columns: auto auto auto auto;
+  grid-template-columns: repeat(2, minmax(0, max-content));
   justify-content: start;
-  align-items: center;
-  gap: .15rem .7rem;
-  /* 좁은 화면에서 여섯 개가 안 들어간다. 페이지를 밀지 않고 띠 안에서 민다. */
-  overflow-x: auto;
-  scrollbar-width: none;
-  -webkit-overflow-scrolling: touch;
+  align-items: start;
+  gap: .9rem clamp(2rem, 4vw, 3.4rem);
 }
-.svcbar-list::-webkit-scrollbar { display: none; }
-/* 묶음은 지키되 이름표는 작게. 알약보다 커지면 목록이 아니라 문장이 된다. */
-.svcbar-grp { display: contents; }
+.svcbar-grp {
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+  min-width: 0;
+}
+.svcbar-pills {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: .15rem .35rem;
+  min-width: 0;
+}
 
 .svcbar-glab {
   flex: none;
-  margin-right: .3rem;
+  width: 4.6rem;
   font-size: .66rem;
   font-weight: 700;
   letter-spacing: .12em;
@@ -4398,6 +4572,20 @@ section:not(.promise-dark) .promise-meridian-trail {
 @media (hover: hover) {
   .svc-read-all:hover { text-decoration: underline; text-underline-offset: 4px; }
 }
+/* 「업무 경험 보기」와 「블로그 전체 보기」 둘. 뒤엣것은 곁이라 흐리게. */
+.svc-read-more {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0 1.4rem;
+}
+.svc-read-all--sub { color: var(--color-subtle); font-weight: 500; }
+/* 사례가 아직 없을 때. 밑에 뜨는 게 무엇인지 한 줄로 밝힌다. */
+.svc-read-sub {
+  margin: 1rem 0 0;
+  font-size: .85rem;
+  color: var(--color-subtle);
+}
 
 /* ── 고객 단계 고르기 ───────────────────────────
    셋을 세로로 이어 붙이면 페이지가 4,200px 이 된다. 읽는 사람은 셋 다
@@ -4700,6 +4888,9 @@ section:not(.promise-dark) .promise-meridian-trail {
   position: relative;
   display: block;
   aspect-ratio: 16 / 10;
+  /* 옆 칸 글이 사진보다 길면 stretch 로 높이가 늘고, 16:10 이 그 높이에서
+     폭을 되계산해 칸 밖으로 나갔다(900px 에서 36px). 칸이 한계다. */
+  max-width: 100%;
   overflow: hidden;
   border-radius: 4px;
   border: 1px solid var(--color-border);
@@ -4927,6 +5118,29 @@ section:not(.promise-dark) .promise-meridian-trail {
 .ins-pager-n button:focus-visible { outline: 2px solid var(--color-accent); outline-offset: 2px; }
 
 /* ── 자주 묻는 질문 ── */
+/* 탭이 하나뿐인 쪽. 누를 게 없으니 단추가 아니라 글씨다.
+   생김새는 골라 놓은 탭(.is-on)과 같아야 두 쪽이 형제로 읽힌다. */
+.ins-tabs > span.is-on {
+  font-size: clamp(1.05rem, 1.8vw, 1.35rem);
+  font-weight: 800;
+  letter-spacing: -.03em;
+  color: var(--color-foreground);
+}
+/* 몇 개인지. 찾기 칸이 없는 쪽에서 오른쪽 끝을 비워 두면 줄이 기운다. */
+.ins-count {
+  margin: 0;
+  font-size: .8rem;
+  font-weight: 600;
+  letter-spacing: .04em;
+  color: var(--color-subtle);
+}
+
+/* 문답만 있는 쪽. 목록이 56rem 에 갇혀 있어 1440 에서 오른쪽 540px 이
+   통째로 비었다. 줄은 통 폭을 다 쓰고 — 그래야 「+」가 오른쪽 끝에 서서
+   눌리는 줄로 읽힌다 — 답 글만 읽기 좋은 폭으로 묶는다. */
+.ins--faq .ins-faq { max-width: none; }
+.ins--faq .ins-faq-a { max-width: 62rem; }
+
 .ins-faq { list-style: none; margin: clamp(1.6rem, 3vh, 2.4rem) 0 0; padding: 0; max-width: 56rem; }
 .ins-faq li { border-bottom: 1px solid var(--color-border); }
 .ins-faq li:first-child { border-top: 1px solid var(--color-border); }
@@ -5005,9 +5219,12 @@ section:not(.promise-dark) .promise-meridian-trail {
   .t-label { font-size: 11px; }
   .svc-chip { font-size: 11px; }
 
-  /* 형제 여섯. 칸이 좁아 두 줄이 네 줄로 접혔다. 칸을 안 줄이고
-     띠 안에서 옆으로 민다 — 두 줄은 지킨다. */
-  .svcbar-list { grid-template-columns: repeat(4, max-content); }
+  /* 손 안에서는 두 칸이 안 들어간다. 묶음 하나가 한 줄씩 선다. */
+  .svcbar-list { grid-template-columns: minmax(0, 1fr); gap: .55rem; }
+  /* 이름표는 제자리에 두고 알약만 민다. */
+  .svcbar-pills { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; }
+  .svcbar-pills::-webkit-scrollbar { display: none; }
+  .svcbar-glab { width: 4.1rem; }
   .svcbar { padding-inline: 0; position: relative; }
   .svcbar-in { padding-inline: var(--site-gutter-6); }
   /* 오른쪽 끝을 흐린다. 잘린 게 아니라 더 있다는 표시다. */
@@ -5040,6 +5257,23 @@ section:not(.promise-dark) .promise-meridian-trail {
 }
 /* 괄호가 없는 이름은 두 줄이 고르게 갈리도록. */
 .svc-give-cards p { text-wrap: pretty; }
+
+/* 받는 시점까지 적는 판(첨삭 #61). 셋뿐이라 한 장이 넓어진다 —
+   정사각 세 개가 늘어지지 않게 폭을 묶고 왼쪽부터 채운다. */
+.svc-give-cards--when {
+  grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
+}
+.svc-give-when {
+  display: block;
+  margin-top: .55rem;
+  padding-top: .5rem;
+  border-top: 1px solid rgba(255, 255, 255, .16);
+  font-size: .76rem;
+  font-weight: 400;
+  letter-spacing: .01em;
+  line-height: 1.45;
+  color: #A9C0FF;
+}
 
 /* 손가락 화면의 문의 단추. 데스크톱보다 한 단 작게 — 옆에 메뉴 단추가
    같이 서야 하는데, 같은 크기면 둘이 화면 폭 절반을 먹는다. */
@@ -5089,6 +5323,11 @@ section:not(.promise-dark) .promise-meridian-trail {
   aspect-ratio: 1;
   width: min(100%, 26rem);
   margin-inline: auto;
+  /* 안쪽 .mglobe-tilt 가 23.4도 기울어 있다. 정사각을 돌리면 감싸는
+     네모가 √2 배가 되어 390px 칸에서 513px 이 된다. 900~1023px 에서
+     그만큼 오른쪽으로 삐져나가 가로 스크롤이 생겼다. 칸에서 자른다 —
+     잘리는 건 구 바깥의 빈 모서리다. */
+  overflow: clip;
 }
 .abt-globe .mglobe {
   width: 100%;
@@ -5455,8 +5694,8 @@ section:not(.promise-dark) .promise-meridian-trail {
 /* 알약과 글이 서로 붙어 한 덩어리로 읽혔다. 사이를 벌린다. */
 .spick--fold .spick-body { padding: 1.5rem 1.25rem 1.6rem; }
 .spick--fold .spick-desc { margin-top: 0.9rem; line-height: 1.72; }
-.spick--fold .spick-tags { margin-top: 1.5rem; gap: 0.5rem; }
-.spick--fold .spick-tags li { padding: 0.62rem 0.9rem; line-height: 1.5; }
+.spick--fold .spick-tags { margin-top: 1.5rem; gap: 0.4rem; }
+.spick--fold .spick-tags li { padding-left: 0.95rem; line-height: 1.6; }
 .spick--fold .spick-go { margin-top: 1.6rem; }
 
 

@@ -251,9 +251,9 @@ export default function AboutPage() {
               <Link href="/contact" className="svc-ask-btn">
                 기장 이관 상담하기 <span aria-hidden>&rarr;</span>
               </Link>
-              <Link href="/contact" className="svc-ask-btn svc-ask-btn--line">
-                전화로 문의
-              </Link>
+              <a href={`tel:${siteConfig.tel}`} className="svc-ask-btn svc-ask-btn--line">
+                전화 문의
+              </a>
             </div>
             <p className="svc-ask-note">상담은 무료입니다.</p>
           </div>

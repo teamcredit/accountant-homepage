@@ -44,6 +44,14 @@ const nextConfig: NextConfig = {
         permanent: true,
       },
       {
+        /* 문답이 /blog 안의 탭이던 시절 주소. 메뉴가 여기로 보냈으니
+           남이 받아 둔 링크가 있을 수 있다. */
+        source: "/blog",
+        has: [{ type: "query", key: "tab", value: "faq" }],
+        destination: "/faq",
+        permanent: false,
+      },
+      {
         source: "/practice",
         destination: "/services",
         permanent: true,

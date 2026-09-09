@@ -1,82 +1,18 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { services } from "@/lib/data";
+import { services, oneLine } from "@/lib/data";
+import { siteConfig, orderedServices } from "@/lib/constants";
 import { AnimateOnScroll, LineReveal } from "@/components/motion";
 import HeroVideo from "@/components/layout/hero-video";
 import ServiceBar from "@/components/services/service-bar";
 import { getAllPosts } from "@/lib/posts";
 import DeliverableIcon from "@/components/services/deliverable-icon";
+import ServiceIcon from "@/components/services/service-icon";
 
 interface Props {
   params: Promise<{ slug: string }>;
 }
-
-const sampleArtifactsBySlug: Partial<
-  Record<
-    string,
-    {
-      title: string;
-      subtitle: string;
-      samples: Array<{ title: string; description: string }>;
-    }
-  >
-> = {
-  "tax-bookkeeping": {
-    title: "산출물 활용 예시",
-    subtitle: "장부는 입력으로 끝나지 않습니다. 월 마감 기준과 보고 체계까지 같이 잡아야 다음 달이 밀리지 않습니다.",
-    samples: [
-      {
-        title: "월별 마감 일정표",
-        description: "자료 요청일, 마감일, 검토일을 한 줄로 정리해 결산 지연을 줄입니다.",
-      },
-      {
-        title: "계정 처리 기준 메모",
-        description: "대표 급여, 법인카드, 반복 거래 처리 기준을 정리해 누락과 오분류를 줄입니다.",
-      },
-      {
-        title: "주요 변동 리포트",
-        description: "전월 대비 변동 항목을 한 장으로 추려, 대표가 한눈에 봅니다.",
-      },
-    ],
-  },
-  "tax-adjustment": {
-    title: "산출물 활용 예시",
-    subtitle: "신고 직전에 몰아서 맞추면 근거가 남지 않습니다. 검토 메모와 기준을 같이 남겨두면, 다음 해 신고가 그 위에서 출발합니다.",
-    samples: [
-      {
-        title: "조정 항목 검토 메모",
-        description: "핵심 조정 포인트와 판단 근거를 정리해 신고 직전 혼선을 줄입니다.",
-      },
-      {
-        title: "공제 · 감면 검토표",
-        description: "적용 가능 항목과 제외 항목을 나눠 소명 가능한 범위만 반영합니다.",
-      },
-      {
-        title: "제출 기준 체크",
-        description: "어떤 자료를 어떤 기준으로 남길지 미리 정리해 후속 대응을 준비합니다.",
-      },
-    ],
-  },
-  "tax-advisory": {
-    title: "산출물 활용 예시",
-    subtitle: "회의실에서 끝나면 다음 단계로 못 넘어갑니다. 비교표와 실행 순서를 문서로 남겨두면, 결정이 흔들려도 돌아갈 자리가 있습니다.",
-    samples: [
-      {
-        title: "시나리오별 세부담 비교표",
-        description: "방안별 세부담과 차이를 표로 비교해, 대표가 보고 선택합니다.",
-      },
-      {
-        title: "권고안 메모",
-        description: "추천 구조, 전제 조건, 유의사항을 짧은 메모로 남깁니다.",
-      },
-      {
-        title: "실행 순서안",
-        description: "결정 이후 어떤 순서로 신고와 후속 절차를 밟을지 묶어둡니다.",
-      },
-    ],
-  },
-};
 
 export async function generateStaticParams() {
   return services.map((s) => ({ slug: s.slug }));
@@ -88,7 +24,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   if (!service) return {};
   return {
     title: service.title,
-    description: service.description,
+    description: oneLine(service.description),
     alternates: {
       canonical: `/services/${service.slug}`,
     },
@@ -105,20 +41,25 @@ function splitName(label: string) {
 
 export default async function ServiceDetailPage({ params }: Props) {
   const { slug } = await params;
-  const currentIndex = services.findIndex((s) => s.slug === slug);
-  const service = services[currentIndex];
+  const service = services.find((s) => s.slug === slug);
+  /* 번호는 목록 순서로 센다. services 에는 분류 페이지가 섞여 있어
+     그대로 세면 상세 히어로의 번호가 목록과 어긋난다. */
+  const currentIndex = orderedServices.findIndex((s) => s.slug === slug);
   if (!service) notFound();
-  const sampleArtifacts = sampleArtifactsBySlug[slug];
 
   /* 이 서비스와 맞물리는 글 셋. 갈래만 맞추고 최신순으로 자른다 —
      글 목록을 서비스마다 손으로 붙이면 글이 늘 때마다 여기를 고쳐야 한다. */
+  const all = getAllPosts();
   const related = service.postTopics?.length
-    ? getAllPosts()
-        .filter((post) => service.postTopics!.includes(post.category))
-        .slice(0, 3)
+    ? all.filter((post) => service.postTopics!.includes(post.category)).slice(0, 3)
     : [];
+  /* 실제로 한 일을 적은 글. 갈래가 「업무경험」인 것만 센다 — 해설 글을
+     「업무 경험」이라 달아 두면 읽는 사람이 사례로 오해한다. */
+  const cases = all
+    .filter((post) => post.category === "업무경험" || post.category === "업무 경험")
+    .slice(0, 3);
 
-  const num = String(currentIndex + 1).padStart(2, "0");
+  const num = currentIndex >= 0 ? String(currentIndex + 1).padStart(2, "0") : null;
 
 
   return (
@@ -127,20 +68,24 @@ export default async function ServiceDetailPage({ params }: Props) {
       <section className="page-hero page-hero--svc page-hero--tall bg-deep text-white relative overflow-hidden">
         {/* 히어로 배경 영상. 사이트 전체가 같은 소재를 쓴다. */}
         <HeroVideo opacity={0.38} />
-        <div className="absolute inset-0 opacity-[0.04]">
-          <div className="absolute right-12 top-1/2 -translate-y-1/2 text-[14rem] font-bold leading-none tracking-tighter select-none">
-            {num}
+        {num && (
+          <div className="absolute inset-0 opacity-[0.04]">
+            <div className="absolute right-12 top-1/2 -translate-y-1/2 text-[14rem] font-bold leading-none tracking-tighter select-none">
+              {num}
+            </div>
           </div>
-        </div>
+        )}
         <div className="max-w-[1600px] mx-auto px-6 relative z-10">
           {/* 「홈 / 서비스 / 세무 조정」 한 줄은 뺐다. 히어로 바로 밑에
               형제 여섯이 다 서 있는 이동 띠가 같은 일을 한다. */}
 
           <AnimateOnScroll variant="fadeUp" delay={0.1}>
             <div className="flex items-baseline gap-5">
-              <span className="text-5xl md:text-7xl font-bold tracking-tighter text-neutral-700">
-                {num}
-              </span>
+              {num && (
+                <span className="text-5xl md:text-7xl font-bold tracking-tighter text-neutral-700">
+                  {num}
+                </span>
+              )}
               <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tighter">
                 {service.title}
               </h1>
@@ -151,7 +96,9 @@ export default async function ServiceDetailPage({ params }: Props) {
           </div>
           <AnimateOnScroll variant="fadeUp" delay={0.4}>
             {/* 어절 중간에서 끊지 않는다. 「따져야 하 / 는 이슈를」로 갈라져 있었다. */}
-            <p className="svc-desc">{service.description}</p>
+            {/* 문장이 끝나는 자리에서 줄을 끊는다. 화면 폭에 맡기면
+                「제공합니다. 부가적으로」가 한 줄에 붙는다. */}
+            <p className="svc-desc svc-desc--lines">{service.description}</p>
           </AnimateOnScroll>
 
           {/* 형제 여섯. 첫 화면 안에 같이 넣는다 — 밖에 띠로 깔았더니
@@ -183,17 +130,59 @@ export default async function ServiceDetailPage({ params }: Props) {
           <div className="max-w-[1600px] mx-auto px-6">
             <AnimateOnScroll variant="fadeUp">
               <p className="svc-when-lab">이런 때 필요합니다</p>
+              {/* 「결산 일정이 매번 밀리는 경우」처럼 상황만 늘어놓으면
+                  내 이야기인지 알기 어렵다. 언제 맡기는지를 앞에 세우고
+                  무엇부터 하는지 뒤에 적는다. 「 · 」는 제목 안에도 나오니
+                  가르는 표시는 「 — 」를 쓴다(첨삭 #55). */}
               <ul className="svc-when-list">
-                {service.applicableScenarios.map((item) => (
-                  <li key={item}>{item}</li>
-                ))}
+                {service.applicableScenarios.map((item) => {
+                  const at = item.indexOf(" — ");
+                  if (at < 0) return <li key={item}>{item}</li>;
+                  return (
+                    <li key={item} className="svc-when-two">
+                      <b>{item.slice(0, at)}</b>
+                      <span>{item.slice(at + 3)}</span>
+                    </li>
+                  );
+                })}
               </ul>
             </AnimateOnScroll>
           </div>
         </section>
       )}
 
-      {/* 본체 — 하는 일 */}
+      {/* 분류 페이지의 세부 업무. 여기서 상세로 바로 간다(첨삭 #74). */}
+      {service.childSlugs?.length && (
+        <section className="svc-body svc-kids-sec">
+          <div className="max-w-[1600px] mx-auto px-6">
+            <AnimateOnScroll variant="fadeUp">
+              <div className="svc-head svc-head--lead">
+                <h2 className="svc-h">세부 업무</h2>
+                <span className="svc-en">Practices</span>
+              </div>
+              <ul className="svc-kids">
+                {service.childSlugs.map((cs) => {
+                  const kid = services.find((x) => x.slug === cs);
+                  if (!kid) return null;
+                  return (
+                    <li key={cs}>
+                      <Link href={`/services/${cs}`}>
+                        <ServiceIcon name={kid.icon} className="svc-kid-i" />
+                        <h3>{kid.title}</h3>
+                        <p>{oneLine(kid.description)}</p>
+                        <span className="svc-kid-go" aria-hidden>&rarr;</span>
+                      </Link>
+                    </li>
+                  );
+                })}
+              </ul>
+            </AnimateOnScroll>
+          </div>
+        </section>
+      )}
+
+      {/* 본체 — 하는 일. 분류 페이지는 비어 있으니 안 세운다. */}
+      {service.details.length > 0 && (
       <section className="svc-body">
         <div className="max-w-[1600px] mx-auto px-6">
           <AnimateOnScroll variant="fadeUp">
@@ -212,11 +201,38 @@ export default async function ServiceDetailPage({ params }: Props) {
           </AnimateOnScroll>
         </div>
       </section>
+      )}
+
+      {/* 이름이 비슷한 짝을 나란히 세운다. 문단에 묻어 두었더니
+          어디까지가 기장이고 어디부터가 경리인지 안 읽혔다(첨삭 #69). */}
+      {service.compare && (
+        <section className="svc-body svc-cmp-sec">
+          <div className="max-w-[1600px] mx-auto px-6">
+            <AnimateOnScroll variant="fadeUp">
+              <div className="svc-head svc-head--lead">
+                <h2 className="svc-h">{service.compare.title}</h2>
+                <span className="svc-en">Scope</span>
+              </div>
+              <dl className="svc-cmp">
+                {service.compare.rows.map((r) => (
+                  <div key={r.name}>
+                    <dt>{r.name}</dt>
+                    <dd>{r.what}</dd>
+                  </div>
+                ))}
+              </dl>
+              {service.compare.note && (
+                <p className="svc-cmp-note">{service.compare.note}</p>
+              )}
+            </AnimateOnScroll>
+          </div>
+        </section>
+      )}
 
       {/* 결론 — 드리는 것.
           손에 남는 물건이라 페이지에서 제일 무거워야 한다. 짙은 판을
           페이지 폭으로 깔아 「하는 일」과 격을 벌린다. */}
-      {service.deliverables?.length > 0 && (
+      {(service.deliverableCards?.length || service.deliverables?.length) && (
         <section className="svc-give">
           <div className="max-w-[1600px] mx-auto px-6">
             <AnimateOnScroll variant="fadeUp">
@@ -227,21 +243,39 @@ export default async function ServiceDetailPage({ params }: Props) {
               {/* 손에 남는 물건이라 하나씩 세워 둔다. 두 기둥에 눕히면
                   「하는 일」과 같은 목록으로 읽혀서, 받는 것인지 하는
                   것인지 구분이 안 됐다. 다섯에서 여섯이 한 줄에 선다. */}
-              <ul className="svc-give-cards">
-                {service.deliverables.map((item, i) => (
-                  <li key={i}>
-                    <DeliverableIcon label={item} />
-                    {/* 괄호 안은 이름이 아니라 설명이다. 한 줄에 이어 붙이면
-                        「가정 변경 가능 / 구조)」처럼 닫는 괄호만 떨어진다. */}
-                    <p>
-                      <span className="svc-give-name">{splitName(item).name}</span>
-                      {splitName(item).note && (
-                        <span className="svc-give-note">{splitName(item).note}</span>
-                      )}
-                    </p>
-                  </li>
-                ))}
-              </ul>
+              {service.deliverableCards?.length ? (
+                /* 이름을 맨 위에 올리고, 그 아래에 무엇을 언제 받는지 적는다.
+                   이름만 세워 두었더니 어떤 서류를 언제 받는지 알 수 없었다
+                   (첨삭 #61). */
+                <ul className="svc-give-cards svc-give-cards--when">
+                  {service.deliverableCards.map((card) => (
+                    <li key={card.name}>
+                      <DeliverableIcon label={card.name} />
+                      <p>
+                        <span className="svc-give-name">{card.name}</span>
+                        <span className="svc-give-note">{card.what}</span>
+                        <span className="svc-give-when">{card.when}</span>
+                      </p>
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <ul className="svc-give-cards">
+                  {(service.deliverables ?? []).map((item, i) => (
+                    <li key={i}>
+                      <DeliverableIcon label={item} />
+                      {/* 괄호 안은 이름이 아니라 설명이다. 한 줄에 이어 붙이면
+                          「가정 변경 가능 / 구조)」처럼 닫는 괄호만 떨어진다. */}
+                      <p>
+                        <span className="svc-give-name">{splitName(item).name}</span>
+                        {splitName(item).note && (
+                          <span className="svc-give-note">{splitName(item).note}</span>
+                        )}
+                      </p>
+                    </li>
+                  ))}
+                </ul>
+              )}
             </AnimateOnScroll>
           </div>
         </section>
@@ -250,61 +284,24 @@ export default async function ServiceDetailPage({ params }: Props) {
       <section className="svc-body svc-body--tail">
         <div className="max-w-[1600px] mx-auto px-6">
 
-          {/* 산출물 활용 예시 — 자료가 있는 서비스만 */}
-          {sampleArtifacts && (
-            <AnimateOnScroll variant="fadeUp">
-              <div className="svc-head svc-head--lead">
-                <h2 className="svc-h">{sampleArtifacts.title}</h2>
-              </div>
-              <p className="svc-lede">{sampleArtifacts.subtitle}</p>
-              <div className="svc-samples">
-                {sampleArtifacts.samples.map((sample, index) => (
-                  <div key={sample.title} className="svc-sample">
-                    <span className="svc-i">{String(index + 1).padStart(2, "0")}</span>
-                    <h3>{sample.title}</h3>
-                    <p>{sample.description}</p>
-                  </div>
-                ))}
-              </div>
-            </AnimateOnScroll>
-          )}
-          {/* 각주 — 근거 법령.
-              data.ts 에 서비스마다 서너 줄씩 들어 있는데 지금까지 화면에
-              한 번도 안 나왔다. 세무에서 근거 조문은 신뢰의 핵심이지만,
-              읽으러 오는 글은 아니라 제일 작게 둔다. */}
-          {service.regulations && service.regulations.length > 0 && (
-            <AnimateOnScroll variant="fadeUp">
-              <div className="svc-head svc-head--sub">
-                <h2 className="svc-h">근거 법령</h2>
-                <span className="svc-en">Statutes</span>
-              </div>
-              <ul className="svc-laws">
-                {service.regulations.map((item) => (
-                  <li key={item}>
-                    <svg viewBox="0 0 16 16" aria-hidden fill="none" stroke="currentColor"
-                         strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M8 2v12M3.5 5h9" />
-                      <path d="M3.5 5 1.8 9h3.4zM12.5 5 10.8 9h3.4z" />
-                      <path d="M5 14h6" />
-                    </svg>
-                    {item}
-                  </li>
-                ))}
-              </ul>
-            </AnimateOnScroll>
-          )}
 
-        {/* 관련 인사이트. 서비스 설명은 「무엇을 하는가」까지고, 실제 사안이
-            어떻게 굴러가는지는 글이 보여 준다. 없으면 이 칸은 안 선다. */}
-        {related.length > 0 && (
-          <div className="svc-read">
-              <AnimateOnScroll variant="fadeUp">
-                <div className="svc-head">
-                  <h2 className="svc-h">관련 인사이트</h2>
-                  <span className="svc-en">Insights</span>
-                </div>
+        {/* 서비스 설명은 「무엇을 하는가」까지고, 실제 사안이 어떻게
+            굴러갔는지는 글이 보여 준다. 업무 경험은 블로그에 쌓고 여기서는
+            그리로 보낸다(첨삭 #62). 관련 글이 없어도 보내는 칸은 남긴다. */}
+        <div className="svc-read">
+            <AnimateOnScroll variant="fadeUp">
+              <div className="svc-head">
+                <h2 className="svc-h">업무 경험</h2>
+                <span className="svc-en">Case Notes</span>
+              </div>
+              {/* 업무 경험 글이 아직 없으면 그 자리에 관련 글을 둔다.
+                  무엇을 보고 있는지는 작은 이름표로 밝힌다. */}
+              {cases.length === 0 && related.length > 0 && (
+                <p className="svc-read-sub">아직 올린 사례가 없습니다. 관련 글부터 보시겠어요.</p>
+              )}
+              {(cases.length ? cases : related).length > 0 && (
                 <ul className="svc-read-list">
-                  {related.map((post) => (
+                  {(cases.length ? cases : related).map((post) => (
                     <li key={post.slug}>
                       <Link href={`/blog/${post.slug}`}>
                         <span className="svc-read-cat">{post.category}</span>
@@ -314,12 +311,14 @@ export default async function ServiceDetailPage({ params }: Props) {
                     </li>
                   ))}
                 </ul>
+              )}
+              <div className="svc-read-more">
                 <Link href="/blog" className="svc-read-all">
-                  인사이트 전체 보기 <span aria-hidden>&rarr;</span>
+                  블로그 전체 보기 <span aria-hidden>&rarr;</span>
                 </Link>
-              </AnimateOnScroll>
-          </div>
-        )}
+              </div>
+            </AnimateOnScroll>
+        </div>
 
         </div>
       </section>
@@ -329,21 +328,25 @@ export default async function ServiceDetailPage({ params }: Props) {
           <div className="svc-ask-in">
             <p className="svc-ask-lab">Contact</p>
             <h3>{service.title} 케이스를 상담하시려면</h3>
-            <p className="svc-ask-p">
-              지금 상황과 필요한 산출물을 짧게 보내주시면, 이 케이스에 들어맞는지부터 회신드립니다.
+            <p className="svc-ask-p svc-desc--lines">
+              {"사업 유형과 현재 세무 관리 방식을 남겨주시면\n필요한 업무와 준비 서류를 안내해 드립니다."}
             </p>
             <div className="svc-ask-cta">
               <Link
                 href={`/contact?type=${encodeURIComponent(service.title)}&output=${encodeURIComponent(
-                  service.deliverables[0] ?? "적용 범위 검토"
+                  service.deliverableCards?.[0]?.name ??
+                    service.deliverables?.[0] ??
+                    "적용 범위 검토"
                 )}`}
                 className="svc-ask-btn"
               >
                 문의하기 <span aria-hidden>&rarr;</span>
               </Link>
-              <Link href="/contact" className="svc-ask-btn svc-ask-btn--line">
-                전화로 문의
-              </Link>
+              {/* 「전화로 문의」라 적어 두고 문의 양식으로 보내고 있었다.
+                  누르면 바로 걸린다(첨삭 #88). */}
+              <a href={`tel:${siteConfig.tel}`} className="svc-ask-btn svc-ask-btn--line">
+                전화 문의
+              </a>
             </div>
             <p className="svc-ask-note">상담은 무료입니다.</p>
           </div>

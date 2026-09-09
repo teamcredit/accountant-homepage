@@ -3,12 +3,13 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
+import { rankOf } from "@/lib/search-match";
 
 /**
  * 헤더 검색.
  *
  * 평소엔 물음표 하나짜리 동그라미다. 누르면 그 동그라미가 그대로
- * 왼쪽으로 늘어나 알약(pill) 검색창이 된다. 새 창이 뜨는 게 아니라
+ * 오른쪽으로 늘어나 알약(pill) 검색창이 된다. 새 창이 뜨는 게 아니라
  * 있던 단추가 자라는 것처럼 보여야 한다.
  * 돋보기 아이콘은 쓰지 않는다. 물음표가 곧 "뭘 찾으세요"다.
  *
@@ -24,12 +25,10 @@ interface SearchItem {
   terms: string;
 }
 
-const PLACEHOLDERS = [
-  "부가세 신고 언제까지인가요",
-  "법인 전환이 유리한 시점",
-  "가지급금 정리",
-  "연말정산 환급",
-];
+/* 예전에는 「부가세 신고 언제까지인가요」처럼 물음을 돌려 가며 띄웠다.
+   자연어로 물으면 답이 나오는 줄 알게 되는데, 실제로는 서비스와 고객사
+   이름을 찾는다. 무엇을 찾는 자리인지 그대로 적는다(첨삭 #11). */
+const PLACEHOLDER = "서비스 검색 · 예: 세무기장, 기업실사, 결산 지원";
 
 export default function SiteSearch() {
   const router = useRouter();
@@ -38,7 +37,6 @@ export default function SiteSearch() {
   const [items, setItems] = useState<SearchItem[]>([]);
   const [cursor, setCursor] = useState(0);
   /* 예시 문구는 열 때마다 하나씩 돌려 쓴다. 늘 같은 줄이면 장식처럼 보인다. */
-  const [ph, setPh] = useState(PLACEHOLDERS[0]);
 
   const boxRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -73,27 +71,16 @@ export default function SiteSearch() {
     };
   }, [open]);
 
+  /* 띄어쓰기 · 첫 자음 · 글자 하나 오타까지 본다. 규칙은 search-match.ts.
+     예전에는 소문자 포함 여부만 봐서 「세무기장」이 「세무 기장」을 못
+     찾았다. 「세」만 쳐도, 「ㅅㅁㄱㅈ」이라 쳐도 나와야 한다. */
   const hits = q.trim()
-    ? (() => {
-        const needle = q.trim().toLowerCase();
-        return items
-          .map((it) => {
-            const title = it.title.toLowerCase();
-            /* 제목에 있으면 위로, 본문에만 있으면 아래로. */
-            const rank = title.includes(needle)
-              ? title.startsWith(needle)
-                ? 0
-                : 1
-              : it.terms.toLowerCase().includes(needle)
-                ? 2
-                : -1;
-            return { it, rank };
-          })
-          .filter((r) => r.rank >= 0)
-          .sort((a, b) => a.rank - b.rank)
-          .slice(0, 7)
-          .map((r) => r.it);
-      })()
+    ? items
+        .map((it) => ({ it, rank: rankOf(q, it.title, it.terms) }))
+        .filter((r) => r.rank >= 0)
+        .sort((a, b) => a.rank - b.rank || a.it.title.length - b.it.title.length)
+        .slice(0, 7)
+        .map((r) => r.it)
     : [];
 
   /* 찾는 말이 바뀌면 고른 줄을 첫 줄로 되돌린다.
@@ -107,7 +94,20 @@ export default function SiteSearch() {
   }
 
   function openBox() {
-    setPh(PLACEHOLDERS[Math.floor(Math.random() * PLACEHOLDERS.length)]);
+    /* 알약은 오른쪽으로 늘어난다. 마지막 메뉴 오른쪽 끝에서 시작하게
+       그 자리를 재서 넘긴다 — 메뉴는 한 픽셀도 안 움직인다. */
+    const bar = boxRef.current?.closest<HTMLElement>(".hdr-bar");
+    const nav = bar?.querySelector<HTMLElement>('nav[aria-label="주 메뉴"]');
+    const cta = bar?.querySelector<HTMLElement>(".hdr-cta");
+    if (bar && nav) {
+      const b = bar.getBoundingClientRect();
+      const n = nav.getBoundingClientRect();
+      bar.style.setProperty("--search-x", `${Math.round(n.right - b.left + 20)}px`);
+      if (cta) {
+        const c = cta.getBoundingClientRect();
+        bar.style.setProperty("--search-r", `${Math.round(b.right - c.left + 16)}px`);
+      }
+    }
     setOpen(true);
     /* 늘어나는 동안 글자가 튀지 않게 조금 기다렸다 커서를 준다. */
     window.setTimeout(() => inputRef.current?.focus(), 260);
@@ -143,7 +143,7 @@ export default function SiteSearch() {
           value={q}
           onChange={(e) => setQ(e.target.value)}
           onKeyDown={onKeyDown}
-          placeholder={ph}
+          placeholder={PLACEHOLDER}
           aria-label="사이트 검색"
           tabIndex={open ? 0 : -1}
           className="site-search-input"

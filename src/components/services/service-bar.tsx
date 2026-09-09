@@ -28,8 +28,8 @@ export default function ServiceBar({
 }) {
   const hereRef = useRef<HTMLSpanElement>(null);
 
-  /* 좁은 화면에서는 여섯 개가 안 들어가 띠 안에서 가로로 민다. 지금 보고
-     있는 게 다섯 번째면 화면 밖이라, 「내가 어디」를 못 본다. 띠만 민다 —
+  /* 좁은 화면에서는 묶음 하나가 한 줄씩 옆으로 밀린다. 지금 보고 있는
+     것이 그 줄 밖이면 「내가 어디」를 못 본다. 그 줄만 민다 —
      block:"nearest" 를 빼면 페이지 전체가 같이 튄다. */
   useEffect(() => {
     hereRef.current?.scrollIntoView({ block: "nearest", inline: "center" });
@@ -43,6 +43,7 @@ export default function ServiceBar({
           {serviceGroups.map((g) => (
             <li key={g.title} className="svcbar-grp">
               <span className="svcbar-glab">{g.title}</span>
+              <div className="svcbar-pills">
               {g.slugs.map((sl) => {
                 const s = services.find((x) => x.slug === sl);
                 if (!s) return null;
@@ -56,6 +57,7 @@ export default function ServiceBar({
                   <Link key={sl} href={`/services/${sl}`}>{s.title}</Link>
                 );
               })}
+              </div>
             </li>
           ))}
         </ul>

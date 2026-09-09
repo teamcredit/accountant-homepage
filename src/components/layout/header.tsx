@@ -36,28 +36,47 @@ export default function Header() {
   const [tone, setTone] = useState<"light" | "dark">("dark");
 
   useEffect(() => {
-    /* 이 쪽의 맨 위가 어두운가. 쪽이 열릴 때 한 번만 본다. */
-    const first = document.querySelector(
-      "main .about-stage, main .about-flat, main .page-hero, main section",
-    );
-    const topDark =
-      !!first &&
-      (first.classList.contains("bg-deep") ||
+    /* 이 쪽의 맨 위가 어두운가.
+       쪽마다 맨 위 판이 다르다 — 홈은 붙임 무대, 나머지는 히어로.
+       판을 미리 붙잡아 두지 않고 잴 때마다 다시 찾는다. 처음 그릴 때
+       잡아 두면 그 뒤에 갈아 끼워진 판을 계속 놓치고, 떨어져 나간
+       판은 높이가 늘 0 이라 검은 히어로 위에서도 검은 글씨가 됐다. */
+    const measure = () => {
+      const first = document.querySelector(
+        "main .about-stage, main .about-flat, main .page-hero, main section",
+      );
+      if (!first) return "light" as const;
+      const looksDark =
+        first.classList.contains("bg-deep") ||
         first.classList.contains("about-stage") ||
         first.classList.contains("about-flat") ||
-        !!first.querySelector("video"));
+        !!first.querySelector("video");
+      /* 판이 실제로 서 있을 때만 흰 글씨를 쓴다. 손 안에서 /blog · /faq 는
+         첫 화면을 접어(높이 0) 두는데, 「있다」고만 세다 보니 흰 바탕에
+         흰 로고가 그려졌다. */
+      const tall = first.getBoundingClientRect().height > 40;
+      return looksDark && tall && window.scrollY < 24 ? ("dark" as const) : ("light" as const);
+    };
 
     const apply = () => {
-      const next = topDark && window.scrollY < 24 ? "dark" : "light";
+      const next = measure();
       setTone((prev) => (prev === next ? prev : next));
     };
-    /* 첫 읽기는 한 프레임 미룬다. 효과(effect) 안에서 곧바로 상태를 바꾸면
-       그린 걸 또 그리게 된다. */
+
+    /* 높이는 한 번 재고 끝내면 안 된다. 처음 그릴 때는 아직 CSS 가 안
+       붙어 0 으로 읽힌다. 본문이 달라질 때마다 다시 잰다. */
+    const main = document.querySelector("main");
+    const ro = main ? new ResizeObserver(apply) : null;
+    if (main && ro) ro.observe(main);
+
     const id = requestAnimationFrame(apply);
     window.addEventListener("scroll", apply, { passive: true });
+    window.addEventListener("resize", apply, { passive: true });
     return () => {
       cancelAnimationFrame(id);
+      ro?.disconnect();
       window.removeEventListener("scroll", apply);
+      window.removeEventListener("resize", apply);
     };
   }, [pathname]);
 
@@ -112,7 +131,7 @@ export default function Header() {
         {/* 본문(1600px)과 같은 폭을 쓴다. 1280 으로 가두면 넓은 화면에서
             헤더만 좁아 보인다. 높이도 한 단계 키워 답답함을 던다. */}
         <div
-          className="hdr-bar max-w-[1600px] mx-auto h-20 flex items-center justify-between"
+          className="hdr-bar relative max-w-[1600px] mx-auto h-20 flex items-center justify-between"
           /* 본문과 같은 여백을 쓴다. clamp 로 따로 잡아 뒀더니 헤더는 40px,
              본문은 29px 이 되어 로고와 글 왼쪽 끝이 11px 어긋나 있었다. */
           style={{ paddingInline: "var(--site-gutter-6)" }}
@@ -126,7 +145,7 @@ export default function Header() {
           </Link>
 
           {/* Desktop Nav + Pricing + Client Login */}
-          <div className="hidden md:flex items-center gap-8">
+          <div className="hidden min-[960px]:flex items-center gap-8">
             <DesktopNav ctl={menu} />
             <div className="flex items-center gap-6">
               {/* 다음 마감일. 넓은 화면에서만 선다.
@@ -145,7 +164,7 @@ export default function Header() {
 
           {/* 손가락 화면. 문의 단추가 메뉴 왼쪽에 같이 선다 —
               메뉴를 열지 않고도 바로 갈 수 있어야 한다. */}
-          <div className="md:hidden flex items-center gap-2">
+          <div className="min-[960px]:hidden flex items-center gap-2">
             <a href="/contact" className="hdr-cta hdr-cta--sm">
               기장 문의하기
             </a>

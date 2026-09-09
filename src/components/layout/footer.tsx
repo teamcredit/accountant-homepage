@@ -117,9 +117,14 @@ export default function Footer() {
                 </a>
               </p>
               <p className="mt-2 leading-relaxed">
-                <span className="text-neutral-400 text-xs uppercase tracking-wider">Location</span>
+                <span className="text-neutral-400 text-xs uppercase tracking-wider">Address</span>
                 <br />
-                {siteConfig.location}
+                {siteConfig.address.map((line, i) => (
+                  <span key={line}>
+                    {i > 0 && <br />}
+                    {line}
+                  </span>
+                ))}
               </p>
               <div className="mt-4 flex flex-col gap-2">
                 <a

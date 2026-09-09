@@ -1,41 +1,7 @@
 import Link from "next/link";
 import type { Metadata } from "next";
-import { services } from "@/lib/data";
 
-/* 하는 일 카드 줄바꿈. 마침표·쉼표 자리에서만 끊는다.
-   data.ts 의 description 은 서비스 상세 페이지도 같이 쓰므로 건드리지 않는다. */
-const SVC_LINES: Record<string, string[]> = {
-  "tax-bookkeeping": [
-    "월별 장부를 정리하고, 부가세·원천세 신고 일정을 운영합니다.",
-    "매달 같은 기준으로 숫자가 떨어집니다. 대표가 그 자리에서 보고 판단합니다.",
-  ],
-  "tax-adjustment": [
-    "법인세·소득세 신고 전에 조정 항목을 정리하고,",
-    "공제·감면 적용 여부를 검토합니다.",
-    "근거는 문서로 남깁니다. 신고 후 소명 요청이 와도 그 자리에서 꺼낼 수 있도록.",
-  ],
-  "tax-advisory": [
-    "지분 이동, 승계, 자산 이전, 특수관계자 거래처럼 실행 전에",
-    "세금을 먼저 따져야 하는 이슈를 다룹니다.",
-    "방안별 세부담을 표로 두고 비교합니다. 대표는 그 표를 보고 결정합니다.",
-  ],
-  "valuation": [
-    "비상장주식, 투자유치, 승계, 합병 비율 판단에 필요한 평가를 다룹니다.",
-    "세법 기준과 거래 기준은 다릅니다.",
-    "둘을 구분해, 누가 봐도 같은 결론이 나오는 보고서로 남깁니다.",
-  ],
-  "transaction-advisory": [
-    "매수·매도 실사에서 우발부채와 정상화 조정을 찾고,",
-    "거래 구조별 세무·회계 함의를 정리합니다.",
-    "딜 전에 짚어둘 항목과 협상에서 부딪힐 쟁점을 문서로 묶어둡니다.",
-  ],
-  "audit-advisory": [
-    "감사인이 확인할 회계처리, 결산 자료, 내부통제 이슈를 미리 점검합니다.",
-    "자료 준비 기준을 잡아 감사 과정의 반복 질의를 줄입니다.",
-  ],
-};
-
-import { siteConfig } from "@/lib/constants";
+import { siteConfig, serviceGroups, groupBlurbs, orderedServices } from "@/lib/constants";
 import { getAllPosts } from "@/lib/posts";
 import PromoMotion from "@/components/home/promo-motion";
 import AboutOpening from "@/components/about/about-opening";
@@ -129,7 +95,7 @@ export default function Home() {
                 <span className="c">회계사가 정리한 자료를</span><span className="c">한 화면에서 봅니다<span className="dot-b">.</span></span>
               </h2>
               <p className="lede rise">
-                <span className="s">홈택스·카드·통장을 매일 새벽 자동으로 모읍니다.</span><span className="s">회사 전용 세무 대시보드는 무료로 드립니다.</span>
+                <span className="s">세무기장 고객님께 세무 정보, 원천세, 각종 서식 정보를 제공하는 업무 대시보드를 무료로 제공합니다.</span>
               </p>
 
               <div className="hero-cta rise">
@@ -143,7 +109,7 @@ export default function Home() {
                 </a>
                 <a className="btn btn-line" href="/portal">알아보기</a>
               </div>
-              <p className="cta-note rise"><span className="s">기장 계약이 있으면 비용이 따로 들지 않습니다.</span><span className="s">쓰던 사무소에서 넘어오는 절차는 저희가 처리합니다.</span></p>
+              <p className="cta-note rise"><span className="s">쓰던 사무소에서 넘어오는 절차는 저희가 처리합니다.</span></p>
             </div>
 
             {/* 화면은 틀 안에 갇혀야 화면으로 읽힌다.
@@ -164,24 +130,32 @@ export default function Home() {
         <div className="wrap">
           <p className="tick rise">하는 일</p>
           <h2 className="sec rise">기장부터 자문까지<span className="dot-b">.</span></h2>
-          <div className="svc rise">
-            {services.slice(0, 6).map((service, i) => (
-              <Link key={service.slug} href={`/services/${service.slug}`}>
+          <div className="svc svc--grp rise">
+            {serviceGroups.map((g, i) => (
+              <div key={g.title} className="svc-grp">
                 <p className="no">{String(i + 1).padStart(2, "0")}</p>
-                <h3>{service.title}</h3>
-                {/* 첫 줄만. 설명 전문은 상세 페이지가 원본이라, 여기까지
-                    옮겨 오면 같은 문단이 두 주소에 그대로 선다. */}
-                <p>
-                  <span className="s">
-                    {(SVC_LINES[service.slug] ?? [service.description])[0]}
-                  </span>
-                </p>
-                <span className="go">자세히<i className="go-a" aria-hidden /></span>
-              </Link>
+                <h3>{g.title}</h3>
+                <p><span className="s">{groupBlurbs[g.title]}</span></p>
+                {/* 대분류 설명을 한 번 더 읽히지 않는다. 세부 업무 이름을
+                    그대로 눌러 상세로 간다(첨삭 #7 #74). */}
+                <ul className="svc-grp-list">
+                  {g.slugs.map((slug) => {
+                    const svc = orderedServices.find((x) => x.slug === slug);
+                    if (!svc) return null;
+                    return (
+                      <li key={slug}>
+                        <Link href={`/services/${slug}`}>
+                          {svc.title}<i className="go-a" aria-hidden />
+                        </Link>
+                      </li>
+                    );
+                  })}
+                </ul>
+              </div>
             ))}
           </div>
-          {/* 여섯 개를 다 보고 싶은 사람에게. 카드마다 있는 「자세히 →」와
-              다른 곳으로 간다 — 이건 목록 전체다. */}
+          {/* 여덟 개를 다 보고 싶은 사람에게. 카드 안의 이름들과 다른 곳으로
+              간다 — 이건 목록 전체다. */}
           <div className="svc-cta rise">
             <Link className="btn btn-line" href="/services">하는 일 자세히 보기 →</Link>
           </div>
@@ -222,7 +196,8 @@ export default function Home() {
             <tbody>
               <tr><th><VsIcon name="view" />관점</th><td className="theirs">가격 경쟁력 중심</td><td className="ours">대표 본업의 시간 확보</td></tr>
               <tr><th><VsIcon name="who" />누가 답하나</th><td className="theirs">사무 직원</td><td className="ours">공인회계사 직접</td></tr>
-              <tr><th><VsIcon name="tech" />기술 활용</th><td className="theirs">수기 · 단순 전산</td><td className="ours">내부 AI · 업무 맞춤 자동화</td></tr>
+              <tr><th><VsIcon name="tech" />자료 처리 도구</th><td className="theirs">수기 · 단순 전산</td><td className="ours">자체 개발 소프트웨어</td></tr>
+              <tr><th><VsIcon name="board" />회사 자료 확인</th><td className="theirs">&mdash;</td><td className="ours">대시보드에 반영된 매출 · 매입 · 세무 현황 직접 조회</td></tr>
               <tr><th><VsIcon name="talk" />소통 방식</th><td className="theirs">담당자 연결 지연</td><td className="ours">회계사 직접 답신</td></tr>
             </tbody>
           </table>
@@ -266,7 +241,7 @@ export default function Home() {
             </p>
             <div className="creed-cta rise">
               <a className="btn btn-fill" href="/contact">기장 이관 상담하기</a>
-              <a className="btn btn-line" href="/contact">전화로 문의</a>
+              <a className="btn btn-line" href={`tel:${siteConfig.tel}`}>전화 문의</a>
             </div>
             <p className="cta-note rise" style={{ color: "#7E90AB" }}>상담은 무료입니다.</p>
           </div>

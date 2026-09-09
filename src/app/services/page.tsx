@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { services } from "@/lib/data";
 import { AnimateOnScroll, LineReveal } from "@/components/motion";
 import HeroVideo from "@/components/layout/hero-video";
 import ServicePicker from "@/components/services/service-picker";
@@ -8,7 +7,7 @@ import ServicePicker from "@/components/services/service-picker";
 export const metadata: Metadata = {
   title: "PRACTICE",
   description:
-    "세무 기장 · 세무조정 · 세무 자문을 중심으로, 필요 시 가치평가와 거래 자문까지 연결합니다.",
+    "세무자문 · 회계감사 · 회계자문 · 재무자문. 네 갈래 아래 여덟 가지 업무를 안내합니다.",
   alternates: {
     canonical: "/services",
   },
@@ -42,8 +41,8 @@ export default function ServicesPage() {
           </div>
           <AnimateOnScroll variant="fadeUp" delay={0.4}>
             <p className="mt-8 text-lg text-neutral-400 max-w-3xl leading-relaxed">
-              축은 기장 · 조정 · 자문.
-              가치평가나 거래 자문이 필요한 순간엔 그쪽으로 이어집니다.
+              세무자문 · 회계감사 · 회계자문 · 재무자문.
+              네 갈래 아래에 여덟 가지 업무가 있습니다.
             </p>
           </AnimateOnScroll>
         </div>
@@ -58,7 +57,7 @@ export default function ServicesPage() {
           <AnimateOnScroll variant="fadeUp">
             <p className="t-eyebrow mb-8">SERVICE</p>
           </AnimateOnScroll>
-          <ServicePicker services={services} />
+          <ServicePicker />
         </div>
       </section>
 

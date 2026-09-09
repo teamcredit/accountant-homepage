@@ -40,7 +40,7 @@ function build(): SearchItem[] {
       href: `/services/${s.slug}`,
       kind: "서비스",
       hint: "PRACTICE",
-      terms: `${s.title} ${s.description} ${s.details.join(" ")}`,
+      terms: `${s.title} ${s.description} ${s.details.join(" ")} ${(s.keywords ?? []).join(" ")}`,
     });
   }
 

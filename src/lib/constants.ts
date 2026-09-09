@@ -2,21 +2,40 @@ import { services } from "./data";
 
 /* 서비스를 나누는 기준. 원본은 여기 하나다.
  *
- * 헤더 메뉴만 「정기 / 사안별」로 갈라 놓고 /services 목록은 01~06 한 줄로
- * 세워 뒀더니, 같은 여섯 개가 화면마다 다르게 묶였다. 메뉴·목록·이동 띠가
- * 전부 이 배열을 본다. */
+ * 「정기 / 사안별」로 갈라 놓았는데 실제 업무 성격과 맞지 않았다.
+ * 세무자문 · 회계감사 · 회계자문 · 재무자문 네 갈래로 다시 나눈다
+ * (첨삭 #7 #29). 메뉴·목록·이동 띠가 전부 이 배열을 본다.
+ *
+ * 여기 없는 tax-advisory 는 세무자문 분류 페이지다. 목록에는 안 서지만
+ * 주소는 검색 순위 때문에 그대로 살려 둔다. */
 export const serviceGroups: Array<{ title: string; slugs: string[] }> = [
   {
-    title: "정기",
-    slugs: ["tax-bookkeeping", "tax-adjustment", "tax-advisory"],
+    title: "세무자문",
+    slugs: ["tax-bookkeeping", "tax-adjustment", "payroll-outsourcing"],
   },
   {
-    title: "사안별",
-    slugs: ["valuation", "transaction-advisory", "audit-advisory"],
+    title: "회계감사",
+    slugs: ["audit-advisory"],
+  },
+  {
+    title: "회계자문",
+    slugs: ["pa", "ipo-advisory"],
+  },
+  {
+    title: "재무자문",
+    slugs: ["transaction-advisory", "valuation"],
   },
 ];
 
-/* 묶음 순서대로 편 여섯 개. 목록과 띠는 이 순서로 선다. */
+/* 네 갈래가 데리고 있는 한 줄 설명. 홈과 서비스 전체가 같이 쓴다. */
+export const groupBlurbs: Record<string, string> = {
+  세무자문: "기장, 신고, 세무조정과 경리 업무를 지원합니다.",
+  회계감사: "재무제표를 감사하고 독립된 감사의견을 제시합니다.",
+  회계자문: "결산 · 재무제표 작성과 상장 준비 회계업무를 지원합니다.",
+  재무자문: "투자 검토와 재무보고에 필요한 실사와 평가를 지원합니다.",
+};
+
+/* 묶음 순서대로 편 여덟 개. 목록과 띠는 이 순서로 선다. */
 export const orderedServices = serviceGroups.flatMap((g) =>
   g.slugs.map((slug) => {
     const found = services.find((x) => x.slug === slug);
@@ -35,6 +54,10 @@ export const siteConfig = {
   email: "mscpa@dscpa.co.kr",
   kakaoChannelUrl: "https://pf.kakao.com/_xcAyvn",
   location: "Seoul · Online Meeting",
+  /* 하단에 실제 사업장 주소를 적는다(첨삭 #39). 도로명 두 줄.
+     location 은 「어디서 만나나」라 자리가 다르다 — 그대로 둔다. */
+  address: ["서울시 강서구 마곡중앙로 171", "프라이빗타워Ⅱ 1210호"],
+  tel: "02-6953-2820",
   founder: "박민상 회계사",
   affiliation:
     "박민상 공인회계사는 동성회계법인 소속이며, 본 사이트는 자문 · 인사이트 활동을 소개하기 위한 개인 브랜드 공간입니다. 회계감사 · 세무 기장 · 세무 조정 · 세무 신고 등 법정 업무는 모두 동성회계법인 명의로 정식 수행됩니다.",
@@ -145,14 +168,22 @@ export const navMenu: NavEntry[] = [
   { href: "/members", label: "PEOPLE", eyebrow: "People" },
   { href: "/clients", label: "FOR WHO", eyebrow: "For Who" },
   {
+    /* 메뉴 이름만 INSIGHTS → BLOG 로 바꾼다. 주소는 원래부터 /blog 였고
+       검색 순위 때문에 건드리지 않는다.
+       「자주 묻는 질문」은 화면 안 탭으로만 있어서 메뉴에서 바로 갈 수가
+       없었다. 갈래들과 같은 줄에 한 칸으로 세운다. */
     href: "/blog",
-    label: "INSIGHTS",
-    eyebrow: "Insights",
+    label: "BLOG",
+    eyebrow: "Blog",
     items: insightCategories.map((c) => ({
       href: c.slug === "all" ? "/blog" : `/blog?cat=${c.slug}`,
       label: c.label,
     })),
   },
+  /* 자주 묻는 질문. 글 모음 안의 탭이 아니라 제 쪽이다 — 목록을 지나야
+     문답에 닿았고, 둘이 같은 것처럼 읽혔다. /blog 은 그대로 두고 /faq 를
+     새로 판다. 없던 주소를 더하는 것이라 순위에서 잃는 게 없다. */
+  { href: "/faq", label: "FAQ", eyebrow: "FAQ" },
   { href: "/portal", label: "DASHBOARD", eyebrow: "Portal" },
 ];
 
@@ -170,9 +201,10 @@ export const sitePages: Array<{ href: string; label: string; hint: string }> = [
   { href: "/", label: "홈", hint: "메리디안" },
   { href: "/about", label: "회사 소개", hint: "메리디안" },
   { href: "/members", label: "회계사 소개", hint: "박민상 회계사" },
-  { href: "/services", label: "서비스", hint: "하는 일 여섯 가지" },
+  { href: "/services", label: "서비스", hint: "네 갈래 · 여덟 가지" },
   { href: "/clients", label: "고객사", hint: "대표의 단계별" },
-  { href: "/blog", label: "INSIGHTS", hint: "글 모음" },
+  { href: "/blog", label: "BLOG", hint: "세무·회계 실무 글" },
+  { href: "/faq", label: "자주 묻는 질문", hint: "상담 전에 자주 나오는 것" },
   { href: "/portal", label: "대시보드", hint: "고객 전용 화면" },
   { href: "/contact", label: "문의", hint: "상담 신청" },
 ];

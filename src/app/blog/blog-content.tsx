@@ -9,11 +9,9 @@ import { insightCategories } from "@/lib/constants";
 import { getCategoryStyle } from "@/lib/category-colors";
 import { splitHeadline } from "@/lib/headline";
 import type { PostMeta } from "@/lib/posts";
-import type { FaqItem } from "@/lib/faq";
 
 interface BlogContentProps {
   posts: PostMeta[];
-  faq: FaqItem[];
 }
 
 /* 제목 마지막 글자만 브랜드색으로.
@@ -74,7 +72,7 @@ const PER_PAGE = 12;
 /* 맨 위에서 돌려 보는 글 수. */
 const LEAD_N = 5;
 
-export default function BlogContent({ posts, faq }: BlogContentProps) {
+export default function BlogContent({ posts }: BlogContentProps) {
   /* 고른 갈래를 화면 안에만 담아 두면 상단 메뉴의 「인사이트 → 법인세」가
      아무 일도 못 한다. 주소에 적어 두면 메뉴도 링크도 되고, 그 화면을
      그대로 남에게 보낼 수도 있다. */
@@ -84,13 +82,11 @@ export default function BlogContent({ posts, faq }: BlogContentProps) {
     insightCategories.find((c) => c.slug === params.get("cat")) ??
     insightCategories[0];
 
-  /* 찾는 말 · 몇 번째 판 · 어느 탭인지는 주소에 안 적는다 — 갈래와 달리
-     남에게 보낼 일이 없고, 적으면 뒤로 가기가 글자 하나마다 쌓인다. */
+  /* 문답은 /faq 로 나갔다. 여기는 글만 본다 — 「블로그 안의 탭 하나」로
+     두었더니 목록을 지나야 문답에 닿았고, 둘이 같은 것처럼 읽혔다. */
   const [q, setQ] = useState("");
   const [page, setPage] = useState(1);
-  const [tab, setTab] = useState<"posts" | "faq">("posts");
   const [lead, setLead] = useState(0);
-  const [open, setOpen] = useState<number | null>(0);
 
   const countOf = (match: string[]) =>
     match.length === 0
@@ -198,27 +194,12 @@ export default function BlogContent({ posts, faq }: BlogContentProps) {
           </AnimateOnScroll>
         )}
 
-        {/* ── 탭 + 찾기 ── */}
+        {/* ── 찾기 ── */}
         <div className="ins-bar">
-          <div className="ins-tabs" role="tablist" aria-label="인사이트 갈래">
-            {([
-              ["posts", "인사이트"],
-              ["faq", "자주 묻는 질문"],
-            ] as const).map(([key, label]) => (
-              <button
-                key={key}
-                type="button"
-                role="tab"
-                aria-selected={tab === key}
-                className={tab === key ? "is-on" : undefined}
-                onClick={() => setTab(key)}
-              >
-                {label}
-              </button>
-            ))}
+          <div className="ins-tabs">
+            <span className="is-on">인사이트</span>
           </div>
 
-          {tab === "posts" && (
             <div className="ins-search">
               <input
                 type="search"
@@ -238,10 +219,9 @@ export default function BlogContent({ posts, faq }: BlogContentProps) {
                 </svg>
               </span>
             </div>
-          )}
         </div>
 
-        {tab === "posts" && (
+        {(
           <>
             <nav className="ins-cats" aria-label="갈래">
               {insightCategories.map((c, i) => (
@@ -345,24 +325,6 @@ export default function BlogContent({ posts, faq }: BlogContentProps) {
           </>
         )}
 
-        {/* ── 자주 묻는 질문. 컨택트 페이지에 있던 것을 여기로 옮겼다. ── */}
-        {tab === "faq" && (
-          <ul className="ins-faq">
-            {faq.map((item, i) => (
-              <li key={item.q} className={open === i ? "is-open" : undefined}>
-                <button
-                  type="button"
-                  aria-expanded={open === i}
-                  onClick={() => setOpen(open === i ? null : i)}
-                >
-                  <span className="ins-faq-q">{item.q}</span>
-                  <span className="ins-faq-mark" aria-hidden />
-                </button>
-                {open === i && <p className="ins-faq-a">{item.a}</p>}
-              </li>
-            ))}
-          </ul>
-        )}
       </div>
     </section>
   );

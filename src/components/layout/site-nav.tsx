@@ -172,8 +172,9 @@ export function MobileNav({ onNavigate }: { onNavigate: () => void }) {
   return (
     <nav className="mnav" aria-label="주 메뉴">
       {navMenu.map((entry) => {
-        const rows =
-          entry.columns?.flatMap((c) => c.items) ?? entry.items ?? [];
+        const cols =
+          entry.columns ?? (entry.items ? [{ title: "", items: entry.items }] : []);
+        const rows = cols.flatMap((c) => c.items);
         const active = isOn(pathname, entry.href);
         const shown = openLabel === entry.label;
 
@@ -214,16 +215,23 @@ export function MobileNav({ onNavigate }: { onNavigate: () => void }) {
 
             {shown && (
               <ul className="mnav-sub">
-                {rows.map((item) => (
-                  <li key={item.href}>
-                    <Link
-                      href={item.href}
-                      onClick={onNavigate}
-                      className="mnav-sublink"
-                      aria-current={isOn(pathname, item.href) ? "page" : undefined}
-                    >
-                      {item.label}
-                    </Link>
+                {cols.map((c) => (
+                  <li key={c.title || "flat"}>
+                    {c.title && <p className="mnav-sublab">{c.title}</p>}
+                    <ul className="mnav-subin">
+                      {c.items.map((item) => (
+                        <li key={item.href}>
+                          <Link
+                            href={item.href}
+                            onClick={onNavigate}
+                            className="mnav-sublink"
+                            aria-current={isOn(pathname, item.href) ? "page" : undefined}
+                          >
+                            {item.label}
+                          </Link>
+                        </li>
+                      ))}
+                    </ul>
                   </li>
                 ))}
               </ul>
@@ -257,14 +265,26 @@ export function MegaPanel({ ctl }: { ctl: MenuCtl }) {
     const b = box.getBoundingClientRect();
     /* 통은 좌우 여백을 갖는다. 그 여백 안쪽이 0 이라 빼 줘야 칸과 맞는다. */
     const pad = parseFloat(getComputedStyle(box).paddingLeft) || 0;
-    /* 글자 왼쪽에 맞추되 통 밖으로는 안 나간다. */
-    const x = Math.max(0, Math.min(t.left - b.left - pad, b.width - pad * 2 - 260));
+    /* 글자 왼쪽에 맞추되 통 밖으로는 안 나간다. 밀 수 있는 끝은 칸들이
+       실제로 차지하는 폭으로 잰다 — 260 으로 박아 두었더니 서비스가
+       넷으로 늘었을 때 오른쪽으로 삐져나갔다. */
+    const cols = box.querySelector<HTMLElement>(".hdr-mega-cols");
+    const colsW = cols ? cols.scrollWidth : 260;
+    const x = Math.max(0, Math.min(t.left - b.left - pad, b.width - pad * 2 - colsW));
     box.style.setProperty("--mega-x", `${Math.round(x)}px`);
 
     /* 판 높이는 내용이 정한다. 15rem 에 붙박아 두니 인사이트처럼 줄이
-       다섯인 판은 마지막 줄이 아래 테두리에 붙어 잘렸다. */
+       다섯인 판은 마지막 줄이 아래 테두리에 붙어 잘렸다.
+       여백(--mega-x)이 0.24초에 걸쳐 밀리는데 높이는 밀기 전에 쟀다.
+       다 밀리고 나서 칸이 접히면 그만큼 아래가 잘렸다(95px).
+       내용 크기가 바뀔 때마다 다시 잰다. */
     const panel = box.parentElement;
-    if (panel) panel.style.setProperty("--mega-h", `${Math.ceil(box.scrollHeight)}px`);
+    const fit = () => panel?.style.setProperty("--mega-h", `${Math.ceil(box.scrollHeight)}px`);
+    fit();
+    const ro = new ResizeObserver(fit);
+    ro.observe(box);
+    if (cols) ro.observe(cols);
+    return () => ro.disconnect();
   }, [open, setOpen]);
 
   return (
@@ -278,13 +298,6 @@ export function MegaPanel({ ctl }: { ctl: MenuCtl }) {
       <div ref={inRef} className="hdr-mega-in max-w-[1600px] mx-auto px-6">
         {entry && (
           <>
-            <Link
-              href={entry.href}
-              className="hdr-mega-eyebrow hdr-mega-all"
-              onClick={() => setOpen(null)}
-            >
-              {entry.eyebrow} 전체 보기 <span aria-hidden>&rarr;</span>
-            </Link>
             <div className="hdr-mega-cols">
               {rows.map((col, i) => (
                 <div key={col.title || i}>
