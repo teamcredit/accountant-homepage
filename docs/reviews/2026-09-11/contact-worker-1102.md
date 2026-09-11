@@ -14,3 +14,15 @@
 빌드의 `/contact`가 `ƒ`에서 `○`로 바뀌었고, prerender manifest에 재검증 없는 정적 경로로 등록됐다. 이 조건과 JS 비활성 기본 폼을 회귀 테스트로 추가했다. 서비스 9개 맥락과 견적 전달, 성공·오류·429·timeout의 기존 브라우저 검사도 수행한다. 실제 메일 발송은 mock으로 차단한다.
 
 1102의 정의는 [Cloudflare 오류 문서](https://developers.cloudflare.com/workers/observability/errors/) 참조. 이번 수정은 문의 페이지의 요청별 렌더링 비용을 제거하며, 검색·실제 문의 API 등 다른 동적 경로의 CPU 한도까지 해결했다는 의미는 아니다.
+
+추가 실시간 로그에서 기존 배포의 `/contact` 요청이 `exceededCpu`로 끝난 것도 확인했다. 정적 페이지 전환만 한 중간 배포에서도 일반 요청 CPU가 37~66ms여서 어댑터 설정을 추가 수정했다. [OpenNext의 SSG 권장 설정](https://opennext.js.org/cloudflare/caching)에 따라 `staticAssetsIncrementalCache`와 `enableCacheInterception`을 활성화한다. 이미 생성된 페이지는 Next 서버를 실행하기 전에 정적 캐시에서 응답한다. 런타임 ISR은 사용하지 않으며 콘텐츠 갱신은 새 빌드·배포로 반영한다.
+
+프리뷰 배포 설정을 `open-next.preview.config.mjs`, `wrangler.preview.jsonc`로 버전 관리한다. 기존 로컬 설정 파일에 의존하지 않는 실행 명령은 다음과 같다.
+
+```sh
+npm install --no-save --package-lock=false @opennextjs/cloudflare@1.20.6 wrangler@4.125.0
+npx opennextjs-cloudflare build --config wrangler.preview.jsonc --openNextConfigPath open-next.preview.config.mjs
+npx opennextjs-cloudflare deploy --config wrangler.preview.jsonc
+```
+
+배포 명령에는 기존 환경의 Cloudflare 자격 증명이 필요하다. 문의 API용 자격 증명을 새로 추가하거나 요금제를 변경하지 않는다.
