@@ -26,3 +26,11 @@ npx opennextjs-cloudflare deploy --config wrangler.preview.jsonc
 ```
 
 배포 명령에는 기존 환경의 Cloudflare 자격 증명이 필요하다. 문의 API용 자격 증명을 새로 추가하거나 요금제를 변경하지 않는다.
+
+## 최종 관측과 남은 한계
+
+`d9b6b19` 배포 후 `/contact` 10회 모두 200, 보안 CSP 유지, 모바일의 내부 링크 진입과 견적 초안 전달 성공, 브라우저 JS 오류 0건을 확인했다. `x-opennext-cache: HIT`도 확인했다. 하지만 초기 요청 CPU는 278ms, 이후 9회는 29~67ms로 기록되어 어댑터 자체의 처리 비용은 여전히 남는다. 정적 캐시 적용만으로 1102 재발 방지가 완료됐다고 판단하지 않는다.
+
+계정 구독 조회에는 Workers 유료 구독이 없었고, [Workers Free CPU 한도는 요청당 10ms](https://developers.cloudflare.com/workers/platform/limits/#cpu-time)다. 한도 초과를 간헐적으로 허용하는 여유가 있어 200과 1102가 번갈아 나타날 수 있다. 안정적으로 이 Next.js 어댑터를 운영하려면 Workers Paid로 전환하거나, HTML/RSC를 Worker 실행 없이 제공하는 별도 정적 배포 구조 또는 다른 Next.js 호스팅으로 옮겨야 한다. 요금제 변경은 실행하지 않았다.
+
+검증: 문의 관련 24개 시나리오와 정적 렌더링/JS 비활성 8개 시나리오 통과. 최초 실행의 Firefox timeout 테스트는 테스트 산출물 정리 경합으로 종료 단계에서 실패해 단독 재실행했고 통과했다. 앱 기능 assertion 실패는 아니었다. lint 오류 0, 기존 이미지 경고 3.
