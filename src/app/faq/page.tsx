@@ -1,3 +1,4 @@
+import { toSafeJsonLd } from "@/lib/json-ld";
 /* 자주 묻는 질문.
  *
  * 원래는 /blog 안의 탭이었다. 상단 메뉴에 FAQ 칸이 생겼는데 누르면
@@ -49,7 +50,7 @@ export default function FaqPage() {
     <>
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }}
+        dangerouslySetInnerHTML={{ __html: toSafeJsonLd(faqJsonLd) }}
       />
 
       <section className="blog-hero page-hero relative overflow-hidden bg-deep text-white">

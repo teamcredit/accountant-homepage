@@ -68,3 +68,23 @@ jobs:
 
       - name: Build
         run: npm run build
+
+      - name: Install browser test engines
+        run: npx playwright install --with-deps chromium firefox webkit
+
+      - name: Browser acceptance tests with production CSP
+        env:
+          QA_BASE_URL: https://localhost:3443
+        run: |
+          node scripts/qa/https.mjs > /tmp/homepage-https.log 2>&1 &
+          npm run test:e2e -- --workers=2
+
+      - name: Upload browser failures and traces
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: browser-acceptance
+          path: |
+            playwright-report/
+            test-results/
+          retention-days: 14

@@ -222,9 +222,4 @@ export const sitePages: Array<{ href: string; label: string; hint: string }> = [
    날짜만 두고 남은 날은 볼 때마다 센다.
    홈의 팝업과 헤더의 큐브가 이 목록 하나를 같이 본다.
    ───────────────────────────────────────────────────────────── */
-export const scheduleDates = [
-  { what: "원천세 납부", when: "2026-09-10" },
-  { what: "원천세 납부", when: "2026-10-10" },
-  { what: "부가세 2기 예정신고", when: "2026-10-25" },
-  { what: "부가세 2기 확정신고", when: "2027-01-25" },
-];
+export { scheduleDates } from "./schedule";

@@ -1,13 +1,8 @@
 "use client";
 
 import { useRef, useState, useEffect } from "react";
-import {
-  motion,
-  AnimatePresence,
-  useScroll,
-  useMotionValueEvent,
-  useReducedMotion,
-} from "motion/react";
+import { motion, AnimatePresence, useScroll, useMotionValueEvent } from "motion/react";
+import { usePrefersReducedMotion as useReducedMotion } from "@/lib/use-media";
 import Link from "next/link";
 import { deliverableNames, oneLine, type Service } from "@/lib/data";
 

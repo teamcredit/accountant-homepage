@@ -4,7 +4,8 @@ import { AnimateOnScroll, LineReveal } from "@/components/motion";
 import HeroVideo from "@/components/layout/hero-video";
 
 export const metadata: Metadata = {
-  title: "PRICING",
+  title: "예상 수임료 계산",
+  robots: { index: false, follow: true },
   description:
     "법인·개인사업자 예상 수임료를 6개의 질문으로 계산합니다. 업종, 매출, 직원 수 입력만으로 월 기장료와 연 신고/조정료를 즉시 안내합니다.",
   alternates: {

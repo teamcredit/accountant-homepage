@@ -1,0 +1,95 @@
+
+> homepage@0.1.0 test:e2e
+> playwright test --workers=4
+
+
+Running 60 tests using 4 workers
+
+(node:69670) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:69671) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:69672) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:69673) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓   2 [desktop] › tests/e2e/acceptance.spec.ts:43:7 › inquiry response 200 has appropriate UX (1.7s)
+  ✓   3 [desktop] › tests/e2e/acceptance.spec.ts:20:5 › reduced motion hydrates without errors and keeps content visible (1.8s)
+  ✓   5 [desktop] › tests/e2e/acceptance.spec.ts:43:7 › inquiry response 429 has appropriate UX (1.3s)
+  ✓   7 [desktop] › tests/e2e/acceptance.spec.ts:58:5 › invalid quote links explain fallback (1ms)
+  ✓   4 [desktop] › tests/e2e/acceptance.spec.ts:35:5 › all services preserve their inquiry context (3.7s)
+  ✓   6 [desktop] › tests/e2e/acceptance.spec.ts:43:7 › inquiry response 503 has appropriate UX (2.3s)
+  ✓  10 [desktop] › tests/e2e/flows.spec.ts:9:5 › duplicate shared options count once and round trip (119ms)
+  ✓   9 [desktop] › tests/e2e/acceptance.spec.ts:75:5 › essential content is visible without JavaScript (930ms)
+  ✓  11 [desktop] › tests/e2e/flows.spec.ts:18:5 › customer hash selects correct tab and supports keyboard (588ms)
+  ✓   8 [desktop] › tests/e2e/acceptance.spec.ts:64:5 › portal evidence has keyboard periods and consistent profit (2.1s)
+  ✓  12 [desktop] › tests/e2e/flows.spec.ts:29:5 › menu focus stays usable (955ms)
+  ✓  13 [desktop] › tests/e2e/flows.spec.ts:55:5 › inquiry preserves estimate and retains input after server error (1.6s)
+  ✓  14 [desktop] › tests/e2e/flows.spec.ts:66:5 › blog page and scroll survive article and back (1.6s)
+(node:69804) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  15 [desktop] › tests/e2e/flows.spec.ts:79:5 › search distinguishes service failure and retries (1.2s)
+(node:69808) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:69814) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  17 [mobile] › tests/e2e/acceptance.spec.ts:20:5 › reduced motion hydrates without errors and keeps content visible (1.1s)
+  ✓  19 [mobile] › tests/e2e/acceptance.spec.ts:43:7 › inquiry response 200 has appropriate UX (1.1s)
+  ✓  18 [mobile] › tests/e2e/acceptance.spec.ts:35:5 › all services preserve their inquiry context (2.0s)
+  ✓  20 [mobile] › tests/e2e/acceptance.spec.ts:43:7 › inquiry response 429 has appropriate UX (1.6s)
+  ✓  22 [mobile] › tests/e2e/acceptance.spec.ts:58:5 › invalid quote links explain fallback (1ms)
+  ✓  21 [mobile] › tests/e2e/acceptance.spec.ts:43:7 › inquiry response 503 has appropriate UX (1.6s)
+  ✓  24 [mobile] › tests/e2e/acceptance.spec.ts:75:5 › essential content is visible without JavaScript (857ms)
+  ✓  25 [mobile] › tests/e2e/flows.spec.ts:9:5 › duplicate shared options count once and round trip (98ms)
+  ✓  26 [mobile] › tests/e2e/flows.spec.ts:18:5 › customer hash selects correct tab and supports keyboard (558ms)
+  ✓  23 [mobile] › tests/e2e/acceptance.spec.ts:64:5 › portal evidence has keyboard periods and consistent profit (1.6s)
+  ✓  27 [mobile] › tests/e2e/flows.spec.ts:29:5 › menu focus stays usable (1.0s)
+  ✓  28 [mobile] › tests/e2e/flows.spec.ts:55:5 › inquiry preserves estimate and retains input after server error (1.6s)
+  ✓  29 [mobile] › tests/e2e/flows.spec.ts:66:5 › blog page and scroll survive article and back (960ms)
+(node:69969) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  30 [mobile] › tests/e2e/flows.spec.ts:79:5 › search distinguishes service failure and retries (1.0s)
+(node:69983) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  32 [webkit] › tests/e2e/acceptance.spec.ts:20:5 › reduced motion hydrates without errors and keeps content visible (1.4s)
+  ✓  33 [webkit] › tests/e2e/acceptance.spec.ts:35:5 › all services preserve their inquiry context (2.7s)
+  ✓   1 [desktop] › tests/e2e/acceptance.spec.ts:3:5 › inquiry timeout retains input and prevents duplicate submission (21.6s)
+  ✓  34 [webkit] › tests/e2e/acceptance.spec.ts:43:7 › inquiry response 200 has appropriate UX (1.8s)
+(node:70052) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  35 [webkit] › tests/e2e/acceptance.spec.ts:43:7 › inquiry response 503 has appropriate UX (1.8s)
+  ✓  37 [webkit] › tests/e2e/acceptance.spec.ts:58:5 › invalid quote links explain fallback (1ms)
+  ✓  36 [webkit] › tests/e2e/acceptance.spec.ts:43:7 › inquiry response 429 has appropriate UX (1.9s)
+  ✓  39 [webkit] › tests/e2e/acceptance.spec.ts:75:5 › essential content is visible without JavaScript (998ms)
+  ✓  40 [webkit] › tests/e2e/flows.spec.ts:9:5 › duplicate shared options count once and round trip (199ms)
+  ✓  38 [webkit] › tests/e2e/acceptance.spec.ts:64:5 › portal evidence has keyboard periods and consistent profit (1.9s)
+  ✓  41 [webkit] › tests/e2e/flows.spec.ts:18:5 › customer hash selects correct tab and supports keyboard (916ms)
+  ✓  42 [webkit] › tests/e2e/flows.spec.ts:29:5 › menu focus stays usable (1.4s)
+  ✓  43 [webkit] › tests/e2e/flows.spec.ts:55:5 › inquiry preserves estimate and retains input after server error (1.8s)
+  ✓  44 [webkit] › tests/e2e/flows.spec.ts:66:5 › blog page and scroll survive article and back (1.1s)
+(node:70115) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  16 [mobile] › tests/e2e/acceptance.spec.ts:3:5 › inquiry timeout retains input and prevents duplicate submission (21.6s)
+(node:70124) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  45 [webkit] › tests/e2e/flows.spec.ts:79:5 › search distinguishes service failure and retries (2.0s)
+(node:70138) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  47 [firefox] › tests/e2e/acceptance.spec.ts:20:5 › reduced motion hydrates without errors and keeps content visible (2.0s)
+  ✓  49 [firefox] › tests/e2e/acceptance.spec.ts:43:7 › inquiry response 200 has appropriate UX (936ms)
+  ✓  48 [firefox] › tests/e2e/acceptance.spec.ts:35:5 › all services preserve their inquiry context (2.4s)
+  ✓  50 [firefox] › tests/e2e/acceptance.spec.ts:43:7 › inquiry response 429 has appropriate UX (956ms)
+  ✓  52 [firefox] › tests/e2e/acceptance.spec.ts:58:5 › invalid quote links explain fallback (1ms)
+  ✓  51 [firefox] › tests/e2e/acceptance.spec.ts:43:7 › inquiry response 503 has appropriate UX (951ms)
+  ✓  53 [firefox] › tests/e2e/acceptance.spec.ts:64:5 › portal evidence has keyboard periods and consistent profit (1.4s)
+  ✓  54 [firefox] › tests/e2e/acceptance.spec.ts:75:5 › essential content is visible without JavaScript (740ms)
+  ✓  55 [firefox] › tests/e2e/flows.spec.ts:9:5 › duplicate shared options count once and round trip (153ms)
+  ✓  56 [firefox] › tests/e2e/flows.spec.ts:18:5 › customer hash selects correct tab and supports keyboard (642ms)
+  ✓  57 [firefox] › tests/e2e/flows.spec.ts:29:5 › menu focus stays usable (635ms)
+  ✓  59 [firefox] › tests/e2e/flows.spec.ts:66:5 › blog page and scroll survive article and back (712ms)
+  ✓  58 [firefox] › tests/e2e/flows.spec.ts:55:5 › inquiry preserves estimate and retains input after server error (1.1s)
+  ✓  31 [webkit] › tests/e2e/acceptance.spec.ts:3:5 › inquiry timeout retains input and prevents duplicate submission (21.6s)
+  ✓  60 [firefox] › tests/e2e/flows.spec.ts:79:5 › search distinguishes service failure and retries (672ms)
+  ✓  46 [firefox] › tests/e2e/acceptance.spec.ts:3:5 › inquiry timeout retains input and prevents duplicate submission (21.9s)
+
+  60 passed (51.7s)

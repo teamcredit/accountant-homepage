@@ -55,6 +55,10 @@ for (const fileName of fs.readdirSync(postsDirectory).filter((name) => name.ends
     errors.push(`${fileName}: invalid lastChecked "${data.lastChecked}"`);
   }
 
+  if (data.lastChecked && isValidDate(data.lastChecked) && today - new Date(`${data.lastChecked}T00:00:00+09:00`) > 120 * 86400000) {
+    warnings.push(`${fileName}: editorial review is older than 120 days (${data.lastChecked})`);
+  }
+
   if (!data.lastChecked) {
     warnings.push(`${fileName}: missing lastChecked`);
   }

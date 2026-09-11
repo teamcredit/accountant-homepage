@@ -1,0 +1,32 @@
+[
+  {
+    "width": 1440,
+    "height": 900,
+    "overflow": false
+  },
+  {
+    "width": 390,
+    "height": 844,
+    "overflow": false
+  },
+  {
+    "width": 844,
+    "height": 390,
+    "overflow": false
+  },
+  {
+    "width": 720,
+    "height": 450,
+    "overflow": false
+  },
+  {
+    "width": 1440,
+    "height": 900,
+    "overflow": false
+  },
+  {
+    "mediaFailurePoster": "/home-hero-poster.jpg",
+    "reducedMotionFlat": true,
+    "errors": []
+  }
+]

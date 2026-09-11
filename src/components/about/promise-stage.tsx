@@ -16,9 +16,9 @@
 
    움직임을 꺼 둔 사람에게는 대화와 약속이 위아래로 그냥 놓인다. */
 
-import { useEffect, useRef, useState, type ReactNode } from "react";
-import { useMotionValueEvent, useReducedMotion, useScroll } from "motion/react";
-import { useLenis } from "lenis/react";
+import { useRef, useState, type ReactNode } from "react";
+import { useMotionValueEvent, useScroll } from "motion/react";
+import { usePrefersReducedMotion as useReducedMotion } from "@/lib/use-media";
 import ComplaintThread, { THREAD_STEPS } from "./complaint-thread";
 import PromiseOrbs from "./promise-orbs";
 import { useHandheld } from "@/lib/use-media";
@@ -51,7 +51,6 @@ export default function PromiseStage({ head }: { head?: ReactNode }) {
   const handheld = useHandheld();
   const flat = reduced || handheld;
   const ref = useRef<HTMLDivElement>(null);
-  const lenis = useLenis();
 
   const { scrollYProgress } = useScroll({
     target: ref,
@@ -62,34 +61,7 @@ export default function PromiseStage({ head }: { head?: ReactNode }) {
   const [exit, setExit] = useState(false);
   const [orbs, setOrbs] = useState(false);
 
-  /* 약속이 올라오는 순간 스크롤을 붙잡는다.
-     여기서 안 잡으면 손가락 한 번에 약속 두 개가 통째로 지나가 버린다.
-
-     ※ 잡는 건 아래 스크롤 콜백 안에서 곧바로 한다. useEffect 로 미루면
-        그 사이 한 프레임이 더 흘러 관성이 이미 다음 섹션까지 밀고 간다.
-        여기서는 「언제 놓을지」만 관리한다. */
-  const held = useRef(false);
-  const holdTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  useEffect(() => {
-    return () => {
-      if (holdTimer.current) clearTimeout(holdTimer.current);
-      lenis?.start();
-    };
-  }, [lenis]);
-
-  /* 원은 0.35초 간격으로 두 개가 1.4초씩 부푼다 → 1.75초.
-     파란 선은 0.25초 뒤 출발해 1.6초 동안 내려간다 → 1.85초.
-     선이 다 그어진 뒤 한 박자 읽을 시간까지 두고 놓는다. */
-  const HOLD_MS = 2500;
-  const hold = () => {
-    /* 손가락으로 미는 화면에서는 붙잡지 않는다. 관성으로 밀고 있는데
-       중간에 멈춰 세우면 버벅이는 것으로 읽힌다. */
-    if (held.current || reduced || !lenis) return;
-    if (window.matchMedia("(pointer: coarse)").matches) return;
-    held.current = true;
-    lenis.stop();
-    holdTimer.current = setTimeout(() => lenis.start(), HOLD_MS);
-  };
+  // 장면 길이로 읽을 시간을 확보하고 사용자의 스크롤은 잠그지 않는다.
 
   /* motion 12 는 스크롤 값을 브라우저에 넘겨 버려서 style 로 엮으면
      구간(offset)이 무시된다. 값만 받아 상태로 바꾸면 그 문제가 없다. */
@@ -101,7 +73,6 @@ export default function PromiseStage({ head }: { head?: ReactNode }) {
     const next = Math.max(STEP_FLOOR, Math.min(THREAD_STEPS, Math.ceil(t * THREAD_STEPS)));
     setStep((prev) => (prev === next ? prev : next));
     setExit(v >= EXIT_AT);
-    if (v >= ORBS_AT) hold();
     setOrbs(v >= ORBS_AT);
   });
 

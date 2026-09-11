@@ -117,9 +117,7 @@ export function DesktopNav({ ctl }: { ctl: MenuCtl }) {
             /* 포커스가 닿는 것만으로는 안 연다.
                Esc 로 닫으면 포커스를 칸으로 돌려주는데, 그때 다시 열려서
                Esc 가 듣지 않았다. 키보드로 여는 건 ArrowDown 과 Enter 다. */
-            onBlur={(e) => {
-              if (!e.currentTarget.contains(e.relatedTarget as Node)) scheduleClose();
-            }}
+
           >
             {/* 칸 자체가 링크다. 판은 마우스를 올리면 열리고,
                 키보드는 ArrowDown 으로 연다. */}
@@ -127,12 +125,14 @@ export function DesktopNav({ ctl }: { ctl: MenuCtl }) {
               href={entry.href}
               data-trigger={entry.label}
               aria-expanded={shown}
-              aria-haspopup="true"
+              aria-controls="desktop-navigation-panel"
               className={`${face} inline-flex items-center gap-1.5`}
               onKeyDown={(e) => {
                 if (e.key === "ArrowDown") {
                   e.preventDefault();
+                  cancelClose();
                   setOpen(entry.label);
+                  requestAnimationFrame(() => document.querySelector<HTMLElement>("#desktop-navigation-panel a")?.focus());
                 }
               }}
             >
@@ -289,7 +289,9 @@ export function MegaPanel({ ctl }: { ctl: MenuCtl }) {
 
   return (
     <div
+      id="desktop-navigation-panel"
       className="hdr-mega"
+      inert={!entry}
       data-open={entry ? "true" : "false"}
       onPointerEnter={cancelClose}
       onPointerLeave={scheduleClose}

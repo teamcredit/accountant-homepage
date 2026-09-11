@@ -1,0 +1,418 @@
+[
+  {
+    "route": "/",
+    "width": 1440,
+    "errors": [],
+    "overflow": false,
+    "violations": [
+      {
+        "id": "region",
+        "impact": "moderate",
+        "nodes": [
+          {
+            "target": [
+              ".skip-link"
+            ],
+            "summary": "Fix any of the following:\n  Some page content is not contained by landmarks"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "route": "/services",
+    "width": 1440,
+    "errors": [],
+    "overflow": false,
+    "violations": [
+      {
+        "id": "heading-order",
+        "impact": "moderate",
+        "nodes": [
+          {
+            "target": [
+              ".spick-body > h3"
+            ],
+            "summary": "Fix any of the following:\n  Heading order invalid"
+          }
+        ]
+      },
+      {
+        "id": "region",
+        "impact": "moderate",
+        "nodes": [
+          {
+            "target": [
+              ".skip-link"
+            ],
+            "summary": "Fix any of the following:\n  Some page content is not contained by landmarks"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "route": "/clients",
+    "width": 1440,
+    "errors": [],
+    "overflow": false,
+    "violations": [
+      {
+        "id": "color-contrast",
+        "impact": "serious",
+        "nodes": [
+          {
+            "target": [
+              ".text-5xl"
+            ],
+            "summary": "Fix any of the following:\n  Element has insufficient color contrast of 1.5 (foreground color: #c7d3ee, background color: #ffffff, font size: 50.6pt (67.5px), font weight: bold). Expected contrast ratio of 3:1"
+          }
+        ]
+      },
+      {
+        "id": "region",
+        "impact": "moderate",
+        "nodes": [
+          {
+            "target": [
+              ".skip-link"
+            ],
+            "summary": "Fix any of the following:\n  Some page content is not contained by landmarks"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "route": "/contact",
+    "width": 1440,
+    "errors": [],
+    "overflow": false,
+    "violations": [
+      {
+        "id": "region",
+        "impact": "moderate",
+        "nodes": [
+          {
+            "target": [
+              ".skip-link"
+            ],
+            "summary": "Fix any of the following:\n  Some page content is not contained by landmarks"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "route": "/blog",
+    "width": 1440,
+    "errors": [],
+    "overflow": false,
+    "violations": [
+      {
+        "id": "region",
+        "impact": "moderate",
+        "nodes": [
+          {
+            "target": [
+              ".skip-link"
+            ],
+            "summary": "Fix any of the following:\n  Some page content is not contained by landmarks"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "route": "/portal",
+    "width": 1440,
+    "errors": [],
+    "overflow": false,
+    "violations": [
+      {
+        "id": "heading-order",
+        "impact": "moderate",
+        "nodes": [
+          {
+            "target": [
+              ".db-h1row > h3"
+            ],
+            "summary": "Fix any of the following:\n  Heading order invalid"
+          },
+          {
+            "target": [
+              "div:nth-child(1) > h4"
+            ],
+            "summary": "Fix any of the following:\n  Heading order invalid"
+          }
+        ]
+      },
+      {
+        "id": "region",
+        "impact": "moderate",
+        "nodes": [
+          {
+            "target": [
+              ".skip-link"
+            ],
+            "summary": "Fix any of the following:\n  Some page content is not contained by landmarks"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "route": "/faq",
+    "width": 1440,
+    "errors": [],
+    "overflow": false,
+    "violations": [
+      {
+        "id": "heading-order",
+        "impact": "moderate",
+        "nodes": [
+          {
+            "target": [
+              ".text-base"
+            ],
+            "summary": "Fix any of the following:\n  Heading order invalid"
+          }
+        ]
+      },
+      {
+        "id": "region",
+        "impact": "moderate",
+        "nodes": [
+          {
+            "target": [
+              ".skip-link"
+            ],
+            "summary": "Fix any of the following:\n  Some page content is not contained by landmarks"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "route": "/pricing",
+    "width": 1440,
+    "errors": [],
+    "overflow": false,
+    "violations": [
+      {
+        "id": "region",
+        "impact": "moderate",
+        "nodes": [
+          {
+            "target": [
+              ".skip-link"
+            ],
+            "summary": "Fix any of the following:\n  Some page content is not contained by landmarks"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "route": "/",
+    "width": 390,
+    "errors": [],
+    "overflow": false,
+    "violations": [
+      {
+        "id": "region",
+        "impact": "moderate",
+        "nodes": [
+          {
+            "target": [
+              ".skip-link"
+            ],
+            "summary": "Fix any of the following:\n  Some page content is not contained by landmarks"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "route": "/services",
+    "width": 390,
+    "errors": [],
+    "overflow": false,
+    "violations": [
+      {
+        "id": "region",
+        "impact": "moderate",
+        "nodes": [
+          {
+            "target": [
+              ".skip-link"
+            ],
+            "summary": "Fix any of the following:\n  Some page content is not contained by landmarks"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "route": "/clients",
+    "width": 390,
+    "errors": [],
+    "overflow": false,
+    "violations": [
+      {
+        "id": "color-contrast",
+        "impact": "serious",
+        "nodes": [
+          {
+            "target": [
+              ".text-5xl"
+            ],
+            "summary": "Fix any of the following:\n  Element has insufficient color contrast of 1.5 (foreground color: #c7d3ee, background color: #ffffff, font size: 33.8pt (45px), font weight: bold). Expected contrast ratio of 3:1"
+          }
+        ]
+      },
+      {
+        "id": "region",
+        "impact": "moderate",
+        "nodes": [
+          {
+            "target": [
+              ".skip-link"
+            ],
+            "summary": "Fix any of the following:\n  Some page content is not contained by landmarks"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "route": "/contact",
+    "width": 390,
+    "errors": [],
+    "overflow": false,
+    "violations": [
+      {
+        "id": "region",
+        "impact": "moderate",
+        "nodes": [
+          {
+            "target": [
+              ".skip-link"
+            ],
+            "summary": "Fix any of the following:\n  Some page content is not contained by landmarks"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "route": "/blog",
+    "width": 390,
+    "errors": [],
+    "overflow": false,
+    "violations": [
+      {
+        "id": "region",
+        "impact": "moderate",
+        "nodes": [
+          {
+            "target": [
+              ".skip-link"
+            ],
+            "summary": "Fix any of the following:\n  Some page content is not contained by landmarks"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "route": "/portal",
+    "width": 390,
+    "errors": [],
+    "overflow": false,
+    "violations": [
+      {
+        "id": "heading-order",
+        "impact": "moderate",
+        "nodes": [
+          {
+            "target": [
+              ".db-h1row > h3"
+            ],
+            "summary": "Fix any of the following:\n  Heading order invalid"
+          },
+          {
+            "target": [
+              "div:nth-child(1) > h4"
+            ],
+            "summary": "Fix any of the following:\n  Heading order invalid"
+          }
+        ]
+      },
+      {
+        "id": "region",
+        "impact": "moderate",
+        "nodes": [
+          {
+            "target": [
+              ".skip-link"
+            ],
+            "summary": "Fix any of the following:\n  Some page content is not contained by landmarks"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "route": "/faq",
+    "width": 390,
+    "errors": [],
+    "overflow": false,
+    "violations": [
+      {
+        "id": "heading-order",
+        "impact": "moderate",
+        "nodes": [
+          {
+            "target": [
+              ".text-base"
+            ],
+            "summary": "Fix any of the following:\n  Heading order invalid"
+          }
+        ]
+      },
+      {
+        "id": "region",
+        "impact": "moderate",
+        "nodes": [
+          {
+            "target": [
+              ".skip-link"
+            ],
+            "summary": "Fix any of the following:\n  Some page content is not contained by landmarks"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "route": "/pricing",
+    "width": 390,
+    "errors": [],
+    "overflow": false,
+    "violations": [
+      {
+        "id": "region",
+        "impact": "moderate",
+        "nodes": [
+          {
+            "target": [
+              ".skip-link"
+            ],
+            "summary": "Fix any of the following:\n  Some page content is not contained by landmarks"
+          }
+        ]
+      }
+    ]
+  }
+]

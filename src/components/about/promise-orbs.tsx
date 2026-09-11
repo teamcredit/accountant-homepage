@@ -7,7 +7,8 @@
    원은 스크롤에 맞춰 각각 부풀고, 선은 그 다음에 위에서 아래로 그어진다.
    움직임을 꺼 둔 사람에게는 다 켜진 상태로 그대로 보인다. */
 
-import { motion, useReducedMotion } from "motion/react";
+import { motion } from "motion/react";
+import { usePrefersReducedMotion as useReducedMotion } from "@/lib/use-media";
 
 const PROMISES = [
   {

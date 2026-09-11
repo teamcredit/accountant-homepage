@@ -1,0 +1,46 @@
+{
+  "errors": [],
+  "cycles": [
+    {
+      "pendingFrames": 4,
+      "timeOrigin": 1789101787346.5
+    },
+    {
+      "pendingFrames": 4,
+      "timeOrigin": 1789101787346.5
+    },
+    {
+      "pendingFrames": 4,
+      "timeOrigin": 1789101787346.5
+    },
+    {
+      "pendingFrames": 4,
+      "timeOrigin": 1789101787346.5
+    },
+    {
+      "pendingFrames": 3,
+      "timeOrigin": 1789101787346.5
+    },
+    {
+      "pendingFrames": 4,
+      "timeOrigin": 1789101787346.5
+    },
+    {
+      "pendingFrames": 4,
+      "timeOrigin": 1789101787346.5
+    },
+    {
+      "pendingFrames": 4,
+      "timeOrigin": 1789101787346.5
+    },
+    {
+      "pendingFrames": 3,
+      "timeOrigin": 1789101787346.5
+    },
+    {
+      "pendingFrames": 4,
+      "timeOrigin": 1789101787346.5
+    }
+  ],
+  "sameDocument": true
+}

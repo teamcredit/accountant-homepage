@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useId } from "react";
 import { rankOf } from "@/lib/search-match";
 
 /**
@@ -32,6 +32,10 @@ const PLACEHOLDER = "서비스 검색 · 예: 세무기장, 기업실사, 결산
 
 export default function SiteSearch() {
   const router = useRouter();
+  const listId = useId();
+  const [loadState, setLoadState] = useState<"idle" | "loading" | "ready" | "error">("idle");
+  const [retry, setRetry] = useState(0);
+  const triggerRef = useRef<HTMLButtonElement>(null);
   const [open, setOpen] = useState(false);
   const [q, setQ] = useState("");
   const [items, setItems] = useState<SearchItem[]>([]);
@@ -40,19 +44,24 @@ export default function SiteSearch() {
 
   const boxRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const focusTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  useEffect(() => () => { if (focusTimer.current) clearTimeout(focusTimer.current); }, []);
 
   /* 목록은 처음 열 때 한 번만 받는다. */
   useEffect(() => {
     if (!open || items.length) return;
     let alive = true;
-    fetch("/api/search")
-      .then((r) => (r.ok ? r.json() : []))
-      .then((d: SearchItem[]) => alive && setItems(d))
-      .catch(() => {});
+    const controller = new AbortController();
+    Promise.resolve().then(() => { if (alive) setLoadState('loading'); });
+    fetch("/api/search", { signal: controller.signal })
+      .then((r) => { if (!r.ok) throw new Error('search'); return r.json(); })
+      .then((d: SearchItem[]) => { if (!Array.isArray(d)) throw new Error('search'); if (alive) { setItems(d); setLoadState('ready'); } })
+      .catch(() => { if (alive) setLoadState('error'); });
     return () => {
       alive = false;
+      controller.abort();
     };
-  }, [open, items.length]);
+  }, [open, items.length, retry]);
 
   /* 바깥을 누르면 닫는다. */
   useEffect(() => {
@@ -61,7 +70,7 @@ export default function SiteSearch() {
       if (!boxRef.current?.contains(e.target as Node)) setOpen(false);
     };
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") setOpen(false);
+      if (e.key === "Escape") { e.preventDefault(); setOpen(false); triggerRef.current?.focus(); }
     };
     document.addEventListener("mousedown", onDown);
     document.addEventListener("keydown", onKey);
@@ -110,7 +119,8 @@ export default function SiteSearch() {
     }
     setOpen(true);
     /* 늘어나는 동안 글자가 튀지 않게 조금 기다렸다 커서를 준다. */
-    window.setTimeout(() => inputRef.current?.focus(), 260);
+    if (focusTimer.current) clearTimeout(focusTimer.current);
+    focusTimer.current = setTimeout(() => { if (boxRef.current?.hasAttribute("data-open")) inputRef.current?.focus(); }, 260);
   }
 
   function go(href: string) {
@@ -120,7 +130,7 @@ export default function SiteSearch() {
   }
 
   function onKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
-    if (!hits.length) return;
+    if (e.nativeEvent.isComposing || !hits.length) return;
     if (e.key === "ArrowDown") {
       e.preventDefault();
       setCursor((c) => (c + 1) % hits.length);
@@ -129,7 +139,7 @@ export default function SiteSearch() {
       setCursor((c) => (c - 1 + hits.length) % hits.length);
     } else if (e.key === "Enter") {
       e.preventDefault();
-      go(hits[cursor].href);
+      go(hits[Math.min(cursor, hits.length - 1)].href);
     }
   }
 
@@ -140,6 +150,11 @@ export default function SiteSearch() {
         <input
           ref={inputRef}
           type="search"
+          role="combobox"
+          aria-autocomplete="list"
+          aria-expanded={open && q.trim().length > 0}
+          aria-controls={open && q.trim() ? listId : undefined}
+          aria-activedescendant={open && hits.length ? `${listId}-${Math.min(cursor, hits.length - 1)}` : undefined}
           value={q}
           onChange={(e) => setQ(e.target.value)}
           onKeyDown={onKeyDown}
@@ -151,6 +166,7 @@ export default function SiteSearch() {
         <button
           type="button"
           onClick={() => (open ? setOpen(false) : openBox())}
+          ref={triggerRef}
           aria-label={open ? "검색 닫기" : "검색 열기"}
           aria-expanded={open}
           className="site-search-mark"
@@ -169,14 +185,19 @@ export default function SiteSearch() {
       </div>
 
       {open && q.trim().length > 0 && (
-        <div className="site-search-drop" role="listbox">
+        <div className="site-search-drop">
+          {loadState === "loading" && <p role="status" className="site-search-empty">검색 목록을 불러오는 중입니다.</p>}
+          {loadState === "error" && <div role="alert" className="site-search-empty">검색을 불러오지 못했습니다. <button onClick={() => setRetry(value => value + 1)}>다시 시도</button></div>}
+          <div id={listId} role="listbox" aria-label="검색 결과">
           {hits.length === 0 ? (
-            <p className="site-search-empty">찾는 글이 없습니다.</p>
+            loadState === "ready" ? <p className="site-search-empty">찾는 글이 없습니다.</p> : null
           ) : (
             hits.map((it, i) => (
               <Link
                 key={it.href}
                 href={it.href}
+                id={`${listId}-${i}`}
+                tabIndex={-1}
                 role="option"
                 aria-selected={i === cursor}
                 onMouseEnter={() => setCursor(i)}
@@ -192,6 +213,7 @@ export default function SiteSearch() {
               </Link>
             ))
           )}
+          </div>
         </div>
       )}
     </div>

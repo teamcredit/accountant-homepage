@@ -11,7 +11,7 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import type { Persona, Service } from "@/lib/data";
 
 export default function StagePicker({
@@ -22,6 +22,20 @@ export default function StagePicker({
   services: Service[];
 }) {
   const [pick, setPick] = useState(0);
+  useEffect(() => {
+    const sync = () => {
+      const index = personas.findIndex(it => `#${it.slug}` === window.location.hash);
+      setPick(index < 0 ? 0 : index);
+    };
+    sync();
+    window.addEventListener('hashchange', sync);
+    window.addEventListener('popstate', sync);
+    return () => { window.removeEventListener('hashchange', sync); window.removeEventListener('popstate', sync); };
+  }, [personas]);
+  const select = (index: number) => {
+    setPick(index);
+    window.history.pushState(null, '', `#${personas[index].slug}`);
+  };
   const persona = personas[pick];
   const num = String(pick + 1).padStart(2, "0");
   const fitItems = persona.fitServices
@@ -33,14 +47,23 @@ export default function StagePicker({
       {/* 눈금이자 고르는 자리. 선 위의 점 셋. */}
       <ol className="stage-rail stg-rail" role="tablist" aria-label="단계 고르기">
         {personas.map((it, i) => (
-          <li key={it.slug}>
+          <li key={it.slug} role="presentation">
             <button
               type="button"
               role="tab"
+              id={`stage-tab-${it.slug}`}
+              tabIndex={i === pick ? 0 : -1}
               aria-selected={i === pick}
               aria-controls="stg-panel"
               className={i === pick ? "is-on" : undefined}
-              onClick={() => setPick(i)}
+              onClick={() => select(i)}
+              onKeyDown={(event) => {
+                const next = event.key === 'Home' ? 0 : event.key === 'End' ? personas.length - 1 : event.key === 'ArrowRight' ? (i + 1) % personas.length : event.key === 'ArrowLeft' ? (i - 1 + personas.length) % personas.length : -1;
+                if (next < 0) return;
+                event.preventDefault();
+                select(next);
+                document.getElementById(`stage-tab-${personas[next].slug}`)?.focus();
+              }}
             >
               <span className="stage-dot" />
               <b>{String(i + 1).padStart(2, "0")}</b>
@@ -51,7 +74,7 @@ export default function StagePicker({
       </ol>
 
       {/* 고른 하나. key 를 바꿔 다시 그리게 두면 들어오는 동작이 매번 다시 돈다. */}
-      <div className="stg-panel" id="stg-panel" role="tabpanel" key={persona.slug}>
+      <div className="stg-panel" id="stg-panel" role="tabpanel" aria-labelledby={`stage-tab-${persona.slug}`} tabIndex={0} key={persona.slug}>
         <div className="stg-left">
           <p className="t-label mb-4">{persona.englishLabel}</p>
           <div className="flex items-baseline gap-4">

@@ -5,17 +5,13 @@
    자동재생은 muted + playsInline 이 없으면 브라우저가 막는다.
    움직임을 꺼 둔 사람에게는 포스터 한 장만 보인다. */
 
-import { useEffect, useRef } from "react";
+import { useRef } from "react";
+import { useBackgroundVideo } from "@/lib/use-background-video";
 
 export default function HeroVideo({ opacity = 0.55 }: { opacity?: number }) {
   const ref = useRef<HTMLVideoElement>(null);
 
-  useEffect(() => {
-    const v = ref.current;
-    if (!v) return;
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-    v.play().catch(() => {});
-  }, []);
+  useBackgroundVideo(ref);
 
   return (
     <div className="hero-video" aria-hidden>

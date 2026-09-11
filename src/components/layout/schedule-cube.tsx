@@ -16,90 +16,25 @@
  * 보여 주니, 다음 것을 보려고 3.8초를 기다리게 둘 수는 없다.
  */
 
-import { useEffect, useRef, useState, useSyncExternalStore } from "react";
+import { useRef, useState, useCallback } from "react";
 import { createPortal } from "react-dom";
 import { scheduleDates } from "@/lib/constants";
 
-function daysLeft(ymd: string) {
-  const [y, m, d] = ymd.split("-").map(Number);
-  const due = new Date(y, m - 1, d);
-  const now = new Date();
-  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-  return Math.round((due.getTime() - today.getTime()) / 86400000);
-}
-
-function dday(ymd: string) {
-  const n = daysLeft(ymd);
-  if (n === 0) return "D-DAY";
-  return n > 0 ? `D-${n}` : `D+${-n}`;
-}
-
-const dotted = (ymd: string) => ymd.replaceAll("-", ".");
-
-/* 남은 날은 브라우저에서만 셀 수 있다. 서버에서 그리면 배포한 날짜로 굳는다.
-   한 번 센 결과를 모듈에 담아 둔다 — 렌더마다 새 배열을 만들면 React 가
-   바뀐 줄 알고 계속 다시 그린다. */
-let cached: typeof scheduleDates | null = null;
-function liveItems() {
-  if (!cached) {
-    const live = scheduleDates.filter((it) => daysLeft(it.when) >= 0);
-    cached = live.length ? live : scheduleDates;
-  }
-  return cached;
-}
-/* 오늘 날짜도 같은 이유로 브라우저에서만 잡는다. 「기준일」이 배포한
-   날짜로 굳으면 옆의 D-day 와 어긋나, 둘 중 뭐가 맞는지 알 수 없다. */
-let todayCache: string | null = null;
-function todayYmd() {
-  if (!todayCache) {
-    const n = new Date();
-    const p2 = (v: number) => String(v).padStart(2, "0");
-    todayCache = `${n.getFullYear()}-${p2(n.getMonth() + 1)}-${p2(n.getDate())}`;
-  }
-  return todayCache;
-}
-const noSubscribe = () => () => {};
+import { daysLeft, dday, scheduleSource } from "@/lib/schedule";
+import { useToday } from "@/lib/use-today";
+import { useDialog } from "@/lib/use-dialog";
+const dotted = (ymd: string) => ymd.replaceAll('-', '.');
 
 export default function ScheduleCube() {
-  /* 지난 일정은 뺀다. 다 지났으면 원래 목록을 그대로 쓴다.
-     서버에서는 빈 값을 주고, 브라우저가 붙은 뒤에 채운다. */
-  const items = useSyncExternalStore(noSubscribe, liveItems, () => null);
+  const today = useToday();
+  const items = today ? scheduleDates.filter(it => daysLeft(it.when, today) >= 0) : [];
   const [open, setOpen] = useState(false);
   const panelRef = useRef<HTMLDivElement>(null);
-  const backRef = useRef<HTMLElement | null>(null);
-
-  const today = useSyncExternalStore(noSubscribe, todayYmd, () => null);
-
-  /* 열려 있는 동안: 뒤가 안 밀리고, esc 로 닫히고, 탭이 안에 갇힌다. */
-  useEffect(() => {
-    if (!open) return;
-    backRef.current = document.activeElement as HTMLElement;
-    const prev = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") { setOpen(false); return; }
-      if (e.key !== "Tab") return;
-      const f = panelRef.current?.querySelectorAll<HTMLElement>(
-        'button, [href], [tabindex]:not([tabindex="-1"])'
-      );
-      if (!f?.length) return;
-      const first = f[0], last = f[f.length - 1];
-      if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
-      else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
-    };
-    document.addEventListener("keydown", onKey);
-    requestAnimationFrame(() => panelRef.current?.querySelector("button")?.focus());
-
-    return () => {
-      document.body.style.overflow = prev;
-      document.removeEventListener("keydown", onKey);
-      backRef.current?.focus?.();
-    };
-  }, [open]);
-
-
-  if (!items || !items.length) return null;
+  const triggerRef = useRef<HTMLButtonElement>(null);
+  const close = useCallback(() => setOpen(false), []);
+  useDialog(open, panelRef, close, triggerRef);
+  if (!today) return null;
+  if (!items.length) return <a className="text-sm" href={scheduleSource} target="_blank" rel="noopener noreferrer">등록된 다음 일정이 없습니다 · 국세청 일정</a>;
 
   /* 면은 넷. 목록이 그보다 짧으면 앞에서부터 다시 채운다.
      회전값은 되돌리지 않고 계속 키운다 — 0 으로 되감으면 그 순간 튄다. */
@@ -121,10 +56,11 @@ export default function ScheduleCube() {
       <button
         type="button"
         className="sc-clip"
+        ref={triggerRef}
         onClick={() => setOpen(true)}
         aria-haspopup="dialog"
         aria-expanded={open}
-        aria-label="이번 분기 주요 일정 전체 보기"
+        aria-label="주요 세무 일정 전체 보기"
       >
         <span className="sc-stage" aria-hidden>
           {/* 굴리는 건 CSS 키프레임(sc-roll)이 한다. 여기서 transform 을
@@ -158,7 +94,7 @@ export default function ScheduleCube() {
           >
             <div className="schm-hd">
               <div>
-                <h2 id="schm-title">이번 분기 주요 일정</h2>
+                <h2 id="schm-title">주요 세무 일정</h2>
                 {today && <time dateTime={today}>{dotted(today)} 기준</time>}
               </div>
               <button
@@ -179,7 +115,7 @@ export default function ScheduleCube() {
             <ol className="schm-list">
               {items.map((it, i) => (
                 <li key={it.what + it.when} className={i === 0 ? "is-near" : undefined}>
-                  <span className="schm-what">{it.what}</span>
+                  <span className="schm-what">{it.what}<small className="block">{it.period}</small></span>
                   <span className="schm-when">{dotted(it.when)}</span>
                   <span className="schm-dd">{dday(it.when)}</span>
                 </li>

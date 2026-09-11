@@ -8,7 +8,8 @@
 
    움직임을 꺼 둔 사람에게는 전부 펼쳐진 채로 보인다. */
 
-import { AnimatePresence, motion, useReducedMotion } from "motion/react";
+import { AnimatePresence, motion } from "motion/react";
+import { usePrefersReducedMotion as useReducedMotion } from "@/lib/use-media";
 import { useEffect, useState } from "react";
 import { siteConfig } from "@/lib/constants";
 import { members } from "@/lib/data";

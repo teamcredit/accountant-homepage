@@ -1,3 +1,4 @@
+import { toSafeJsonLd } from "@/lib/json-ld";
 import type { Metadata, Viewport } from "next";
 import { Cormorant_Garamond } from "next/font/google";
 import { Analytics } from "@vercel/analytics/next";
@@ -21,14 +22,6 @@ const cormorant = Cormorant_Garamond({
   display: "swap",
 });
 
-function toSafeJsonLd(value: unknown) {
-  return JSON.stringify(value)
-    .replaceAll("<", "\\u003c")
-    .replaceAll(">", "\\u003e")
-    .replaceAll("&", "\\u0026")
-    .replaceAll("\u2028", "\\u2028")
-    .replaceAll("\u2029", "\\u2029");
-}
 
 export const viewport: Viewport = {
   width: "device-width",
@@ -71,10 +64,12 @@ export const metadata: Metadata = {
     type: "website",
     locale: "ko_KR",
     siteName: siteConfig.name,
+    images: [{ url: "/home-hero-poster.jpg", alt: "Meridian 세무·회계 자문" }],
     url: siteConfig.url,
   },
   twitter: {
     card: "summary_large_image",
+    images: ["/home-hero-poster.jpg"],
     title: `${siteConfig.title} | ${siteConfig.name}`,
     description: siteConfig.description,
   },
@@ -155,7 +150,8 @@ export default function RootLayout({
         <GlassFilterDefs />
         <SmoothScrollProvider>
           <Header />
-          <main className="flex-1 pt-20">{children}</main>
+          <a href="#main-content" className="skip-link">본문 바로가기</a>
+          <main id="main-content" tabIndex={-1} className="flex-1 pt-20">{children}</main>
           <Footer />
         </SmoothScrollProvider>
         <ScrollCue />

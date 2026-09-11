@@ -1,6 +1,7 @@
 "use client";
 
-import { motion, useReducedMotion } from "motion/react";
+import { motion } from "motion/react";
+import { usePrefersReducedMotion as useReducedMotion } from "@/lib/use-media";
 import { useSyncExternalStore } from "react";
 import type { ReactNode } from "react";
 

@@ -22,7 +22,7 @@ import MeridianGlobe from "@/components/about/meridian-globe";
    ───────────────────────────────────────────────────────────── */
 
 export const metadata: Metadata = {
-  title: "ABOUT",
+  title: "회사 소개",
   description: siteConfig.description,
   alternates: {
     canonical: "/about",

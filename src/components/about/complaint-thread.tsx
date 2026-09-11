@@ -19,7 +19,8 @@
 
 import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
-import { motion, useReducedMotion, type Variants } from "motion/react";
+import { motion, type Variants } from "motion/react";
+import { usePrefersReducedMotion as useReducedMotion } from "@/lib/use-media";
 
 const EASE = [0.16, 1, 0.3, 1] as const;
 
@@ -250,7 +251,7 @@ function Bubble({
       transition={{ layout: { duration: GROW, ease: EASE } }}
     >
       {typing ? (
-        <span className="imsg-dots" aria-label="입력 중">
+        <span className="imsg-dots" role="status" aria-label="입력 중">
           <span /><span /><span />
         </span>
       ) : (

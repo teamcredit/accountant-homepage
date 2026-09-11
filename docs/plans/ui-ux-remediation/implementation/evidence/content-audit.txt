@@ -1,0 +1,36 @@
+
+> homepage@0.1.0 audit:content
+> node scripts/content-audit.mjs
+
+warning: apartment-joint-vs-sole-ownership.mdx: editorial review is older than 120 days (2026-05-01)
+warning: business-credit-card-registration.mdx: editorial review is older than 120 days (2026-04-29)
+warning: business-vehicle-expense.mdx: editorial review is older than 120 days (2026-04-29)
+warning: cash-receipt-mandatory-issuance.mdx: editorial review is older than 120 days (2026-04-29)
+warning: ceo-salary-vs-dividend.mdx: editorial review is older than 120 days (2026-04-29)
+warning: combined-income-tax-filing.mdx: editorial review is older than 120 days (2026-04-29)
+warning: contract-cancellation-deposit-vat-bad-debt-credit-2026.mdx: editorial review is older than 120 days (2026-04-29)
+warning: corporate-settlement-tax-adjustment.mdx: editorial review is older than 120 days (2026-04-29)
+warning: corporate-tax-filing-prep.mdx: editorial review is older than 120 days (2026-04-29)
+warning: corporate-tax-rate-increase-2026.mdx: editorial review is older than 120 days (2026-04-29)
+warning: creator-cash-sales-report.mdx: editorial review is older than 120 days (2026-05-01)
+warning: dividend-separate-taxation-2026.mdx: editorial review is older than 120 days (2026-05-01)
+warning: employee-benefits-tax-treatment.mdx: editorial review is older than 120 days (2026-04-29)
+warning: entertainment-expense-limit.mdx: editorial review is older than 120 days (2026-04-29)
+warning: estimated-tax-expense-rate.mdx: editorial review is older than 120 days (2026-04-29)
+warning: evidence-management-basics.mdx: editorial review is older than 120 days (2026-04-29)
+warning: executive-stock-option-tax.mdx: editorial review is older than 120 days (2026-04-29)
+warning: exempt-business-status-report-2026.mdx: editorial review is older than 120 days (2026-04-29)
+warning: faithful-reporting-target.mdx: editorial review is older than 120 days (2026-04-29)
+warning: four-insurance-employer-guide.mdx: editorial review is older than 120 days (2026-05-01)
+warning: freelancer-income-tax-guide.mdx: editorial review is older than 120 days (2026-04-29)
+warning: home-office-expense-deduction.mdx: editorial review is older than 120 days (2026-05-01)
+warning: individual-vs-corporate-tax.mdx: editorial review is older than 120 days (2026-04-29)
+warning: inheritance-tax-reform-2026.mdx: editorial review is older than 120 days (2026-04-29)
+warning: interim-corporate-tax-2025.mdx: editorial review is older than 120 days (2026-04-29)
+warning: late-income-tax-filing.mdx: editorial review is older than 120 days (2026-04-29)
+warning: loss-carryforward-guide.mdx: editorial review is older than 120 days (2026-04-29)
+warning: new-business-tax-calendar-2026.mdx: editorial review is older than 120 days (2026-04-29)
+warning: one-household-one-house-definition-2026.mdx: editorial review is older than 120 days (2026-04-29)
+warning: rental-income-vat-housing-vs-commercial.mdx: editorial review is older than 120 days (2026-04-29)
+warning: 21 additional content warning(s) omitted
+Content audit completed: 0 error(s), 51 warning(s).

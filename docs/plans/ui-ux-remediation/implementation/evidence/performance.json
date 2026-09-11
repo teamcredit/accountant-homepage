@@ -1,0 +1,58 @@
+{
+  "url": "http://localhost:3100/",
+  "excludedWarmup": 1,
+  "reason": "First run began while the last acceptance test was finishing; use three isolated subsequent runs.",
+  "runs": [
+    {
+      "run": 2,
+      "score": 62,
+      "LCPms": 8666.1077,
+      "CLS": 0,
+      "TBTms": 35.00000000000091,
+      "settings": {
+        "rttMs": 150,
+        "throughputKbps": 1638.4,
+        "requestLatencyMs": 562.5,
+        "downloadThroughputKbps": 1474.5600000000002,
+        "uploadThroughputKbps": 675,
+        "cpuSlowdownMultiplier": 4
+      },
+      "browser": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36",
+      "lighthouse": "13.4.1"
+    },
+    {
+      "run": 3,
+      "score": 62,
+      "LCPms": 8488.594275,
+      "CLS": 0,
+      "TBTms": 112.5,
+      "settings": {
+        "rttMs": 150,
+        "throughputKbps": 1638.4,
+        "requestLatencyMs": 562.5,
+        "downloadThroughputKbps": 1474.5600000000002,
+        "uploadThroughputKbps": 675,
+        "cpuSlowdownMultiplier": 4
+      },
+      "browser": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36",
+      "lighthouse": "13.4.1"
+    },
+    {
+      "run": 4,
+      "score": 63,
+      "LCPms": 8395.401000000002,
+      "CLS": 0,
+      "TBTms": 33,
+      "settings": {
+        "rttMs": 150,
+        "throughputKbps": 1638.4,
+        "requestLatencyMs": 562.5,
+        "downloadThroughputKbps": 1474.5600000000002,
+        "uploadThroughputKbps": 675,
+        "cpuSlowdownMultiplier": 4
+      },
+      "browser": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36",
+      "lighthouse": "13.4.1"
+    }
+  ]
+}

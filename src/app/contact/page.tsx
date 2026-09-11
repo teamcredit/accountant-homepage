@@ -1,13 +1,16 @@
+import { toSafeJsonLd } from "@/lib/json-ld";
 import type { Metadata } from "next";
 import Image from "next/image";
 import { siteConfig } from "@/lib/constants";
+import { services } from "@/lib/data";
+import { DEFAULT_STATE, deserializeStateFromParams, calculateEstimate, buildInquiryText } from "@/lib/pricing";
 import ContactForm from "@/components/contact/contact-form";
 import { AnimateOnScroll, LineReveal } from "@/components/motion";
 import { contactFaq } from "@/lib/faq";
 import HeroVideo from "@/components/layout/hero-video";
 
 export const metadata: Metadata = {
-  title: "CONTACT",
+  title: "문의",
   description: "현재 상황과 필요한 서비스를 알려주시면 적용 범위와 다음 단계를 정리해 드립니다.",
   alternates: {
     canonical: "/contact",
@@ -23,7 +26,7 @@ const contactInfo = [
 
 interface ContactPageProps {
   searchParams: Promise<{
-    message?: string | string[];
+    [key: string]: string | string[] | undefined;
   }>;
 }
 
@@ -42,19 +45,22 @@ const faqJsonLd = {
   })),
 };
 
-function toSafeJsonLd(value: unknown) {
-  return JSON.stringify(value)
-    .replaceAll("<", "\\u003c")
-    .replaceAll(">", "\\u003e")
-    .replaceAll("&", "\\u0026")
-    .replaceAll("\u2028", "\\u2028")
-    .replaceAll("\u2029", "\\u2029");
-}
 
 export default async function ContactPage({ searchParams }: ContactPageProps) {
   const query = await searchParams;
-  const message = getSingleValue(query.message);
-  const initialValues = message ? { message } : {};
+  let message = getSingleValue(query.message) || '';
+  if (getSingleValue(query.from) === 'pricing') {
+    const params = new URLSearchParams();
+    for (const [key, value] of Object.entries(query)) { const one = getSingleValue(value); if (one) params.set(key, one); }
+    const state = { ...DEFAULT_STATE, ...deserializeStateFromParams(params) };
+    message = buildInquiryText(state, calculateEstimate(state));
+  } else {
+    const type = getSingleValue(query.type);
+    const service = services.find(item => item.title === type || item.slug === getSingleValue(query.service));
+    const context = [service && `관심 서비스: ${service.title}`, getSingleValue(query.bottleneck) && `상담 목적: ${getSingleValue(query.bottleneck)}`, getSingleValue(query.output) && `필요한 결과물: ${getSingleValue(query.output)}`].filter(Boolean).join('\n');
+    if (context) message = `${context}\n\n${message}`;
+  }
+  const initialValues = message ? { message: message.slice(0, 4000) } : {};
 
   return (
     <>

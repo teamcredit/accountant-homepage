@@ -1,6 +1,6 @@
 "use client";
 
-import { useId, useState } from "react";
+import { useId, useState, useRef } from "react";
 
 interface FormData {
   name: string;
@@ -26,6 +26,8 @@ interface ContactFormProps {
 
 export default function ContactForm({ initialValues }: ContactFormProps) {
   const formId = useId();
+  const submitting = useRef(false);
+  const statusRef = useRef<HTMLDivElement>(null);
   const [form, setForm] = useState<FormData>(() => ({
     ...defaultForm,
     startedAt: Date.now(),
@@ -44,6 +46,8 @@ export default function ContactForm({ initialValues }: ContactFormProps) {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (submitting.current) return;
+    submitting.current = true;
     setStatus("sending");
     setErrorMessage("");
 
@@ -52,6 +56,7 @@ export default function ContactForm({ initialValues }: ContactFormProps) {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(form),
+        signal: AbortSignal.timeout(20000),
       });
 
       if (res.ok) {
@@ -67,18 +72,21 @@ export default function ContactForm({ initialValues }: ContactFormProps) {
         } catch {
           // ignore
         }
-        setErrorMessage(serverMessage || `전송에 실패했습니다 (${res.status}).`);
+        setErrorMessage(res.status === 429 ? "요청이 많습니다. 잠시 후 다시 시도해 주세요." : serverMessage || `전송에 실패했습니다 (${res.status}).`);
         setStatus("error");
       }
     } catch {
-      setErrorMessage("네트워크 오류로 전송하지 못했습니다.");
+      setErrorMessage("응답을 확인하지 못해 접수 여부가 확실하지 않습니다. 입력 내용은 유지됩니다. 잠시 후 확인하거나 직접 연락해 주세요.");
       setStatus("error");
+    } finally {
+      submitting.current = false;
+      requestAnimationFrame(() => statusRef.current?.focus());
     }
   };
 
   if (status === "sent") {
     return (
-      <div className="py-20 text-center animate-fade-in">
+      <div ref={statusRef} tabIndex={-1} role="status" className="py-20 text-center animate-fade-in">
         <div className="w-16 h-16 mx-auto mb-6 rounded-full border-2 border-foreground flex items-center justify-center">
           <svg
             width="24"
@@ -110,7 +118,8 @@ export default function ContactForm({ initialValues }: ContactFormProps) {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-8">
+    <form onSubmit={handleSubmit} className="space-y-8" aria-busy={status === "sending"}>
+      {initialValues?.message && <p className="text-sm text-muted">선택한 서비스·견적 조건을 아래 현재 상황에 담았습니다. 확인하고 수정해 주세요.</p>}
       <div className="sr-only" aria-hidden="true">
         <label htmlFor={fieldId("website")}>Website</label>
         <input
@@ -196,7 +205,7 @@ export default function ContactForm({ initialValues }: ContactFormProps) {
       </div>
 
       {status === "error" && (
-        <div className="flex items-center gap-3 py-4 px-5 bg-red-50 border border-red-100">
+        <div ref={statusRef} tabIndex={-1} role="alert" className="flex items-center gap-3 py-4 px-5 bg-red-50 border border-red-100">
           <span className="w-5 h-5 rounded-full border border-red-400 flex items-center justify-center flex-shrink-0">
             <span className="text-red-500 text-xs font-bold">!</span>
           </span>

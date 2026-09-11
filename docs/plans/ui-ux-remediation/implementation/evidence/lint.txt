@@ -1,0 +1,15 @@
+
+> homepage@0.1.0 lint
+> eslint
+
+
+/Users/macstudio/dev/accounting-homepage/src/app/portal/page.tsx
+  403:156  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+/Users/macstudio/dev/accounting-homepage/src/components/about/complaint-thread.tsx
+  171:15  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+/Users/macstudio/dev/accounting-homepage/src/components/home/principal-unfold.tsx
+  89:11  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+✖ 3 problems (0 errors, 3 warnings)

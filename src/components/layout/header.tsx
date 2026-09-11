@@ -1,10 +1,11 @@
 "use client";
 
 import Link from "next/link";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { usePathname } from "next/navigation";
 import { motion, useScroll, useSpring } from "motion/react";
 import { DesktopNav, MobileNav, MegaPanel, useMenuOpen } from "./site-nav";
+import { useDialog } from "@/lib/use-dialog";
 import SiteSearch from "./site-search";
 import ScheduleCube from "./schedule-cube";
 import Wordmark from "@/components/brand/wordmark";
@@ -19,6 +20,10 @@ export default function Header() {
 
   const pathname = usePathname();
   const headerRef = useRef<HTMLElement>(null);
+  const dialogRef = useRef<HTMLDivElement>(null);
+  const menuTriggerRef = useRef<HTMLButtonElement>(null);
+  const closeMobile = useCallback(() => setMobileOpen(false), []);
+  useDialog(mobileOpen, dialogRef, closeMobile, menuTriggerRef);
 
   /* 헤더 모습은 두 가지뿐이다. 배경을 읽지 않는다.
        맨 위        — 막 없음, 흰 글씨. 히어로가 그대로 비친다.
@@ -81,37 +86,11 @@ export default function Header() {
   }, [pathname]);
 
   useEffect(() => {
-    const main = document.querySelector("main");
-
-    if (mobileOpen) {
-      document.body.style.overflow = "hidden";
-      main?.setAttribute("inert", "");
-      main?.setAttribute("aria-hidden", "true");
-    } else {
-      document.body.style.overflow = "";
-      main?.removeAttribute("inert");
-      main?.removeAttribute("aria-hidden");
-    }
-
-    return () => {
-      document.body.style.overflow = "";
-      main?.removeAttribute("inert");
-      main?.removeAttribute("aria-hidden");
-    };
-  }, [mobileOpen]);
-
-  useEffect(() => {
-    if (!mobileOpen) return;
-
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") {
-        setMobileOpen(false);
-      }
-    };
-
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [mobileOpen]);
+    const query = matchMedia('(min-width: 960px)');
+    const close = () => { if (query.matches) closeMobile(); };
+    query.addEventListener('change', close);
+    return () => query.removeEventListener('change', close);
+  }, [closeMobile]);
 
   return (
     <>
@@ -127,6 +106,8 @@ export default function Header() {
         data-mega={menu.open ? "true" : "false"}
         className="site-header glass-bar z-50"
         onPointerLeave={menu.scheduleClose}
+        onBlur={(e) => { if (!e.currentTarget.contains(e.relatedTarget as Node)) menu.scheduleClose(); }}
+        onFocus={menu.cancelClose}
       >
         {/* 본문(1600px)과 같은 폭을 쓴다. 1280 으로 가두면 넓은 화면에서
             헤더만 좁아 보인다. 높이도 한 단계 키워 답답함을 던다. */}
@@ -174,6 +155,7 @@ export default function Header() {
             aria-label={mobileOpen ? "메뉴 닫기" : "메뉴 열기"}
             aria-expanded={mobileOpen}
             aria-controls="mobile-navigation"
+            ref={menuTriggerRef}
           >
             <div className="relative w-5 h-3.5">
               <span
@@ -210,6 +192,9 @@ export default function Header() {
           그 어두운 자리를 누르면 닫힌다. */}
       <div
         id="mobile-navigation"
+        ref={dialogRef}
+        tabIndex={-1}
+        inert={!mobileOpen}
         aria-hidden={!mobileOpen}
         aria-label="모바일 메뉴"
         aria-modal={mobileOpen ? true : undefined}

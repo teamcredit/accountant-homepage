@@ -26,15 +26,16 @@ import {
   useTransform,
   useMotionValue,
   useMotionValueEvent,
-  useReducedMotion,
 } from "motion/react";
+import { useBackgroundVideo } from "@/lib/use-background-video";
 import Wordmark from "@/components/brand/wordmark";
-import { useHandheld } from "@/lib/use-media";
+import { useHandheld, useMedia } from "@/lib/use-media";
 
 export default function AboutOpening() {
   const ref = useRef<HTMLDivElement>(null);
-  const reduced = useReducedMotion();
+  const reduced = useMedia("(prefers-reduced-motion: reduce)");
   const handheld = useHandheld();
+  useBackgroundVideo(ref, handheld || reduced);
 
   /* 이 구간을 지나는 동안 0 → 1. 그게 아래 모든 값의 시계다. */
   const { scrollYProgress } = useScroll({
@@ -77,7 +78,7 @@ export default function AboutOpening() {
      가는 거리와 줄어드는 비율은 화면마다 달라서 재야 한다. 아래
      useLayoutEffect 가 첫 그림 전에 한 번, 그리고 폭이 바뀔 때마다 잰다. */
   const nameRef = useRef<HTMLDivElement>(null);
-  const flyRef = useRef<HTMLDivElement>(null);
+  const flyRef = useRef<HTMLHeadingElement>(null);
   const [fly, setFly] = useState<{ dx: number; dy: number; s: number } | null>(null);
 
   useLayoutEffect(() => {
@@ -135,7 +136,7 @@ export default function AboutOpening() {
       <div ref={ref} className="about-flat">
         <section className="aflat-film">
           {!reduced && (
-            <video autoPlay muted loop playsInline preload="metadata">
+            <video muted loop playsInline preload="metadata" poster="/home-hero-poster.jpg">
               <source src="/home-hero.webm" type="video/webm" />
               <source src="/home-hero.mp4" type="video/mp4" />
             </video>
@@ -163,7 +164,7 @@ export default function AboutOpening() {
           >
             {/* webm 이 먼저다 — 같은 화질에 mp4 보다 15% 작다.
                 7.8MB 원본을 crf 27 로 다시 떠서 1.1MB 로 줄였다. */}
-            <video autoPlay muted loop playsInline preload="metadata">
+            <video muted loop playsInline preload="metadata" poster="/home-hero-poster.jpg">
               <source src="/home-hero.webm" type="video/webm" />
               <source src="/home-hero.mp4" type="video/mp4" />
             </video>
@@ -214,9 +215,9 @@ function What({
             넓은 화면에서는 이 로고가 처음에 화면 한가운데 크게 섰다가
             여기로 내려온다. 그 움직임은 부모(.about-logo-fly)가 맡는다. */}
         <div className="about-what-name" ref={nameRef}>
-          <motion.div className="about-logo-fly" ref={flyRef} style={flyStyle}>
+          <motion.h1 className="about-logo-fly" ref={flyRef} style={flyStyle}>
             <Wordmark mark={false} />
-          </motion.div>
+          </motion.h1>
         </div>
         {/* 업(業)을 한 줄로 먼저 박는다. 이 줄이 없으면 아래 설명이
             무엇에 대한 설명인지 모른 채 읽힌다.

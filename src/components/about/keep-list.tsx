@@ -11,7 +11,8 @@
    한 줄씩 차례로 들어온다 — 다시 whileInView 로 되돌리지 말 것. */
 
 import { useRef } from "react";
-import { motion, useReducedMotion, useScroll, useTransform } from "motion/react";
+import { motion, useScroll, useTransform } from "motion/react";
+import { usePrefersReducedMotion as useReducedMotion } from "@/lib/use-media";
 
 const ITEMS = [
   {

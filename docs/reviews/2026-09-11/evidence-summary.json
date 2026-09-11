@@ -1,0 +1,1717 @@
+{
+  "branch": "feat/menu-ia",
+  "commit": "9b6f13c4ab9cb82c1894be684c354395cfd72f49",
+  "date": "2026-09-11",
+  "fable_model_verified": "claude-fable-5-1",
+  "checks": {
+    "lint": "pass",
+    "build": "pass",
+    "content_audit": "0 errors, 0 warnings",
+    "signatures": {
+      "verified": 793,
+      "attestations": 130
+    }
+  },
+  "unit_reproductions": [
+    {
+      "test": "duplicate add-ons",
+      "once": 150000,
+      "twice": 220000,
+      "delta": 70000
+    },
+    {
+      "test": "actual resend SDK rejects via value",
+      "sdkResult": {
+        "data": null,
+        "error": {
+          "statusCode": 403,
+          "name": "validation_error",
+          "message": "review simulated rejection"
+        },
+        "headers": {
+          "content-type": "application/json"
+        }
+      }
+    },
+    {
+      "test": "contact response with SDK 403",
+      "status": 200,
+      "body": {
+        "success": true
+      }
+    }
+  ],
+  "navigation_reproductions": [
+    {
+      "test": "actual search customer",
+      "hits": [
+        {
+          "href": "/clients#growing-ceo",
+          "text": "고객매출이 커진 대표Growing CEO"
+        }
+      ]
+    },
+    {
+      "test": "actual search arrival",
+      "url": "http://localhost:3100/clients#growing-ceo",
+      "selected": "01법인을 막 세운 대표"
+    },
+    {
+      "test": "manual tab",
+      "selected": "02매출이 커진 대표"
+    },
+    {
+      "test": "faq expand",
+      "expanded": "true",
+      "answer": "첫 상담과 범위 정리는 무료입니다. 자료를 받아 실제로 검토가 필요한 단계부터 견적을 드리고, 동의하신 뒤에 시작합니다."
+    },
+    {
+      "test": "960 header bounds",
+      "rects": [
+        {
+          "text": "Meridian.",
+          "x": 29,
+          "right": 139.484375,
+          "width": 110.484375
+        },
+        {
+          "text": "ABOUT",
+          "x": 165.125,
+          "right": 208.46875,
+          "width": 43.34375
+        },
+        {
+          "text": "SERVICE",
+          "x": 242.21875,
+          "right": 307.8125,
+          "width": 65.59375
+        },
+        {
+          "text": "PEOPLE",
+          "x": 341.5625,
+          "right": 388.875,
+          "width": 47.3125
+        },
+        {
+          "text": "FOR WHO",
+          "x": 422.625,
+          "right": 481.375,
+          "width": 58.75
+        },
+        {
+          "text": "BLOG",
+          "x": 515.125,
+          "right": 562.21875,
+          "width": 47.09375
+        },
+        {
+          "text": "FAQ",
+          "x": 595.96875,
+          "right": 619.875,
+          "width": 23.90625
+        },
+        {
+          "text": "DASHBOARD",
+          "x": 653.625,
+          "right": 730.4375,
+          "width": 76.8125
+        },
+        {
+          "text": "검색 열기",
+          "x": 761.4375,
+          "right": 799.4375,
+          "width": 38
+        },
+        {
+          "text": "기장 문의하기",
+          "x": 822.9375,
+          "right": 931,
+          "width": 108.0625
+        }
+      ]
+    },
+    {
+      "test": "blog history back after page 3 article",
+      "before": "3",
+      "after": "1",
+      "scrollY": 0,
+      "url": "http://localhost:3100/blog",
+      "origin": "Fable finding, Codex Chromium reproduction"
+    }
+  ],
+  "crawl": {
+    "pages": {
+      "/about": {
+        "status": 200,
+        "bytes": 82297
+      },
+      "/blog/apartment-joint-vs-sole-ownership": {
+        "status": 200,
+        "bytes": 155131
+      },
+      "/blog/corporate-tax-rate-increase-2026": {
+        "status": 200,
+        "bytes": 113990
+      },
+      "/blog/entertainment-expense-limit": {
+        "status": 200,
+        "bytes": 104290
+      },
+      "/services/tax-bookkeeping": {
+        "status": 200,
+        "bytes": 90605
+      },
+      "/services/audit-advisory": {
+        "status": 200,
+        "bytes": 85791
+      },
+      "/blog/small-corp-tax-benefits-checklist": {
+        "status": 200,
+        "bytes": 123572
+      },
+      "/blog/home-office-expense-deduction": {
+        "status": 200,
+        "bytes": 113937
+      },
+      "/preview": {
+        "error": "HTTP Error 404: Not Found"
+      },
+      "/blog/rnd-tax-credit-pre-review": {
+        "status": 200,
+        "bytes": 105546
+      },
+      "/blog/vat-preliminary-q1-2025": {
+        "status": 200,
+        "bytes": 105470
+      },
+      "/services/tax-adjustment": {
+        "status": 200,
+        "bytes": 90533
+      },
+      "/blog/freelancer-income-tax-guide": {
+        "status": 200,
+        "bytes": 104933
+      },
+      "/blog/dividend-separate-taxation-2026": {
+        "status": 200,
+        "bytes": 114015
+      },
+      "/blog": {
+        "status": 200,
+        "bytes": 143376
+      },
+      "/": {
+        "status": 200,
+        "bytes": 99491
+      },
+      "/blog/vat-changes-april-2026": {
+        "status": 200,
+        "bytes": 101082
+      },
+      "/blog/four-insurance-employer-guide": {
+        "status": 200,
+        "bytes": 118354
+      },
+      "/blog/vat-final-q1-zero-rate": {
+        "status": 200,
+        "bytes": 103793
+      },
+      "/faq": {
+        "status": 200,
+        "bytes": 66984
+      },
+      "/blog/ceo-salary-vs-dividend": {
+        "status": 200,
+        "bytes": 102169
+      },
+      "/services/transaction-advisory": {
+        "status": 200,
+        "bytes": 89310
+      },
+      "/does-not-exist": {
+        "error": "HTTP Error 404: Not Found"
+      },
+      "/blog/simplified-vs-general-taxpayer": {
+        "status": 200,
+        "bytes": 104585
+      },
+      "/blog/year-end-tax-prep-2025": {
+        "status": 200,
+        "bytes": 100515
+      },
+      "/services": {
+        "status": 200,
+        "bytes": 81745
+      },
+      "/blog/vat-final-q4-checklist": {
+        "status": 200,
+        "bytes": 102283
+      },
+      "/blog/vat-input-tax-deduction": {
+        "status": 200,
+        "bytes": 105153
+      },
+      "/blog/exempt-business-status-report-2026": {
+        "status": 200,
+        "bytes": 113857
+      },
+      "/blog/new-business-tax-calendar-2026": {
+        "status": 200,
+        "bytes": 114358
+      },
+      "/blog/year-end-closing-checklist": {
+        "status": 200,
+        "bytes": 112558
+      },
+      "/blog/business-vehicle-expense": {
+        "status": 200,
+        "bytes": 103454
+      },
+      "/blog/combined-income-tax-filing": {
+        "status": 200,
+        "bytes": 102945
+      },
+      "/blog/rental-income-vat-housing-vs-commercial": {
+        "status": 200,
+        "bytes": 105451
+      },
+      "/blog/year-end-tax-settlement-refund": {
+        "status": 200,
+        "bytes": 99550
+      },
+      "/blog/loss-carryforward-guide": {
+        "status": 200,
+        "bytes": 100048
+      },
+      "/services/ipo-advisory": {
+        "status": 200,
+        "bytes": 85377
+      },
+      "/blog/contract-cancellation-deposit-vat-bad-debt-credit-2026": {
+        "status": 200,
+        "bytes": 112615
+      },
+      "/blog/corporate-settlement-tax-adjustment": {
+        "status": 200,
+        "bytes": 103744
+      },
+      "/blog/temporary-advance-cleanup": {
+        "status": 200,
+        "bytes": 106211
+      },
+      "/contact": {
+        "status": 200,
+        "bytes": 81799
+      },
+      "/services/pa": {
+        "status": 200,
+        "bytes": 89301
+      },
+      "/blog/tax-audit-preparation": {
+        "status": 200,
+        "bytes": 102151
+      },
+      "/blog/corporate-tax-filing-prep": {
+        "status": 200,
+        "bytes": 102860
+      },
+      "/blog/employee-benefits-tax-treatment": {
+        "status": 200,
+        "bytes": 103930
+      },
+      "/blog/late-income-tax-filing": {
+        "status": 200,
+        "bytes": 99311
+      },
+      "/blog/vat-preliminary-q2-2025": {
+        "status": 200,
+        "bytes": 109874
+      },
+      "/blog/estimated-tax-expense-rate": {
+        "status": 200,
+        "bytes": 100599
+      },
+      "/blog/tax-reform-2025-summary": {
+        "status": 200,
+        "bytes": 96370
+      },
+      "/blog/business-credit-card-registration": {
+        "status": 200,
+        "bytes": 102039
+      },
+      "/blog/creator-cash-sales-report": {
+        "status": 200,
+        "bytes": 106925
+      },
+      "/blog/tax-reform-2026-enacted": {
+        "status": 200,
+        "bytes": 112407
+      },
+      "/blog/individual-vs-corporate-tax": {
+        "status": 200,
+        "bytes": 105797
+      },
+      "/services/tax-advisory": {
+        "status": 200,
+        "bytes": 84916
+      },
+      "/blog/tax-invoice-late-penalty": {
+        "status": 200,
+        "bytes": 103402
+      },
+      "/blog/inheritance-tax-reform-2026": {
+        "status": 200,
+        "bytes": 116260
+      },
+      "/blog/one-household-one-house-definition-2026": {
+        "status": 200,
+        "bytes": 123130
+      },
+      "/members": {
+        "status": 200,
+        "bytes": 67077
+      },
+      "/blog/faithful-reporting-target": {
+        "status": 200,
+        "bytes": 104341
+      },
+      "/services/valuation": {
+        "status": 200,
+        "bytes": 88773
+      },
+      "/blog/withholding-tax-payment-statement": {
+        "status": 200,
+        "bytes": 103171
+      },
+      "/blog/year-end-tax-prep-november": {
+        "status": 200,
+        "bytes": 99869
+      },
+      "/blog/retirement-severance-tax": {
+        "status": 200,
+        "bytes": 104333
+      },
+      "/services/payroll-outsourcing": {
+        "status": 200,
+        "bytes": 88355
+      },
+      "/blog/startup-tax-relief-2026": {
+        "status": 200,
+        "bytes": 109431
+      },
+      "/privacy": {
+        "error": "HTTP Error 404: Not Found"
+      },
+      "/blog/evidence-management-basics": {
+        "status": 200,
+        "bytes": 101591
+      },
+      "/clients": {
+        "status": 200,
+        "bytes": 81293
+      },
+      "/blog/cash-receipt-mandatory-issuance": {
+        "status": 200,
+        "bytes": 103573
+      },
+      "/blog/executive-stock-option-tax": {
+        "status": 200,
+        "bytes": 106958
+      },
+      "/pricing": {
+        "status": 200,
+        "bytes": 87216
+      },
+      "/portal": {
+        "status": 200,
+        "bytes": 132831
+      },
+      "/blog/interim-corporate-tax-2025": {
+        "status": 200,
+        "bytes": 99133
+      }
+    },
+    "missingAnchors": [],
+    "assetCount": 43,
+    "failedAssets": {}
+  },
+  "browser": [
+    {
+      "path": "/",
+      "status": 200,
+      "errors": [],
+      "title": "기준이 되는 세무회계",
+      "h1": [],
+      "overflow": false,
+      "height": 7726,
+      "canon": "https://www.meridianco.kr/",
+      "brokenImages": []
+    },
+    {
+      "path": "/about",
+      "status": 200,
+      "errors": [],
+      "title": "ABOUT | 메리디안 택스 어드바이저리",
+      "h1": [
+        "Meridian."
+      ],
+      "overflow": false,
+      "height": 4959,
+      "canon": "https://www.meridianco.kr/about",
+      "brokenImages": []
+    },
+    {
+      "path": "/services",
+      "status": 200,
+      "errors": [],
+      "title": "PRACTICE | 메리디안 택스 어드바이저리",
+      "h1": [
+        "서비스 범위"
+      ],
+      "overflow": false,
+      "height": 3125,
+      "canon": "https://www.meridianco.kr/services",
+      "brokenImages": []
+    },
+    {
+      "path": "/services/tax-bookkeeping",
+      "status": 200,
+      "errors": [],
+      "title": "세무 기장 | 메리디안 택스 어드바이저리",
+      "h1": [
+        "세무 기장"
+      ],
+      "overflow": false,
+      "height": 2926,
+      "canon": "https://www.meridianco.kr/services/tax-bookkeeping",
+      "brokenImages": []
+    },
+    {
+      "path": "/clients",
+      "status": 200,
+      "errors": [],
+      "title": "WHO | 메리디안 택스 어드바이저리",
+      "h1": [
+        "대표의 단계마다필요한 일이 다릅니다"
+      ],
+      "overflow": false,
+      "height": 2499,
+      "canon": "https://www.meridianco.kr/clients",
+      "brokenImages": []
+    },
+    {
+      "path": "/members",
+      "status": 200,
+      "errors": [],
+      "title": "PEOPLE | 메리디안 택스 어드바이저리",
+      "h1": [
+        "일하는 사람"
+      ],
+      "overflow": false,
+      "height": 1848,
+      "canon": "https://www.meridianco.kr/members",
+      "brokenImages": []
+    },
+    {
+      "path": "/blog",
+      "status": 200,
+      "errors": [],
+      "title": "실무 메모 | 메리디안 택스 어드바이저리",
+      "h1": [
+        "인사이트"
+      ],
+      "overflow": false,
+      "height": 3635,
+      "canon": "https://www.meridianco.kr/blog",
+      "brokenImages": []
+    },
+    {
+      "path": "/blog/contract-cancellation-deposit-vat-bad-debt-credit-2026",
+      "status": 200,
+      "errors": [],
+      "title": "판례로 알아보는 계약금 반환불능과 부가세 — 못 돌려받은 계약금은 대손세액공제가 아닙니다 | 메리디안 택스 어드바이저리",
+      "h1": [
+        "판례로 알아보는 계약금 반환불능과 부가세 — 못 돌려받은 계약금은 대손세액공제가 아닙니다"
+      ],
+      "overflow": false,
+      "height": 6227,
+      "canon": "https://www.meridianco.kr/blog/contract-cancellation-deposit-vat-bad-debt-credit-2026",
+      "ogImage": "https://www.meridianco.kr/images/posts/contract-cancellation-deposit-vat-bad-debt-credit-2026.png",
+      "brokenImages": []
+    },
+    {
+      "path": "/faq",
+      "status": 200,
+      "errors": [],
+      "title": "자주 묻는 질문 | 메리디안 택스 어드바이저리",
+      "h1": [
+        "자주 묻는 질문"
+      ],
+      "overflow": false,
+      "height": 1732,
+      "canon": "https://www.meridianco.kr/faq",
+      "brokenImages": []
+    },
+    {
+      "path": "/pricing",
+      "status": 200,
+      "errors": [],
+      "title": "PRICING | 메리디안 택스 어드바이저리",
+      "h1": [
+        "예상 수임료 계산"
+      ],
+      "overflow": false,
+      "height": 3953,
+      "canon": "https://www.meridianco.kr/pricing",
+      "brokenImages": []
+    },
+    {
+      "path": "/contact",
+      "status": 200,
+      "errors": [],
+      "title": "CONTACT | 메리디안 택스 어드바이저리",
+      "h1": [
+        "현재 상황을 알려주세요"
+      ],
+      "overflow": false,
+      "height": 2599,
+      "canon": "https://www.meridianco.kr/contact",
+      "brokenImages": []
+    },
+    {
+      "path": "/portal",
+      "status": 200,
+      "errors": [],
+      "title": "회계사가 정리한 자료를 한 화면에서 보는 세무 대시보드 | 메리디안 택스 어드바이저리",
+      "h1": [
+        "회계사가 정리한 자료를,한 화면에서."
+      ],
+      "overflow": false,
+      "height": 13295,
+      "canon": "https://www.meridianco.kr/",
+      "brokenImages": []
+    },
+    {
+      "test": "desktop menu keyboard",
+      "before": "true",
+      "after": "false",
+      "focus": "PEOPLE"
+    },
+    {
+      "test": "pricing contact",
+      "href": "/contact?type=%EC%84%B8%EB%AC%B4+%EA%B8%B0%EC%9E%A5&bottleneck=%EC%98%88%EC%83%81+%EC%88%98%EC%9E%84%EB%A3%8C+%EA%B2%80%ED%86%A0&output=%EA%B8%B0%EC%9E%A5+%EA%B2%AC%EC%A0%81+%EC%83%81%EB%8B%B4"
+    },
+    {
+      "test": "pricing inquiry prefill",
+      "message": ""
+    },
+    {
+      "test": "responsive",
+      "width": 375,
+      "path": "/",
+      "overflow": false,
+      "height": 6818
+    },
+    {
+      "test": "responsive",
+      "width": 375,
+      "path": "/about",
+      "overflow": false,
+      "height": 5898
+    },
+    {
+      "test": "responsive",
+      "width": 375,
+      "path": "/services",
+      "overflow": false,
+      "height": 4198
+    },
+    {
+      "test": "responsive",
+      "width": 375,
+      "path": "/clients",
+      "overflow": false,
+      "height": 2936
+    },
+    {
+      "test": "responsive",
+      "width": 375,
+      "path": "/pricing",
+      "overflow": false,
+      "height": 6410
+    },
+    {
+      "test": "responsive",
+      "width": 375,
+      "path": "/portal",
+      "overflow": false,
+      "height": 9023
+    },
+    {
+      "test": "responsive",
+      "width": 768,
+      "path": "/",
+      "overflow": false,
+      "height": 6316
+    },
+    {
+      "test": "responsive",
+      "width": 768,
+      "path": "/about",
+      "overflow": false,
+      "height": 6670
+    },
+    {
+      "test": "responsive",
+      "width": 768,
+      "path": "/services",
+      "overflow": false,
+      "height": 4082
+    },
+    {
+      "test": "responsive",
+      "width": 768,
+      "path": "/clients",
+      "overflow": false,
+      "height": 2897
+    },
+    {
+      "test": "responsive",
+      "width": 768,
+      "path": "/pricing",
+      "overflow": false,
+      "height": 5514
+    },
+    {
+      "test": "responsive",
+      "width": 768,
+      "path": "/portal",
+      "overflow": false,
+      "height": 8049
+    },
+    {
+      "test": "responsive",
+      "width": 960,
+      "path": "/",
+      "overflow": false,
+      "height": 8548
+    },
+    {
+      "test": "responsive",
+      "width": 960,
+      "path": "/about",
+      "overflow": false,
+      "height": 5222
+    },
+    {
+      "test": "responsive",
+      "width": 960,
+      "path": "/services",
+      "overflow": false,
+      "height": 3565
+    },
+    {
+      "test": "responsive",
+      "width": 960,
+      "path": "/clients",
+      "overflow": false,
+      "height": 2905
+    },
+    {
+      "test": "responsive",
+      "width": 960,
+      "path": "/pricing",
+      "overflow": false,
+      "height": 5478
+    },
+    {
+      "test": "responsive",
+      "width": 960,
+      "path": "/portal",
+      "overflow": false,
+      "height": 9644
+    }
+  ],
+  "accessibility_and_nojs": [
+    {
+      "test": "axe",
+      "path": "/",
+      "violations": [
+        {
+          "id": "aria-prohibited-attr",
+          "impact": "serious",
+          "count": 1,
+          "nodes": [
+            {
+              "target": [
+                ".imsg-dots"
+              ],
+              "summary": "Fix all of the following:\n  aria-label attribute cannot be used on a span with no valid role attribute."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "test": "axe",
+      "path": "/contact",
+      "violations": []
+    },
+    {
+      "test": "axe",
+      "path": "/pricing",
+      "violations": []
+    },
+    {
+      "test": "axe",
+      "path": "/clients",
+      "violations": [
+        {
+          "id": "aria-required-children",
+          "impact": "critical",
+          "count": 1,
+          "nodes": [
+            {
+              "target": [
+                "ol"
+              ],
+              "summary": "Fix any of the following:\n  Element has children which are not allowed: li"
+            }
+          ]
+        },
+        {
+          "id": "aria-required-parent",
+          "impact": "critical",
+          "count": 3,
+          "nodes": [
+            {
+              "target": [
+                ".is-on[role=\"tab\"][aria-controls=\"stg-panel\"]"
+              ],
+              "summary": "Fix any of the following:\n  Required ARIA parent role not present: tablist"
+            },
+            {
+              "target": [
+                "li:nth-child(2) > button[role=\"tab\"][aria-controls=\"stg-panel\"][type=\"button\"]"
+              ],
+              "summary": "Fix any of the following:\n  Required ARIA parent role not present: tablist"
+            },
+            {
+              "target": [
+                "li:nth-child(3) > button[role=\"tab\"][aria-controls=\"stg-panel\"][type=\"button\"]"
+              ],
+              "summary": "Fix any of the following:\n  Required ARIA parent role not present: tablist"
+            }
+          ]
+        },
+        {
+          "id": "color-contrast",
+          "impact": "serious",
+          "count": 1,
+          "nodes": [
+            {
+              "target": [
+                ".text-5xl"
+              ],
+              "summary": "Fix any of the following:\n  Element has insufficient color contrast of 1.5 (foreground color: #c7d3ee, background color: #ffffff, font size: 50.6pt (67.5px), font weight: bold). Expected contrast ratio of 3:1"
+            }
+          ]
+        },
+        {
+          "id": "listitem",
+          "impact": "serious",
+          "count": 3,
+          "nodes": [
+            {
+              "target": [
+                "ol > li:nth-child(1)"
+              ],
+              "summary": "Fix any of the following:\n  List item parent element has a role that is not role=\"list\""
+            },
+            {
+              "target": [
+                "ol > li:nth-child(2)"
+              ],
+              "summary": "Fix any of the following:\n  List item parent element has a role that is not role=\"list\""
+            },
+            {
+              "target": [
+                "ol > li:nth-child(3)"
+              ],
+              "summary": "Fix any of the following:\n  List item parent element has a role that is not role=\"list\""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "test": "axe",
+      "path": "/portal",
+      "violations": [
+        {
+          "id": "color-contrast",
+          "impact": "serious",
+          "count": 34,
+          "nodes": [
+            {
+              "target": [
+                ".gc[data-g=\"증빙\"]:nth-child(2) > .gk"
+              ],
+              "summary": "Fix any of the following:\n  Element has insufficient color contrast of 1.24 (foreground color: #dfe6ff, background color: #ffffff, font size: 9.8pt (13.125px), font weight: bold). Expected contrast ratio of 4.5:1"
+            },
+            {
+              "target": [
+                ".gc[data-g=\"증빙\"]:nth-child(2) > b"
+              ],
+              "summary": "Fix any of the following:\n  Element has insufficient color contrast of 1.41 (foreground color: #d9d9d9, background color: #ffffff, font size: 11.3pt (15px), font weight: bold). Expected contrast ratio of 4.5:1"
+            },
+            {
+              "target": [
+                ".gc[data-g=\"증빙\"]:nth-child(2) > p"
+              ],
+              "summary": "Fix any of the following:\n  Element has insufficient color contrast of 1.27 (foreground color: #e4e4e4, background color: #ffffff, font size: 9.8pt (13.125px), font weight: normal). Expected contrast ratio of 4.5:1"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "test": "actual client anchor",
+      "exists": 0,
+      "selected": "01법인을 막 세운 대표"
+    },
+    {
+      "test": "mobile focus cycle",
+      "focus": [
+        {
+          "text": "",
+          "tag": "BUTTON",
+          "inDialog": true
+        },
+        {
+          "text": "ABOUT",
+          "tag": "A",
+          "inDialog": true
+        },
+        {
+          "text": "SERVICE",
+          "tag": "A",
+          "inDialog": true
+        },
+        {
+          "text": "",
+          "tag": "BUTTON",
+          "inDialog": true
+        },
+        {
+          "text": "PEOPLE",
+          "tag": "A",
+          "inDialog": true
+        },
+        {
+          "text": "FOR WHO",
+          "tag": "A",
+          "inDialog": true
+        },
+        {
+          "text": "BLOG",
+          "tag": "A",
+          "inDialog": true
+        },
+        {
+          "text": "",
+          "tag": "BUTTON",
+          "inDialog": true
+        },
+        {
+          "text": "FAQ",
+          "tag": "A",
+          "inDialog": true
+        },
+        {
+          "text": "DASHBOARD",
+          "tag": "A",
+          "inDialog": true
+        },
+        {
+          "text": "기장 문의하기",
+          "tag": "A",
+          "inDialog": true
+        },
+        {
+          "text": "",
+          "tag": "BUTTON",
+          "inDialog": true
+        },
+        {
+          "text": "세무 기장",
+          "tag": "A",
+          "inDialog": false
+        },
+        {
+          "text": "세무 조정",
+          "tag": "A",
+          "inDialog": false
+        },
+        {
+          "text": "경리 아웃소싱",
+          "tag": "A",
+          "inDialog": false
+        },
+        {
+          "text": "회계감사",
+          "tag": "A",
+          "inDialog": false
+        },
+        {
+          "text": "PA",
+          "tag": "A",
+          "inDialog": false
+        },
+        {
+          "text": "IPO 자문",
+          "tag": "A",
+          "inDialog": false
+        },
+        {
+          "text": "기업 실사",
+          "tag": "A",
+          "inDialog": false
+        }
+      ]
+    },
+    {
+      "test": "no js hidden headings",
+      "headings": [
+        {
+          "text": "메리디안의 약속.",
+          "hidden": false
+        },
+        {
+          "text": "회계사가 정리한 자료를한 화면에서 봅니다.",
+          "hidden": true
+        },
+        {
+          "text": "기장부터 자문까지.",
+          "hidden": true
+        },
+        {
+          "text": "누구와 준비하느냐에 따라결과는 달라집니다.",
+          "hidden": true
+        },
+        {
+          "text": "최근 인사이트.",
+          "hidden": true
+        }
+      ]
+    }
+  ],
+  "reduced_motion_and_interactions": [
+    {
+      "path": "/",
+      "mode": "reducedMotion",
+      "violations": [
+        {
+          "id": "color-contrast",
+          "count": 1,
+          "nodes": [
+            {
+              "target": [
+                ".promise-orb--b > .promise-orb-in > .promise-orb-num > .promise-orb-label"
+              ],
+              "summary": "Fix any of the following:\n  Element has insufficient color contrast of 2.29 (foreground color: #87a2ff, background color: #f7f8ff, font size: 8.4pt (11.25px), font weight: normal). Expected contrast ratio of 4.5:1"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "path": "/portal",
+      "mode": "reducedMotion",
+      "violations": [
+        {
+          "id": "color-contrast",
+          "count": 10,
+          "nodes": [
+            {
+              "target": [
+                ".db-search > b"
+              ],
+              "summary": "Fix any of the following:\n  Element has insufficient color contrast of 1.94 (foreground color: #b4bac5, background color: #ffffff, font size: 7.1pt (9.5px), font weight: bold). Expected contrast ratio of 4.5:1"
+            },
+            {
+              "target": [
+                "div:nth-child(4) > .m"
+              ],
+              "summary": "Fix any of the following:\n  Element has insufficient color contrast of 2.12 (foreground color: #a6adba, background color: #f7f8fb, font size: 7.1pt (9.5px), font weight: normal). Expected contrast ratio of 4.5:1"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "path": "/clients",
+      "mode": "reducedMotion",
+      "violations": [
+        {
+          "id": "aria-required-children",
+          "count": 1,
+          "nodes": [
+            {
+              "target": [
+                "ol"
+              ],
+              "summary": "Fix any of the following:\n  Element has children which are not allowed: li"
+            }
+          ]
+        },
+        {
+          "id": "aria-required-parent",
+          "count": 3,
+          "nodes": [
+            {
+              "target": [
+                ".is-on[role=\"tab\"][aria-controls=\"stg-panel\"]"
+              ],
+              "summary": "Fix any of the following:\n  Required ARIA parent role not present: tablist"
+            },
+            {
+              "target": [
+                "li:nth-child(2) > button[role=\"tab\"][aria-controls=\"stg-panel\"][type=\"button\"]"
+              ],
+              "summary": "Fix any of the following:\n  Required ARIA parent role not present: tablist"
+            }
+          ]
+        },
+        {
+          "id": "color-contrast",
+          "count": 1,
+          "nodes": [
+            {
+              "target": [
+                ".text-5xl"
+              ],
+              "summary": "Fix any of the following:\n  Element has insufficient color contrast of 1.5 (foreground color: #c7d3ee, background color: #ffffff, font size: 50.6pt (67.5px), font weight: bold). Expected contrast ratio of 3:1"
+            }
+          ]
+        },
+        {
+          "id": "listitem",
+          "count": 3,
+          "nodes": [
+            {
+              "target": [
+                "ol > li:nth-child(1)"
+              ],
+              "summary": "Fix any of the following:\n  List item parent element has a role that is not role=\"list\""
+            },
+            {
+              "target": [
+                "ol > li:nth-child(2)"
+              ],
+              "summary": "Fix any of the following:\n  List item parent element has a role that is not role=\"list\""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "test": "portal period tab",
+      "selected": "true",
+      "value": "171,340,000"
+    },
+    {
+      "test": "blog category link",
+      "text": "BLOG\n\nBLOG\n\n인사이트\n\n사업을 굴리다 자주 부딪히는 세무·회계·거래 이슈. 현장에서 본 대로 적습니다.\n\n인사이트\n|\n법인세\n\n수도권에서 올해 창업했다면, 세액감면율이 달라졌습니다\n\n2026년부터 창업중소기업 세액감면이 3단계로 세분화되었습니다. 수도권 비과밀 지역의 감면율 축"
+    }
+  ],
+  "dependency_audit": {
+    "summary": {
+      "info": 0,
+      "low": 1,
+      "moderate": 3,
+      "high": 6,
+      "critical": 1,
+      "total": 11
+    },
+    "packages": {
+      "@babel/core": {
+        "severity": "low",
+        "fixAvailable": true,
+        "advisories": [
+          {
+            "title": "@babel/core: Arbitrary File Read via sourceMappingURL Comment",
+            "url": "https://github.com/advisories/GHSA-4x5r-pxfx-6jf8"
+          }
+        ]
+      },
+      "@humanfs/node": {
+        "severity": "moderate",
+        "fixAvailable": true,
+        "advisories": [
+          {
+            "title": "humanfs: Recursive copy follows symlinked files and copies data from outside the source tree",
+            "url": "https://github.com/advisories/GHSA-p498-v437-472g"
+          }
+        ]
+      },
+      "@tailwindcss/postcss": {
+        "severity": "moderate",
+        "fixAvailable": true,
+        "advisories": []
+      },
+      "baseline-browser-mapping": {
+        "severity": "moderate",
+        "fixAvailable": true,
+        "advisories": [
+          {
+            "title": "baseline-browser-mapping process termination on invalid input causes denial of service",
+            "url": "https://github.com/advisories/GHSA-w5vr-8v7q-w6rv"
+          }
+        ]
+      },
+      "brace-expansion": {
+        "severity": "high",
+        "fixAvailable": true,
+        "advisories": [
+          {
+            "title": "brace-expansion: Large numeric range defeats documented `max` DoS protection",
+            "url": "https://github.com/advisories/GHSA-jxxr-4gwj-5jf2"
+          },
+          {
+            "title": "brace-expansion: DoS via exponential-time expansion of consecutive non-expanding {} groups",
+            "url": "https://github.com/advisories/GHSA-3jxr-9vmj-r5cp"
+          },
+          {
+            "title": "brace-expansion: DoS via exponential-time expansion of consecutive non-expanding {} groups",
+            "url": "https://github.com/advisories/GHSA-3jxr-9vmj-r5cp"
+          },
+          {
+            "title": "brace-expansion: DoS via unbounded expansion length causing an out-of-memory process crash",
+            "url": "https://github.com/advisories/GHSA-mh99-v99m-4gvg"
+          },
+          {
+            "title": "brace-expansion: DoS via unbounded expansion length causing an out-of-memory process crash",
+            "url": "https://github.com/advisories/GHSA-mh99-v99m-4gvg"
+          },
+          {
+            "title": "brace-expansion: DoS via unbounded intermediate arrays, bypassing the CVE-2026-14257 mitigation",
+            "url": "https://github.com/advisories/GHSA-rgw5-rvv9-x895"
+          },
+          {
+            "title": "brace-expansion: DoS via unbounded intermediate arrays, bypassing the CVE-2026-14257 mitigation",
+            "url": "https://github.com/advisories/GHSA-rgw5-rvv9-x895"
+          }
+        ]
+      },
+      "browserslist": {
+        "severity": "high",
+        "fixAvailable": true,
+        "advisories": [
+          {
+            "title": "Browserslist: Unbounded memory growth (no cache eviction) via distinct query results, leading to eventual OOM",
+            "url": "https://github.com/advisories/GHSA-c83g-rgw3-j3cx"
+          },
+          {
+            "title": "Browserslist: Uncaught crash / prototype write via untrusted browserslist-stats.json custom stats (normalizeStats)",
+            "url": "https://github.com/advisories/GHSA-73wf-gq98-2v4g"
+          }
+        ]
+      },
+      "js-yaml": {
+        "severity": "high",
+        "fixAvailable": true,
+        "advisories": [
+          {
+            "title": "JS-YAML: Quadratic-complexity DoS in merge key handling via repeated aliases",
+            "url": "https://github.com/advisories/GHSA-h67p-54hq-rp68"
+          },
+          {
+            "title": "JS-YAML: Quadratic-complexity DoS in merge key handling via repeated aliases",
+            "url": "https://github.com/advisories/GHSA-h67p-54hq-rp68"
+          },
+          {
+            "title": "js-yaml: YAML merge-key chains can force quadratic CPU consumption",
+            "url": "https://github.com/advisories/GHSA-52cp-r559-cp3m"
+          },
+          {
+            "title": "js-yaml: YAML merge-key chains can force quadratic CPU consumption",
+            "url": "https://github.com/advisories/GHSA-52cp-r559-cp3m"
+          },
+          {
+            "title": "JS-YAML: Quadratic CPU consumption in !!omap resolution (3.x and 4.x) — CVE-2026-59870 fix not backported",
+            "url": "https://github.com/advisories/GHSA-5p4m-2wfm-xmqj"
+          },
+          {
+            "title": "JS-YAML: Quadratic CPU consumption in !!omap resolution (3.x and 4.x) — CVE-2026-59870 fix not backported",
+            "url": "https://github.com/advisories/GHSA-5p4m-2wfm-xmqj"
+          },
+          {
+            "title": "js-yaml: maxTotalMergeKeys does not limit CPU use for empty merge sources",
+            "url": "https://github.com/advisories/GHSA-2883-xcg3-v3hh"
+          },
+          {
+            "title": "js-yaml: maxTotalMergeKeys does not limit CPU use for empty merge sources",
+            "url": "https://github.com/advisories/GHSA-2883-xcg3-v3hh"
+          }
+        ]
+      },
+      "nanoid": {
+        "severity": "high",
+        "fixAvailable": true,
+        "advisories": [
+          {
+            "title": "nanoid: non-secure generators can loop indefinitely with negative size",
+            "url": "https://github.com/advisories/GHSA-28wg-ghj8-5hjv"
+          },
+          {
+            "title": "nanoid: custom generators can loop indefinitely when size is zero",
+            "url": "https://github.com/advisories/GHSA-2v37-7h3g-55p8"
+          },
+          {
+            "title": "nanoid: Integer Overflow or Wraparound",
+            "url": "https://github.com/advisories/GHSA-xwg4-73v4-xw9w"
+          }
+        ]
+      },
+      "next": {
+        "severity": "critical",
+        "fixAvailable": {
+          "name": "next",
+          "version": "16.3.4",
+          "isSemVerMajor": false
+        },
+        "advisories": [
+          {
+            "title": "Next.js Vulnerable to Denial of Service with Server Components",
+            "url": "https://github.com/advisories/GHSA-8h8q-6873-q5fj"
+          },
+          {
+            "title": "Next.js has a Middleware / Proxy bypass in App Router applications via segment-prefetch routes - Incomplete Fix Follow-Up",
+            "url": "https://github.com/advisories/GHSA-26hh-7cqf-hhc6"
+          },
+          {
+            "title": "Next.js's Middleware / Proxy redirects can be cache-poisoned",
+            "url": "https://github.com/advisories/GHSA-3g8h-86w9-wvmq"
+          },
+          {
+            "title": "Next.js vulnerable to cross-site scripting in App Router applications using CSP nonces",
+            "url": "https://github.com/advisories/GHSA-ffhc-5mcf-pf4q"
+          },
+          {
+            "title": "Next.js vulnerable to cache poisoning via collisions in React Server Component cache-busting",
+            "url": "https://github.com/advisories/GHSA-vfv6-92ff-j949"
+          },
+          {
+            "title": "Next.js has cross-site scripting in beforeInteractive scripts with untrusted input",
+            "url": "https://github.com/advisories/GHSA-gx5p-jg67-6x7h"
+          },
+          {
+            "title": "Next.js vulnerable to Denial of Service via connection exhaustion in applications using Cache Components",
+            "url": "https://github.com/advisories/GHSA-mg66-mrh9-m8jx"
+          },
+          {
+            "title": "Next.js has a Denial of Service in the Image Optimization API",
+            "url": "https://github.com/advisories/GHSA-h64f-5h5j-jqjh"
+          },
+          {
+            "title": "Next.js vulnerable to server-side request forgery in applications using WebSocket upgrades",
+            "url": "https://github.com/advisories/GHSA-c4j6-fc7j-m34r"
+          },
+          {
+            "title": "Next.js has a Middleware / Proxy bypass through dynamic route parameter injection",
+            "url": "https://github.com/advisories/GHSA-492v-c6pp-mqqv"
+          },
+          {
+            "title": "Next.js vulnerable to cache poisoning in React Server Component responses",
+            "url": "https://github.com/advisories/GHSA-wfc6-r584-vfw7"
+          },
+          {
+            "title": "Next.js has a Middleware / Proxy bypass in App Router applications via segment-prefetch routes",
+            "url": "https://github.com/advisories/GHSA-267c-6grr-h53f"
+          },
+          {
+            "title": "Next.js has a Middleware / Proxy bypass in Pages Router applications using i18n",
+            "url": "https://github.com/advisories/GHSA-36qx-fr4f-26g5"
+          },
+          {
+            "title": "Next.js: Middleware / Proxy bypass in App Router applications using Turbopack and single locale",
+            "url": "https://github.com/advisories/GHSA-6gpp-xcg3-4w24"
+          },
+          {
+            "title": "Next.js: Denial of Service in App Router using Server Actions",
+            "url": "https://github.com/advisories/GHSA-m99w-x7hq-7vfj"
+          },
+          {
+            "title": "Next.js: Server-Side Request Forgery in Server Actions on custom servers",
+            "url": "https://github.com/advisories/GHSA-89xv-2m56-2m9x"
+          },
+          {
+            "title": "Next.js: Cache confusion of response bodies for requests with bodies",
+            "url": "https://github.com/advisories/GHSA-68g3-v927-f742"
+          },
+          {
+            "title": "Next.js: Cache confusion of response bodies for requests with bodies containing invalid UTF-8 byte sequences",
+            "url": "https://github.com/advisories/GHSA-4633-3j49-mh5q"
+          },
+          {
+            "title": "Next.js: Unbounded Server Action payload in Edge runtime",
+            "url": "https://github.com/advisories/GHSA-4c39-4ccg-62r3"
+          },
+          {
+            "title": "Next.js: Server-Side Request Forgery in rewrites via attacker-controlled destination hostname",
+            "url": "https://github.com/advisories/GHSA-p9j2-gv94-2wf4"
+          },
+          {
+            "title": "Next.js: Denial of Service in the Image Optimization API using SVGs",
+            "url": "https://github.com/advisories/GHSA-q8wf-6r8g-63ch"
+          },
+          {
+            "title": "Next.js: Unauthenticated disclosure of internal Server Function endpoints",
+            "url": "https://github.com/advisories/GHSA-955p-x3mx-jcvp"
+          },
+          {
+            "title": "Next.js: Unauthenticated Remote Code Execution on windows-hosted servers",
+            "url": "https://github.com/advisories/GHSA-p293-qw3h-jr36"
+          },
+          {
+            "title": "Next.js: Unauthenticated Remote Code Execution in Image Optimization API when AVIF files are used",
+            "url": "https://github.com/advisories/GHSA-2xp9-vwfh-vxw4"
+          }
+        ]
+      },
+      "postcss": {
+        "severity": "high",
+        "fixAvailable": {
+          "name": "next",
+          "version": "16.3.4",
+          "isSemVerMajor": false
+        },
+        "advisories": [
+          {
+            "title": "PostCSS: Arbitrary file read and information disclosure via attacker-controlled sourceMappingURL in CSS comments",
+            "url": "https://github.com/advisories/GHSA-6g55-p6wh-862q"
+          },
+          {
+            "title": "PostCSS: incomplete fix of GHSA-6g55-p6wh-862q — attacker-controlled sourceMappingURL reads arbitrary .map files when `from` is unset",
+            "url": "https://github.com/advisories/GHSA-fxqj-rqcc-2cmp"
+          },
+          {
+            "title": "PostCSS: Path Traversal in Previous Source Map Auto-Loading (sourceMappingURL) leads to Arbitrary .map File Disclosure",
+            "url": "https://github.com/advisories/GHSA-r28c-9q8g-f849"
+          }
+        ]
+      },
+      "sharp": {
+        "severity": "high",
+        "fixAvailable": {
+          "name": "next",
+          "version": "16.3.4",
+          "isSemVerMajor": false
+        },
+        "advisories": [
+          {
+            "title": "sharp inherited vulnerabilities in libvips: CVE-2026-33327, CVE-2026-33328, CVE-2026-35590, CVE-2026-35591",
+            "url": "https://github.com/advisories/GHSA-f88m-g3jw-g9cj"
+          },
+          {
+            "title": "sharp: Vulnerabilities in libheif: GHSA-g89c-p67h-r497 and GHSA-2jg2-4ch7-h545",
+            "url": "https://github.com/advisories/GHSA-rgj7-g3m4-5g8c"
+          }
+        ]
+      }
+    }
+  },
+  "production_dependency_audit": {
+    "summary": {
+      "info": 0,
+      "low": 0,
+      "moderate": 1,
+      "high": 4,
+      "critical": 1,
+      "total": 6
+    },
+    "packages": {
+      "baseline-browser-mapping": {
+        "severity": "moderate",
+        "fixAvailable": true,
+        "advisories": [
+          {
+            "title": "baseline-browser-mapping process termination on invalid input causes denial of service",
+            "url": "https://github.com/advisories/GHSA-w5vr-8v7q-w6rv"
+          }
+        ]
+      },
+      "js-yaml": {
+        "severity": "high",
+        "fixAvailable": true,
+        "advisories": [
+          {
+            "title": "JS-YAML: Quadratic-complexity DoS in merge key handling via repeated aliases",
+            "url": "https://github.com/advisories/GHSA-h67p-54hq-rp68"
+          },
+          {
+            "title": "js-yaml: YAML merge-key chains can force quadratic CPU consumption",
+            "url": "https://github.com/advisories/GHSA-52cp-r559-cp3m"
+          },
+          {
+            "title": "JS-YAML: Quadratic CPU consumption in !!omap resolution (3.x and 4.x) — CVE-2026-59870 fix not backported",
+            "url": "https://github.com/advisories/GHSA-5p4m-2wfm-xmqj"
+          },
+          {
+            "title": "js-yaml: maxTotalMergeKeys does not limit CPU use for empty merge sources",
+            "url": "https://github.com/advisories/GHSA-2883-xcg3-v3hh"
+          }
+        ]
+      },
+      "nanoid": {
+        "severity": "high",
+        "fixAvailable": true,
+        "advisories": [
+          {
+            "title": "nanoid: non-secure generators can loop indefinitely with negative size",
+            "url": "https://github.com/advisories/GHSA-28wg-ghj8-5hjv"
+          },
+          {
+            "title": "nanoid: custom generators can loop indefinitely when size is zero",
+            "url": "https://github.com/advisories/GHSA-2v37-7h3g-55p8"
+          },
+          {
+            "title": "nanoid: Integer Overflow or Wraparound",
+            "url": "https://github.com/advisories/GHSA-xwg4-73v4-xw9w"
+          }
+        ]
+      },
+      "next": {
+        "severity": "critical",
+        "fixAvailable": {
+          "name": "next",
+          "version": "16.3.4",
+          "isSemVerMajor": false
+        },
+        "advisories": [
+          {
+            "title": "Next.js Vulnerable to Denial of Service with Server Components",
+            "url": "https://github.com/advisories/GHSA-8h8q-6873-q5fj"
+          },
+          {
+            "title": "Next.js has a Middleware / Proxy bypass in App Router applications via segment-prefetch routes - Incomplete Fix Follow-Up",
+            "url": "https://github.com/advisories/GHSA-26hh-7cqf-hhc6"
+          },
+          {
+            "title": "Next.js's Middleware / Proxy redirects can be cache-poisoned",
+            "url": "https://github.com/advisories/GHSA-3g8h-86w9-wvmq"
+          },
+          {
+            "title": "Next.js vulnerable to cross-site scripting in App Router applications using CSP nonces",
+            "url": "https://github.com/advisories/GHSA-ffhc-5mcf-pf4q"
+          },
+          {
+            "title": "Next.js vulnerable to cache poisoning via collisions in React Server Component cache-busting",
+            "url": "https://github.com/advisories/GHSA-vfv6-92ff-j949"
+          },
+          {
+            "title": "Next.js has cross-site scripting in beforeInteractive scripts with untrusted input",
+            "url": "https://github.com/advisories/GHSA-gx5p-jg67-6x7h"
+          },
+          {
+            "title": "Next.js vulnerable to Denial of Service via connection exhaustion in applications using Cache Components",
+            "url": "https://github.com/advisories/GHSA-mg66-mrh9-m8jx"
+          },
+          {
+            "title": "Next.js has a Denial of Service in the Image Optimization API",
+            "url": "https://github.com/advisories/GHSA-h64f-5h5j-jqjh"
+          },
+          {
+            "title": "Next.js vulnerable to server-side request forgery in applications using WebSocket upgrades",
+            "url": "https://github.com/advisories/GHSA-c4j6-fc7j-m34r"
+          },
+          {
+            "title": "Next.js has a Middleware / Proxy bypass through dynamic route parameter injection",
+            "url": "https://github.com/advisories/GHSA-492v-c6pp-mqqv"
+          },
+          {
+            "title": "Next.js vulnerable to cache poisoning in React Server Component responses",
+            "url": "https://github.com/advisories/GHSA-wfc6-r584-vfw7"
+          },
+          {
+            "title": "Next.js has a Middleware / Proxy bypass in App Router applications via segment-prefetch routes",
+            "url": "https://github.com/advisories/GHSA-267c-6grr-h53f"
+          },
+          {
+            "title": "Next.js has a Middleware / Proxy bypass in Pages Router applications using i18n",
+            "url": "https://github.com/advisories/GHSA-36qx-fr4f-26g5"
+          },
+          {
+            "title": "Next.js: Middleware / Proxy bypass in App Router applications using Turbopack and single locale",
+            "url": "https://github.com/advisories/GHSA-6gpp-xcg3-4w24"
+          },
+          {
+            "title": "Next.js: Denial of Service in App Router using Server Actions",
+            "url": "https://github.com/advisories/GHSA-m99w-x7hq-7vfj"
+          },
+          {
+            "title": "Next.js: Server-Side Request Forgery in Server Actions on custom servers",
+            "url": "https://github.com/advisories/GHSA-89xv-2m56-2m9x"
+          },
+          {
+            "title": "Next.js: Cache confusion of response bodies for requests with bodies",
+            "url": "https://github.com/advisories/GHSA-68g3-v927-f742"
+          },
+          {
+            "title": "Next.js: Cache confusion of response bodies for requests with bodies containing invalid UTF-8 byte sequences",
+            "url": "https://github.com/advisories/GHSA-4633-3j49-mh5q"
+          },
+          {
+            "title": "Next.js: Unbounded Server Action payload in Edge runtime",
+            "url": "https://github.com/advisories/GHSA-4c39-4ccg-62r3"
+          },
+          {
+            "title": "Next.js: Server-Side Request Forgery in rewrites via attacker-controlled destination hostname",
+            "url": "https://github.com/advisories/GHSA-p9j2-gv94-2wf4"
+          },
+          {
+            "title": "Next.js: Denial of Service in the Image Optimization API using SVGs",
+            "url": "https://github.com/advisories/GHSA-q8wf-6r8g-63ch"
+          },
+          {
+            "title": "Next.js: Unauthenticated disclosure of internal Server Function endpoints",
+            "url": "https://github.com/advisories/GHSA-955p-x3mx-jcvp"
+          },
+          {
+            "title": "Next.js: Unauthenticated Remote Code Execution on windows-hosted servers",
+            "url": "https://github.com/advisories/GHSA-p293-qw3h-jr36"
+          },
+          {
+            "title": "Next.js: Unauthenticated Remote Code Execution in Image Optimization API when AVIF files are used",
+            "url": "https://github.com/advisories/GHSA-2xp9-vwfh-vxw4"
+          }
+        ]
+      },
+      "postcss": {
+        "severity": "high",
+        "fixAvailable": {
+          "name": "next",
+          "version": "16.3.4",
+          "isSemVerMajor": false
+        },
+        "advisories": [
+          {
+            "title": "PostCSS: Arbitrary file read and information disclosure via attacker-controlled sourceMappingURL in CSS comments",
+            "url": "https://github.com/advisories/GHSA-6g55-p6wh-862q"
+          },
+          {
+            "title": "PostCSS: incomplete fix of GHSA-6g55-p6wh-862q — attacker-controlled sourceMappingURL reads arbitrary .map files when `from` is unset",
+            "url": "https://github.com/advisories/GHSA-fxqj-rqcc-2cmp"
+          },
+          {
+            "title": "PostCSS: Path Traversal in Previous Source Map Auto-Loading (sourceMappingURL) leads to Arbitrary .map File Disclosure",
+            "url": "https://github.com/advisories/GHSA-r28c-9q8g-f849"
+          }
+        ]
+      },
+      "sharp": {
+        "severity": "high",
+        "fixAvailable": {
+          "name": "next",
+          "version": "16.3.4",
+          "isSemVerMajor": false
+        },
+        "advisories": [
+          {
+            "title": "sharp inherited vulnerabilities in libvips: CVE-2026-33327, CVE-2026-33328, CVE-2026-35590, CVE-2026-35591",
+            "url": "https://github.com/advisories/GHSA-f88m-g3jw-g9cj"
+          },
+          {
+            "title": "sharp: Vulnerabilities in libheif: GHSA-g89c-p67h-r497 and GHSA-2jg2-4ch7-h545",
+            "url": "https://github.com/advisories/GHSA-rgj7-g3m4-5g8c"
+          }
+        ]
+      }
+    }
+  },
+  "lighthouse": {
+    "url": "http://localhost:3100/",
+    "mode": "one local production build mobile simulated run; not field data",
+    "score": 0.62,
+    "throttling": {
+      "rttMs": 150,
+      "throughputKbps": 1638.4,
+      "requestLatencyMs": 562.5,
+      "downloadThroughputKbps": 1474.5600000000002,
+      "uploadThroughputKbps": 675,
+      "cpuSlowdownMultiplier": 4
+    },
+    "metrics": {
+      "first-contentful-paint": "5.3 s",
+      "largest-contentful-paint": "9.5 s",
+      "total-blocking-time": "30 ms",
+      "cumulative-layout-shift": "0",
+      "speed-index": "5.3 s",
+      "total-byte-weight": "Total size was 2,224 KiB"
+    }
+  },
+  "ratelimit_timeout": {
+    "test": "installed Upstash timeout response",
+    "success": true,
+    "reason": "timeout",
+    "limit": 0
+  },
+  "fable_session": "29d01bc0-59b6-4327-b690-c99b6aca6394",
+  "webkit": {
+    "conditions": "390x844 mobile; production CSP upgrade-insecure-requests directive removed only in intercepted local HTTP document response to avoid localhost TLS failures; repository config unchanged; not production CSP validation",
+    "results": [
+      {
+        "path": "/",
+        "status": 200,
+        "errors": [],
+        "overflow": false
+      },
+      {
+        "path": "/about",
+        "status": 200,
+        "errors": [],
+        "overflow": false
+      },
+      {
+        "path": "/services",
+        "status": 200,
+        "errors": [],
+        "overflow": false
+      },
+      {
+        "path": "/clients",
+        "status": 200,
+        "errors": [],
+        "overflow": false
+      },
+      {
+        "path": "/pricing",
+        "status": 200,
+        "errors": [],
+        "overflow": false
+      },
+      {
+        "path": "/contact",
+        "status": 200,
+        "errors": [],
+        "overflow": false
+      },
+      {
+        "path": "/portal",
+        "status": 200,
+        "errors": [],
+        "overflow": false
+      },
+      {
+        "test": "mobile menu",
+        "dialogVisible": true
+      }
+    ]
+  },
+  "independent_reports": {
+    "codex": "codex-independent.md",
+    "fable": "fable-independent.md",
+    "consolidated": "production-readiness.md"
+  }
+}

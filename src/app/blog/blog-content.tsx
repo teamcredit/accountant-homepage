@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { useMemo, useState } from "react";
 import { AnimateOnScroll } from "@/components/motion";
 import { insightCategories } from "@/lib/constants";
@@ -76,7 +76,6 @@ export default function BlogContent({ posts }: BlogContentProps) {
   /* 고른 갈래를 화면 안에만 담아 두면 상단 메뉴의 「인사이트 → 법인세」가
      아무 일도 못 한다. 주소에 적어 두면 메뉴도 링크도 되고, 그 화면을
      그대로 남에게 보낼 수도 있다. */
-  const router = useRouter();
   const params = useSearchParams();
   const active =
     insightCategories.find((c) => c.slug === params.get("cat")) ??
@@ -84,8 +83,17 @@ export default function BlogContent({ posts }: BlogContentProps) {
 
   /* 문답은 /faq 로 나갔다. 여기는 글만 본다 — 「블로그 안의 탭 하나」로
      두었더니 목록을 지나야 문답에 닿았고, 둘이 같은 것처럼 읽혔다. */
-  const [q, setQ] = useState("");
-  const [page, setPage] = useState(1);
+  const q = params.get('q') || '';
+  const page = Math.max(1, Math.floor(Number(params.get('page')) || 1));
+  const updateQuery = (patch: Record<string, string>, replace = false) => {
+    const next = new URLSearchParams(params.toString());
+    for (const [key, value] of Object.entries(patch)) { if (value) next.set(key, value); else next.delete(key); }
+    const url = `/blog${next.size ? `?${next}` : ''}`;
+    if (replace) window.history.replaceState(null, '', url);
+    else window.history.pushState(null, '', url);
+  };
+  const setPage = (value: number) => updateQuery({ page: String(value) });
+  const setQ = (value: string) => updateQuery({ q: value, page: '' }, true);
   const [lead, setLead] = useState(0);
 
   /* 갈래가 바뀌면 맨 위 한 장과 몇 번째 판을 처음으로 되돌린다.
@@ -95,7 +103,6 @@ export default function BlogContent({ posts }: BlogContentProps) {
   if (lastCat !== active.slug) {
     setLastCat(active.slug);
     setLead(0);
-    setPage(1);
   }
 
   const countOf = (match: string[]) =>
@@ -138,8 +145,7 @@ export default function BlogContent({ posts }: BlogContentProps) {
   const heroPost = leads[Math.min(lead, Math.max(0, leadN - 1))];
 
   const pick = (slug: string) => {
-    setPage(1);
-    router.replace(slug === "all" ? "/blog" : `/blog?cat=${slug}`, { scroll: false });
+    updateQuery({ cat: slug === "all" ? "" : slug, page: "" });
   };
 
   return (
@@ -199,7 +205,7 @@ export default function BlogContent({ posts }: BlogContentProps) {
                 </div>
               </div>
 
-              <Link href={`/blog/${heroPost.slug}`} className="ins-lead-thumb">
+              <Link href={`/blog/${heroPost.slug}`} className="ins-lead-thumb" aria-label={heroPost.title}>
                 {heroPost.coverImage ? (
                   <Image
                     src={heroPost.coverImage}
@@ -228,7 +234,7 @@ export default function BlogContent({ posts }: BlogContentProps) {
                 value={q}
                 onChange={(e) => {
                   setQ(e.target.value);
-                  setPage(1);
+
                 }}
                 placeholder="검색어를 입력하세요"
                 aria-label="인사이트 검색"
@@ -299,11 +305,12 @@ export default function BlogContent({ posts }: BlogContentProps) {
             )}
 
             {filtered.length === 0 && (
-              <p className="ins-empty">
+              <div className="ins-empty">
                 {q.trim()
                   ? `「${q.trim()}」에 걸리는 글이 없습니다.`
                   : "이 갈래엔 아직 글이 없습니다."}
-              </p>
+                <p className="mt-4"><Link href="/services" className="underline">서비스 살펴보기</Link> · <Link href="/contact" className="underline">문의하기</Link></p>
+              </div>
             )}
 
             {pages > 1 && (

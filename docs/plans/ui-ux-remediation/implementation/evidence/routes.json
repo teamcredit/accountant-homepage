@@ -1,0 +1,360 @@
+{
+  "results": [
+    {
+      "path": "/",
+      "status": 200,
+      "canonical": "https://www.meridianco.kr"
+    },
+    {
+      "path": "/about",
+      "status": 200,
+      "canonical": "https://www.meridianco.kr/about"
+    },
+    {
+      "path": "/services",
+      "status": 200,
+      "canonical": "https://www.meridianco.kr/services"
+    },
+    {
+      "path": "/members",
+      "status": 200,
+      "canonical": "https://www.meridianco.kr/members"
+    },
+    {
+      "path": "/clients",
+      "status": 200,
+      "canonical": "https://www.meridianco.kr/clients"
+    },
+    {
+      "path": "/portal",
+      "status": 200,
+      "canonical": "https://www.meridianco.kr/portal"
+    },
+    {
+      "path": "/blog",
+      "status": 200,
+      "canonical": "https://www.meridianco.kr/blog"
+    },
+    {
+      "path": "/faq",
+      "status": 200,
+      "canonical": "https://www.meridianco.kr/faq"
+    },
+    {
+      "path": "/contact",
+      "status": 200,
+      "canonical": "https://www.meridianco.kr/contact"
+    },
+    {
+      "path": "/services/tax-bookkeeping",
+      "status": 200,
+      "canonical": "https://www.meridianco.kr/services/tax-bookkeeping"
+    },
+    {
+      "path": "/services/tax-adjustment",
+      "status": 200,
+      "canonical": "https://www.meridianco.kr/services/tax-adjustment"
+    },
+    {
+      "path": "/services/payroll-outsourcing",
+      "status": 200,
+      "canonical": "https://www.meridianco.kr/services/payroll-outsourcing"
+    },
+    {
+      "path": "/services/tax-advisory",
+      "status": 200,
+      "canonical": "https://www.meridianco.kr/services/tax-advisory"
+    },
+    {
+      "path": "/services/audit-advisory",
+      "status": 200,
+      "canonical": "https://www.meridianco.kr/services/audit-advisory"
+    },
+    {
+      "path": "/services/pa",
+      "status": 200,
+      "canonical": "https://www.meridianco.kr/services/pa"
+    },
+    {
+      "path": "/services/ipo-advisory",
+      "status": 200,
+      "canonical": "https://www.meridianco.kr/services/ipo-advisory"
+    },
+    {
+      "path": "/services/transaction-advisory",
+      "status": 200,
+      "canonical": "https://www.meridianco.kr/services/transaction-advisory"
+    },
+    {
+      "path": "/services/valuation",
+      "status": 200,
+      "canonical": "https://www.meridianco.kr/services/valuation"
+    },
+    {
+      "path": "/blog/contract-cancellation-deposit-vat-bad-debt-credit-2026",
+      "status": 200,
+      "canonical": "https://www.meridianco.kr/blog/contract-cancellation-deposit-vat-bad-debt-credit-2026"
+    },
+    {
+      "path": "/blog/one-household-one-house-definition-2026",
+      "status": 200,
+      "canonical": "https://www.meridianco.kr/blog/one-household-one-house-definition-2026"
+    },
+    {
+      "path": "/blog/apartment-joint-vs-sole-ownership",
+      "status": 200,
+      "canonical": "https://www.meridianco.kr/blog/apartment-joint-vs-sole-ownership"
+    },
+    {
+      "path": "/blog/four-insurance-employer-guide",
+      "status": 200,
+      "canonical": "https://www.meridianco.kr/blog/four-insurance-employer-guide"
+    },
+    {
+      "path": "/blog/startup-tax-relief-2026",
+      "status": 200,
+      "canonical": "https://www.meridianco.kr/blog/startup-tax-relief-2026"
+    },
+    {
+      "path": "/blog/creator-cash-sales-report",
+      "status": 200,
+      "canonical": "https://www.meridianco.kr/blog/creator-cash-sales-report"
+    },
+    {
+      "path": "/blog/home-office-expense-deduction",
+      "status": 200,
+      "canonical": "https://www.meridianco.kr/blog/home-office-expense-deduction"
+    },
+    {
+      "path": "/blog/dividend-separate-taxation-2026",
+      "status": 200,
+      "canonical": "https://www.meridianco.kr/blog/dividend-separate-taxation-2026"
+    },
+    {
+      "path": "/blog/small-corp-tax-benefits-checklist",
+      "status": 200,
+      "canonical": "https://www.meridianco.kr/blog/small-corp-tax-benefits-checklist"
+    },
+    {
+      "path": "/blog/inheritance-tax-reform-2026",
+      "status": 200,
+      "canonical": "https://www.meridianco.kr/blog/inheritance-tax-reform-2026"
+    },
+    {
+      "path": "/blog/vat-changes-april-2026",
+      "status": 200,
+      "canonical": "https://www.meridianco.kr/blog/vat-changes-april-2026"
+    },
+    {
+      "path": "/blog/freelancer-income-tax-guide",
+      "status": 200,
+      "canonical": "https://www.meridianco.kr/blog/freelancer-income-tax-guide"
+    },
+    {
+      "path": "/blog/rental-income-vat-housing-vs-commercial",
+      "status": 200,
+      "canonical": "https://www.meridianco.kr/blog/rental-income-vat-housing-vs-commercial"
+    },
+    {
+      "path": "/blog/corporate-tax-rate-increase-2026",
+      "status": 200,
+      "canonical": "https://www.meridianco.kr/blog/corporate-tax-rate-increase-2026"
+    },
+    {
+      "path": "/blog/withholding-tax-payment-statement",
+      "status": 200,
+      "canonical": "https://www.meridianco.kr/blog/withholding-tax-payment-statement"
+    },
+    {
+      "path": "/blog/rnd-tax-credit-pre-review",
+      "status": 200,
+      "canonical": "https://www.meridianco.kr/blog/rnd-tax-credit-pre-review"
+    },
+    {
+      "path": "/blog/corporate-settlement-tax-adjustment",
+      "status": 200,
+      "canonical": "https://www.meridianco.kr/blog/corporate-settlement-tax-adjustment"
+    },
+    {
+      "path": "/blog/business-credit-card-registration",
+      "status": 200,
+      "canonical": "https://www.meridianco.kr/blog/business-credit-card-registration"
+    },
+    {
+      "path": "/blog/exempt-business-status-report-2026",
+      "status": 200,
+      "canonical": "https://www.meridianco.kr/blog/exempt-business-status-report-2026"
+    },
+    {
+      "path": "/blog/year-end-tax-settlement-refund",
+      "status": 200,
+      "canonical": "https://www.meridianco.kr/blog/year-end-tax-settlement-refund"
+    },
+    {
+      "path": "/blog/vat-input-tax-deduction",
+      "status": 200,
+      "canonical": "https://www.meridianco.kr/blog/vat-input-tax-deduction"
+    },
+    {
+      "path": "/blog/new-business-tax-calendar-2026",
+      "status": 200,
+      "canonical": "https://www.meridianco.kr/blog/new-business-tax-calendar-2026"
+    },
+    {
+      "path": "/blog/tax-reform-2026-enacted",
+      "status": 200,
+      "canonical": "https://www.meridianco.kr/blog/tax-reform-2026-enacted"
+    },
+    {
+      "path": "/blog/year-end-closing-checklist",
+      "status": 200,
+      "canonical": "https://www.meridianco.kr/blog/year-end-closing-checklist"
+    },
+    {
+      "path": "/blog/retirement-severance-tax",
+      "status": 200,
+      "canonical": "https://www.meridianco.kr/blog/retirement-severance-tax"
+    },
+    {
+      "path": "/blog/employee-benefits-tax-treatment",
+      "status": 200,
+      "canonical": "https://www.meridianco.kr/blog/employee-benefits-tax-treatment"
+    },
+    {
+      "path": "/blog/year-end-tax-prep-november",
+      "status": 200,
+      "canonical": "https://www.meridianco.kr/blog/year-end-tax-prep-november"
+    },
+    {
+      "path": "/blog/ceo-salary-vs-dividend",
+      "status": 200,
+      "canonical": "https://www.meridianco.kr/blog/ceo-salary-vs-dividend"
+    },
+    {
+      "path": "/blog/estimated-tax-expense-rate",
+      "status": 200,
+      "canonical": "https://www.meridianco.kr/blog/estimated-tax-expense-rate"
+    },
+    {
+      "path": "/blog/vat-preliminary-q2-2025",
+      "status": 200,
+      "canonical": "https://www.meridianco.kr/blog/vat-preliminary-q2-2025"
+    },
+    {
+      "path": "/blog/temporary-advance-cleanup",
+      "status": 200,
+      "canonical": "https://www.meridianco.kr/blog/temporary-advance-cleanup"
+    },
+    {
+      "path": "/blog/individual-vs-corporate-tax",
+      "status": 200,
+      "canonical": "https://www.meridianco.kr/blog/individual-vs-corporate-tax"
+    },
+    {
+      "path": "/blog/tax-reform-2025-summary",
+      "status": 200,
+      "canonical": "https://www.meridianco.kr/blog/tax-reform-2025-summary"
+    },
+    {
+      "path": "/blog/executive-stock-option-tax",
+      "status": 200,
+      "canonical": "https://www.meridianco.kr/blog/executive-stock-option-tax"
+    },
+    {
+      "path": "/blog/tax-audit-preparation",
+      "status": 200,
+      "canonical": "https://www.meridianco.kr/blog/tax-audit-preparation"
+    },
+    {
+      "path": "/blog/interim-corporate-tax-2025",
+      "status": 200,
+      "canonical": "https://www.meridianco.kr/blog/interim-corporate-tax-2025"
+    },
+    {
+      "path": "/blog/tax-invoice-late-penalty",
+      "status": 200,
+      "canonical": "https://www.meridianco.kr/blog/tax-invoice-late-penalty"
+    },
+    {
+      "path": "/blog/cash-receipt-mandatory-issuance",
+      "status": 200,
+      "canonical": "https://www.meridianco.kr/blog/cash-receipt-mandatory-issuance"
+    },
+    {
+      "path": "/blog/vat-final-q1-zero-rate",
+      "status": 200,
+      "canonical": "https://www.meridianco.kr/blog/vat-final-q1-zero-rate"
+    },
+    {
+      "path": "/blog/business-vehicle-expense",
+      "status": 200,
+      "canonical": "https://www.meridianco.kr/blog/business-vehicle-expense"
+    },
+    {
+      "path": "/blog/faithful-reporting-target",
+      "status": 200,
+      "canonical": "https://www.meridianco.kr/blog/faithful-reporting-target"
+    },
+    {
+      "path": "/blog/late-income-tax-filing",
+      "status": 200,
+      "canonical": "https://www.meridianco.kr/blog/late-income-tax-filing"
+    },
+    {
+      "path": "/blog/entertainment-expense-limit",
+      "status": 200,
+      "canonical": "https://www.meridianco.kr/blog/entertainment-expense-limit"
+    },
+    {
+      "path": "/blog/combined-income-tax-filing",
+      "status": 200,
+      "canonical": "https://www.meridianco.kr/blog/combined-income-tax-filing"
+    },
+    {
+      "path": "/blog/simplified-vs-general-taxpayer",
+      "status": 200,
+      "canonical": "https://www.meridianco.kr/blog/simplified-vs-general-taxpayer"
+    },
+    {
+      "path": "/blog/vat-preliminary-q1-2025",
+      "status": 200,
+      "canonical": "https://www.meridianco.kr/blog/vat-preliminary-q1-2025"
+    },
+    {
+      "path": "/blog/loss-carryforward-guide",
+      "status": 200,
+      "canonical": "https://www.meridianco.kr/blog/loss-carryforward-guide"
+    },
+    {
+      "path": "/blog/corporate-tax-filing-prep",
+      "status": 200,
+      "canonical": "https://www.meridianco.kr/blog/corporate-tax-filing-prep"
+    },
+    {
+      "path": "/blog/evidence-management-basics",
+      "status": 200,
+      "canonical": "https://www.meridianco.kr/blog/evidence-management-basics"
+    },
+    {
+      "path": "/blog/vat-final-q4-checklist",
+      "status": 200,
+      "canonical": "https://www.meridianco.kr/blog/vat-final-q4-checklist"
+    },
+    {
+      "path": "/blog/year-end-tax-prep-2025",
+      "status": 200,
+      "canonical": "https://www.meridianco.kr/blog/year-end-tax-prep-2025"
+    },
+    {
+      "path": "/pricing",
+      "status": 200,
+      "canonical": "https://www.meridianco.kr/pricing"
+    },
+    {
+      "path": "/nonexistent-qa-page",
+      "status": 404,
+      "canonical": "https://www.meridianco.kr"
+    }
+  ],
+  "errors": []
+}

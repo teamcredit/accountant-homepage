@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useReducer, useRef, useState } from "react";
 import {
+  pricingLinkWarning,
   ADD_ONS,
   CUSTOM_FLAGS,
   DEFAULT_STATE,
@@ -110,6 +111,7 @@ export default function PricingCalculator() {
   const [industryQuery, setIndustryQuery] = useState("");
   const [revenueDirectOpen, setRevenueDirectOpen] = useState(false);
   const [ctaMessage, setCtaMessage] = useState<{ text: string; tone: "neutral" | "success" | "error" } | null>(null);
+  const [linkWarning, setLinkWarning] = useState<string | null>(null);
   const [hydrated, setHydrated] = useState(false);
 
   const industryInputRef = useRef<HTMLInputElement | null>(null);
@@ -137,7 +139,11 @@ export default function PricingCalculator() {
     try {
       const search = window.location.search;
       if (search) {
-        const fromUrl = deserializeStateFromParams(new URLSearchParams(search));
+        const params = new URLSearchParams(search);
+        // URL hydration is a one-time synchronization with the browser.
+        // eslint-disable-next-line react-hooks/set-state-in-effect
+        setLinkWarning(pricingLinkWarning(params));
+        const fromUrl = deserializeStateFromParams(params);
         if (Object.keys(fromUrl).length > 0) partial = fromUrl;
       }
     } catch {
@@ -147,19 +153,18 @@ export default function PricingCalculator() {
       const merged: CalcState = { ...DEFAULT_STATE, ...partial };
       dispatch({ type: "hydrate", partial });
       if (!REVENUE_OPTIONS.includes(merged.revenue)) {
-        // eslint-disable-next-line react-hooks/set-state-in-effect
         setRevenueDirectOpen(true);
       }
     }
     setHydrated(true);
   }, []);
 
-  /* ─ Keep estimate inputs in memory unless the user explicitly shares them. */
+  /* Keep public calculation conditions in the URL so Back restores the estimate. */
   useEffect(() => {
     if (!hydrated) return;
-    if (!window.location.search) return;
-    window.history.replaceState({}, "", window.location.pathname);
-  }, [hydrated]);
+    const query = serializeStateToParams(state);
+    window.history.replaceState(null, '', `${window.location.pathname}?${query}`);
+  }, [hydrated, state]);
 
   /* ─ CTA flash message timer ─ */
   useEffect(() => {
@@ -179,13 +184,10 @@ export default function PricingCalculator() {
   }, [state]);
 
   const contactHref = useMemo(() => {
-    const params = new URLSearchParams({
-      type: "세무 기장",
-      bottleneck: "예상 수임료 검토",
-      output: "기장 견적 상담",
-    });
+    const params = serializeStateToParams(state);
+    params.set('from', 'pricing');
     return `/contact?${params.toString()}`;
-  }, []);
+  }, [state]);
 
   const onSelectIndustry = useCallback((id: string) => {
     dispatch({ type: "setIndustry", id });
@@ -247,6 +249,7 @@ export default function PricingCalculator() {
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-10">
+      {linkWarning && <p role="status" className="lg:col-span-12 text-sm text-muted">{linkWarning}</p>}
       {/* ─── Wizard ─── */}
       <section className="lg:col-span-7 xl:col-span-7">
         <div className="mb-6">

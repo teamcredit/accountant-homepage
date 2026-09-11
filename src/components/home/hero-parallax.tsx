@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { motion, useScroll, useTransform, useReducedMotion } from "motion/react";
+import { motion, useScroll, useTransform } from "motion/react";
+import { usePrefersReducedMotion as useReducedMotion } from "@/lib/use-media";
 import type { ReactNode } from "react";
 
 interface HeroParallaxProps {

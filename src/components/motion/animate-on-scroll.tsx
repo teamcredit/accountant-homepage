@@ -1,7 +1,8 @@
 "use client";
 
-import { motion, useReducedMotion } from "motion/react";
-import { useSyncExternalStore } from "react";
+import { motion, useInView } from "motion/react";
+import { usePrefersReducedMotion as useReducedMotion } from "@/lib/use-media";
+import { useSyncExternalStore, useRef } from "react";
 import type { ReactNode } from "react";
 
 const variants = {
@@ -58,16 +59,14 @@ export default function AnimateOnScroll({
     getServerSnapshot
   );
   const reduced = useReducedMotion();
-
-  if (!hydrated || reduced) {
-    return className ? <div className={className}>{children}</div> : <>{children}</>;
-  }
+  const ref = useRef<HTMLDivElement>(null);
+  const inView = useInView(ref, { once, amount });
 
   return (
     <motion.div
-      initial="hidden"
-      whileInView="visible"
-      viewport={{ once, amount }}
+      ref={ref}
+      initial={false}
+      animate={!hydrated || reduced || inView ? "visible" : "hidden"}
       variants={variants[variant]}
       transition={{
         duration,

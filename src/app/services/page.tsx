@@ -5,7 +5,7 @@ import HeroVideo from "@/components/layout/hero-video";
 import ServicePicker from "@/components/services/service-picker";
 
 export const metadata: Metadata = {
-  title: "PRACTICE",
+  title: "서비스",
   description:
     "세무자문 · 회계감사 · 회계자문 · 재무자문. 네 갈래 아래 여덟 가지 업무를 안내합니다.",
   alternates: {

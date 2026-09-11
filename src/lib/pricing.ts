@@ -454,7 +454,7 @@ export function calculateYearEndFee(state: CalcState): number {
 
 function sumSelectedAddOns(state: CalcState, field: "monthly" | "annual"): number {
   let total = 0;
-  for (const id of state.addOns) {
+  for (const id of new Set(state.addOns)) {
     const addOn = ADD_ONS.find((item) => item.id === id);
     if (addOn) {
       total += addOn[field];
@@ -553,7 +553,7 @@ export function calculateEstimate(state: CalcState): Estimate {
     });
   }
 
-  for (const id of state.addOns) {
+  for (const id of new Set(state.addOns)) {
     const addOn = ADD_ONS.find((item) => item.id === id);
     if (!addOn || addOn.monthly === 0) continue;
     breakdown.push({
@@ -667,7 +667,7 @@ export function formatHeadcount(count: number, emptyLabel = "없음"): string {
 
 export function parseCurrencyInput(value: string): number {
   const normalized = String(value).replace(/[^\d]/g, "");
-  return Number(normalized || 0);
+  return Math.min(1_000_000_000_000, Number(normalized || 0));
 }
 
 export function normalizeSearchToken(value: string): string {
@@ -783,6 +783,7 @@ export const STATE_QUERY_KEYS = [
 
 export function serializeStateToParams(state: CalcState): URLSearchParams {
   const params = new URLSearchParams();
+  params.set("v", "1");
   params.set("type", state.businessType);
   params.set("industry", state.industryId);
   params.set("revenue", String(state.revenue));
@@ -810,6 +811,7 @@ function isPayrollMode(value: string): value is PayrollMode {
 }
 
 export function deserializeStateFromParams(params: URLSearchParams): Partial<CalcState> {
+  if (params.has("v") && params.get("v") !== "1") return {};
   const out: Partial<CalcState> = {};
   const type = params.get("type");
   if (type && isBusinessType(type)) out.businessType = type;
@@ -818,17 +820,17 @@ export function deserializeStateFromParams(params: URLSearchParams): Partial<Cal
   const revenue = params.get("revenue");
   if (revenue !== null) {
     const n = Number(revenue);
-    if (Number.isFinite(n) && n >= 0) out.revenue = n;
+    if (Number.isSafeInteger(n) && n >= 0 && n <= 1_000_000_000_000) out.revenue = n;
   }
   const staff = params.get("staff");
   if (staff !== null) {
     const n = Number(staff);
-    if (Number.isFinite(n) && n >= 0) out.staffCount = Math.min(STAFF_RANGE_MAX, Math.floor(n));
+    if (Number.isSafeInteger(n) && n >= 0 && n <= STAFF_RANGE_MAX) out.staffCount = n;
   }
   const extraPayees = params.get("extra_payees");
   if (extraPayees !== null) {
     const n = Number(extraPayees);
-    if (Number.isFinite(n) && n >= 0) out.nonEmployeePayeeCount = Math.min(STAFF_RANGE_MAX, Math.floor(n));
+    if (Number.isSafeInteger(n) && n >= 0 && n <= STAFF_RANGE_MAX) out.nonEmployeePayeeCount = n;
   }
   const payroll = params.get("payroll");
   if (payroll && isPayrollMode(payroll)) out.payrollMode = payroll;
@@ -838,11 +840,24 @@ export function deserializeStateFromParams(params: URLSearchParams): Partial<Cal
   if (setup && isSetupMode(setup)) out.setupMode = setup;
   const addons = params.get("addons");
   if (addons !== null) {
-    out.addOns = addons.split(",").filter((id) => ADD_ONS.some((a) => a.id === id));
+    out.addOns = [...new Set(addons.split(",").filter((id) => ADD_ONS.some((a) => a.id === id)))];
   }
   const flags = params.get("flags");
   if (flags !== null) {
-    out.customFlags = flags.split(",").filter((id) => CUSTOM_FLAGS.some((f) => f.id === id));
+    out.customFlags = [...new Set(flags.split(",").filter((id) => CUSTOM_FLAGS.some((f) => f.id === id)))];
   }
   return out;
+}
+
+/** Report discarded or normalized public link inputs rather than silently changing the estimate. */
+export function pricingLinkWarning(params: URLSearchParams): string | null {
+  if (params.has('v') && params.get('v') !== '1') return '지원하지 않는 견적 링크입니다. 기본 조건으로 표시합니다.';
+  const parsed = deserializeStateFromParams(params);
+  const normalized = serializeStateToParams({ ...DEFAULT_STATE, ...parsed });
+  for (const key of STATE_QUERY_KEYS) {
+    if (params.has(key) && (params.getAll(key).length > 1 || params.get(key) !== normalized.get(key))) {
+      return '링크에 잘못되거나 중복된 조건이 있어 기본값 적용 또는 중복 제거를 했습니다. 계산 조건을 확인해 주세요.';
+    }
+  }
+  return null;
 }

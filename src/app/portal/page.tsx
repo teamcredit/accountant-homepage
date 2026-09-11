@@ -1,4 +1,4 @@
-import Link from "next/link";
+import EvidenceDemo from "@/components/home/evidence-demo";
 import type { Metadata } from "next";
 import { orderedServices } from "@/lib/constants";
 import { siteConfig } from "@/lib/constants";
@@ -9,14 +9,10 @@ import "../promo.css";
 
 /* 이번 분기 주요 일정. 홈에 있던 것을 그대로 가져왔다.
    D-day 는 적지 않는다. 하루만 지나도 틀린 숫자가 화면에 남는다. */
-const SCHEDULE_DATES = [
-  { what: "원천세 납부", when: "2026-09-10" },
-  { what: "원천세 납부", when: "2026-10-10" },
-  { what: "부가세 2기 예정신고", when: "2026-10-25" },
-  { what: "부가세 2기 확정신고", when: "2027-01-25" },
-];
+import { scheduleDates as SCHEDULE_DATES } from "@/lib/schedule";
 
 export const metadata: Metadata = {
+  alternates: { canonical: "/portal" },
   title: "회계사가 정리한 자료를 한 화면에서 보는 세무 대시보드",
   description:
     "기장을 맡기시면 회사 전용 세무 대시보드가 무료로 제공됩니다. 홈택스·카드·통장 자료를 매일 자동으로 모으고, 지금 이 순간의 손익과 부가세를 봅니다.",
@@ -291,7 +287,7 @@ export default function Portal() {
                 {/* 02 전년 동기 비교 */}
                 <div className="fpane">
                   <table className="ui-tb">
-                    <thead><tr><th></th><th>이번 기간</th><th>전년 동기</th><th>증감률</th></tr></thead>
+                    <thead><tr><th><span className="sr-only">비교 항목</span></th><th>이번 기간</th><th>전년 동기</th><th>증감률</th></tr></thead>
                     <tbody>
                       <tr><th>매출</th><td className="num">892,400,000</td><td className="num">796,800,000</td><td className="num up">+12.0%</td></tr>
                       <tr><th>매입</th><td className="num">793,650,000</td><td className="num">734,200,000</td><td className="num dn">+8.1%</td></tr>
@@ -381,40 +377,7 @@ export default function Portal() {
 
 
       {/* 5. 근거 */}
-      <section id="evid" style={{'background': 'var(--w-2)'}}>
-        <div className="wrap">
-          <p className="tick rise">숫자를 누르면</p>
-          <h2 className="sec rise">그 숫자가 어디서 왔는지 나옵니다<span className="dot-b">.</span></h2>
-          <p className="lede rise"><span className="s">합계만 보여주고 끝내지 않습니다.</span><span className="s">계산식과 집계 건수, 원본 증빙까지 이어집니다.</span></p>
-
-          <div className="panel rise" style={{'background': 'var(--w)'}}>
-            <div className="tabs" role="tablist" aria-label="기간">
-              <button className="tab" role="tab" aria-selected="true" data-p="m">이번 달</button>
-              <button className="tab" role="tab" aria-selected="false" data-p="l">지난달</button>
-              <button className="tab" role="tab" aria-selected="false" data-p="q">이번 분기</button>
-              <button className="tab" role="tab" aria-selected="false" data-p="y">올해</button>
-            </div>
-            <div className="kpis">
-              <button className="kpi" aria-expanded="true" data-k="0"><span className="lab">매출 합계</span>
-                <span className="val num" data-m="184,920,000" data-l="171,340,000" data-q="512,880,000" data-y="1,946,220,000">184,920,000</span>
-                <span className="cmp" data-m="전년 동월 +12.3%" data-l="전년 동월 +8.1%" data-q="전년 동기 +10.4%" data-y="전년 +14.2%">전년 동월 +12.3%</span></button>
-              <button className="kpi" aria-expanded="false" data-k="1"><span className="lab">매입 합계</span>
-                <span className="val num" data-m="121,405,000" data-l="118,220,000" data-q="349,610,000" data-y="1,332,880,000">121,405,000</span>
-                <span className="cmp dn" data-m="전년 동월 +4.8%" data-l="전년 동월 +3.2%" data-q="전년 동기 +5.1%" data-y="전년 +6.0%">전년 동월 +4.8%</span></button>
-              <button className="kpi" aria-expanded="false" data-k="2"><span className="lab">잠정 손익</span>
-                <span className="val num" data-m="63,515,000" data-l="53,120,000" data-q="163,270,000" data-y="613,340,000">63,515,000</span>
-                <span className="cmp" data-m="전년 동월 +28.7%" data-l="전년 동월 +19.4%" data-q="전년 동기 +23.9%" data-y="전년 +31.1%">전년 동월 +28.7%</span></button>
-              <button className="kpi" aria-expanded="false" data-k="3"><span className="lab">부가세 예상</span>
-                <span className="val num" data-m="6,351,500" data-l="5,312,000" data-q="16,327,000" data-y="61,334,000">6,351,500</span>
-                <span className="cmp" data-m="불공제 후보 4건" data-l="불공제 후보 2건" data-q="불공제 후보 9건" data-y="불공제 후보 27건">불공제 후보 4건</span></button>
-            </div>
-            <div className="evid">
-              <div><h4>계산식</h4><div className="formula" id="f-form"></div><p className="evid-note">실제 화면에서는 여기서 원장으로 바로 넘어갑니다.</p></div>
-              <div><h4 id="f-rowtitle">이 금액을 만든 거래처</h4><p className="rnote" id="f-rownote">318건을 합친 값입니다</p><div className="rows" id="f-rows"></div></div>
-            </div>
-          </div>
-        </div>
-      </section>
+      <EvidenceDemo />
 
       {/* 6. 흐름 */}
       <section id="flow">
@@ -437,7 +400,7 @@ export default function Portal() {
           <p className="tick rise">무엇이 다른가</p>
           <h2 className="sec rise">같은 기장인데<br className="brk" />결과가 다른 이유<span className="dot-b">.</span></h2>
           <table className="vs rise">
-            <thead><tr><th></th><th className="theirs">보통의 세무사무소</th><th className="ours"><span className="vs-brand"><img src="/meridian-logo.png" alt="" />MERIDIAN</span></th></tr></thead>
+            <thead><tr><th><span className="sr-only">비교 항목</span></th><th className="theirs">보통의 세무사무소</th><th className="ours"><span className="vs-brand"><img src="/meridian-logo.png" alt="" />MERIDIAN</span></th></tr></thead>
             <tbody>
               <tr><th>자료 전달</th><td className="theirs">월말마다 대표님이 모아서 보냄</td><td className="ours"><strong>매일 자동 수집.</strong> 보낼 것이 없음</td></tr>
               <tr><th>숫자 확인</th><td className="theirs">신고 끝나고 결과만 받음</td><td className="ours"><strong>지금 이 순간</strong>의 손익과 부가세</td></tr>
@@ -460,7 +423,7 @@ export default function Portal() {
             <a className="btn btn-fill" href="/contact">기장 이관 상담하기</a>
             <a className="btn btn-line" href={`tel:${siteConfig.tel}`}>전화 문의</a>
           </div>
-          <p className="cta-note rise" style={{'color': '#7E90AB'}}>상담은 무료입니다.</p>
+          <p className="cta-note rise">상담은 무료입니다.</p>
         </div>
       </section>
 

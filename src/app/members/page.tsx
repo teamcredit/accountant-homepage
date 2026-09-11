@@ -8,7 +8,7 @@ import { StaggerItem } from "@/components/motion/stagger-item";
 import HeroVideo from "@/components/layout/hero-video";
 
 export const metadata: Metadata = {
-  title: "PEOPLE",
+  title: "회계사 소개",
   description: "메리디안 택스 어드바이저리의 사람을 소개합니다.",
   alternates: {
     canonical: "/members",

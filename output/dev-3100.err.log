@@ -1,8 +1,0 @@
-⚠ Warning: Next.js inferred your workspace root, but it may not be correct.
- We detected multiple lockfiles and selected the directory of C:\Users\msp05\package-lock.json as the root directory.
- To silence this warning, set `turbopack.root` in your Next.js config, or consider removing one of the lockfiles if it's not needed.
-   See https://nextjs.org/docs/app/api-reference/config/next-config-js/turbopack#root-directory for more information.
- Detected additional lockfiles: 
-   * C:\Users\msp05\Documents\2. Work\100. 개발\Homepage\package-lock.json
-
-[browser] Please ensure that the container has a non-static position, like 'relative', 'fixed', or 'absolute' to ensure scroll offset is calculated correctly. (<anonymous>)

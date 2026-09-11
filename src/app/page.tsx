@@ -188,7 +188,7 @@ export default function Home() {
           <table className="vs rise">
             <thead>
               <tr>
-                <th></th>
+                <th><span className="sr-only">비교 항목</span></th>
                 <th className="theirs">저가 기장 사무소</th>
                 <th className="ours"><Wordmark className="vs-logo" /></th>
               </tr>

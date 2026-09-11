@@ -34,3 +34,8 @@ export function useMedia(query: string): boolean {
 export function useHandheld(): boolean {
   return useMedia("(max-width: 900px)");
 }
+
+/** Keep the first client render identical to SSR before applying the preference. */
+export function usePrefersReducedMotion(): boolean {
+  return useMedia("(prefers-reduced-motion: reduce)");
+}

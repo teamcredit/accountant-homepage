@@ -1,3 +1,4 @@
+import { toSafeJsonLd } from "@/lib/json-ld";
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
@@ -29,14 +30,6 @@ function toIsoDate(value?: string) {
   return value ? `${value}T00:00:00+09:00` : undefined;
 }
 
-function toSafeJsonLd(value: unknown) {
-  return JSON.stringify(value)
-    .replaceAll("<", "\\u003c")
-    .replaceAll(">", "\\u003e")
-    .replaceAll("&", "\\u0026")
-    .replaceAll("\u2028", "\\u2028")
-    .replaceAll("\u2029", "\\u2029");
-}
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;

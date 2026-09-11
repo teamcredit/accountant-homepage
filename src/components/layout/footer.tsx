@@ -43,7 +43,7 @@ export default function Footer() {
             </p>
             <div className="mt-6 space-y-1">
               <p className="text-xs text-neutral-400">
-                Founder · {siteConfig.founder} 공인회계사
+                Founder · {siteConfig.founder}
               </p>
             </div>
           </StaggerItem>
@@ -53,7 +53,7 @@ export default function Footer() {
             <h3 className="t-label t-label-d mb-5">
               Service
             </h3>
-            <nav className="flex flex-col gap-3">
+            <nav className="flex flex-col gap-3" aria-label="푸터 서비스">
               {practiceLinks.map((link) => (
                 <Link
                   key={link.label}
@@ -75,7 +75,7 @@ export default function Footer() {
                 푸터는 상단에 자리가 없어 밀린 것들이 가는 곳이다 —
                 수임료·회계사 소개가 여기에도 없으면 갈 길이 아예 없다. */}
             {/* 두 줄로 세운다. 여덟 개를 한 줄로 쌓으면 이 칸만 세로로 길다. */}
-            <nav className="ft-menu grid grid-cols-2 gap-x-3">
+            <nav className="ft-menu grid grid-cols-2 gap-x-3" aria-label="푸터 전체 메뉴">
               {menuLinks.map((link) => (
                 <Link
                   key={link.href}
