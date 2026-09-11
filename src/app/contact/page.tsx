@@ -2,9 +2,9 @@ import { toSafeJsonLd } from "@/lib/json-ld";
 import type { Metadata } from "next";
 import Image from "next/image";
 import { siteConfig } from "@/lib/constants";
-import { services } from "@/lib/data";
-import { DEFAULT_STATE, deserializeStateFromParams, calculateEstimate, buildInquiryText } from "@/lib/pricing";
+import { Suspense } from "react";
 import ContactForm from "@/components/contact/contact-form";
+import ContactInquiry from "@/components/contact/contact-inquiry";
 import { AnimateOnScroll, LineReveal } from "@/components/motion";
 import { contactFaq } from "@/lib/faq";
 import HeroVideo from "@/components/layout/hero-video";
@@ -24,16 +24,6 @@ const contactInfo = [
   { label: "Hours", value: "평일 09:00 - 18:00 · 사전 약속 권장" },
 ];
 
-interface ContactPageProps {
-  searchParams: Promise<{
-    [key: string]: string | string[] | undefined;
-  }>;
-}
-
-function getSingleValue(value?: string | string[]) {
-  return Array.isArray(value) ? value[0] : value;
-}
-
 /* 검색엔진이 FAQ를 그대로 읽어가도록 같은 내용을 구조화해서 한 벌 더 넣는다. */
 const faqJsonLd = {
   "@context": "https://schema.org",
@@ -46,22 +36,7 @@ const faqJsonLd = {
 };
 
 
-export default async function ContactPage({ searchParams }: ContactPageProps) {
-  const query = await searchParams;
-  let message = getSingleValue(query.message) || '';
-  if (getSingleValue(query.from) === 'pricing') {
-    const params = new URLSearchParams();
-    for (const [key, value] of Object.entries(query)) { const one = getSingleValue(value); if (one) params.set(key, one); }
-    const state = { ...DEFAULT_STATE, ...deserializeStateFromParams(params) };
-    message = buildInquiryText(state, calculateEstimate(state));
-  } else {
-    const type = getSingleValue(query.type);
-    const service = services.find(item => item.title === type || item.slug === getSingleValue(query.service));
-    const context = [service && `관심 서비스: ${service.title}`, getSingleValue(query.bottleneck) && `상담 목적: ${getSingleValue(query.bottleneck)}`, getSingleValue(query.output) && `필요한 결과물: ${getSingleValue(query.output)}`].filter(Boolean).join('\n');
-    if (context) message = `${context}\n\n${message}`;
-  }
-  const initialValues = message ? { message: message.slice(0, 4000) } : {};
-
+export default function ContactPage() {
   return (
     <>
       {/* Hero */}
@@ -104,7 +79,9 @@ export default async function ContactPage({ searchParams }: ContactPageProps) {
               <h2 className="t-h3 mb-10">
                 문의 내용
               </h2>
-              <ContactForm initialValues={initialValues} />
+              <Suspense fallback={<ContactForm />}>
+                <ContactInquiry />
+              </Suspense>
             </AnimateOnScroll>
 
             <AnimateOnScroll variant="fadeUp" delay={0.2} className="lg:col-span-5">
